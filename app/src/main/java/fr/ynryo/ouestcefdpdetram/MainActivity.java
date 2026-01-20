@@ -1,6 +1,9 @@
 package fr.ynryo.ouestcefdpdetram;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,7 +12,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
@@ -21,11 +26,22 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener {
 
     private GoogleMap mMap;
     private static final String BASE_URL = "https://bus-tracker.fr/api/vehicle-journeys/";
     private static final String TAG = "MainActivity";
+
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final int UPDATE_INTERVAL = 5000; // 5 seconds
+
+    private final Runnable vehicleUpdateRunnable = new Runnable() {
+        @Override
+        public void run() {
+            loadTramMarkers();
+            handler.postDelayed(this, UPDATE_INTERVAL);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,16 +56,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setOnCameraIdleListener(this);
 
         // Initialiser la carte avec une localisation par défaut (par exemple, Nantes)
         LatLng nantes = new LatLng(47.218371, -1.553621);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nantes, 12.0f)); // Zoom level 12
+    }
 
-        // Charger les marqueurs des trams
+    @Override
+    protected void onResume() {
+        super.onResume();
+        handler.post(vehicleUpdateRunnable);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handler.removeCallbacks(vehicleUpdateRunnable);
+    }
+
+    @Override
+    public void onCameraIdle() {
         loadTramMarkers();
     }
 
     private void loadTramMarkers() {
+        if (mMap == null) return;
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -57,50 +89,58 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         NaolibApiService service = retrofit.create(NaolibApiService.class);
 
-        // Définir les coordonnées pour la requête (elles doivent correspondre à la vue actuelle de la carte)
-        // Pour l'instant, on utilise des valeurs fixes pour Nantes.
-        // Idéalement, il faudrait les obtenir dynamiquement lorsque la caméra bouge.
-        double swLat = 47.238964026816376;
-        double swLon = -1.6082083862799834;
-        double neLat = 47.270766383709685;
-        double neLon = -1.4948706842746446;
+        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
 
-        Call<List<MarkerData>> call = service.getVehicleMarkers(swLat, swLon, neLat, neLon);
+        Call<VehicleJourneyResponse> call = service.getVehicleMarkers(bounds.southwest.latitude, bounds.southwest.longitude, bounds.northeast.latitude, bounds.northeast.longitude);
 
-        call.enqueue(new Callback<List<MarkerData>>() {
+        call.enqueue(new Callback<VehicleJourneyResponse>() {
             @Override
-            public void onResponse(Call<List<MarkerData>> call, Response<List<MarkerData>> response) {
+            public void onResponse(Call<VehicleJourneyResponse> call, Response<VehicleJourneyResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<MarkerData> markers = response.body();
-                    for (MarkerData marker : markers) {
-                        LatLng position = new LatLng(marker.getLat(), marker.getLon());
-                        mMap.addMarker(new MarkerOptions()
-                                .position(position)
-                                .title(marker.getTitle()));
-                        Log.d(TAG, "Marker added: " + marker.getTitle() + " at " + position.toString());
+                    mMap.clear();
+                    float currentZoom = mMap.getCameraPosition().zoom;
+                    List<MarkerData> markers = response.body().getItems();
+                    if (markers != null) {
+                        for (MarkerData marker : markers) {
+                            if (marker.getPosition() != null && marker.getFillColor() != null) {
+                                LatLng position = new LatLng(marker.getPosition().getLatitude(), marker.getPosition().getLongitude());
+                                int color = Color.parseColor(marker.getFillColor());
+
+                                double metersPerPixel = (156543.03392 * Math.cos(position.latitude * Math.PI / 180) / Math.pow(2, currentZoom));
+                                double radiusInMeters = 8 * metersPerPixel;
+
+                                mMap.addCircle(new CircleOptions()
+                                        .center(position)
+                                        .radius(radiusInMeters) // Radius in meters
+                                        .fillColor(color)
+                                        .strokeWidth(0));
+
+                                mMap.addMarker(new MarkerOptions()
+                                        .position(position)
+                                        .title(marker.getLineNumber())
+                                        .alpha(0.0f)
+                                        .anchor(0.5f, 0.5f));
+
+                                Log.d(TAG, "Circle added: " + marker.getLineNumber() + " at " + position.toString());
+                            }
+                        }
                     }
                 } else {
-                    // Correction de Log.error qui n'existe pas, utilisation de Log.e
-                    try {
-                        Log.e(TAG, "API call failed: " + response.code() + " " + (response.errorBody() != null ? response.errorBody().string() : "Unknown error"));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    try {
-                        // Si on veut logguer le corps de la réponse d'erreur
-                        if (response.errorBody() != null) {
-                            Log.e(TAG, "Error Body: " + response.errorBody().string());
+                    String errorBody = "Unknown error";
+                    if (response.errorBody() != null) {
+                        try {
+                            errorBody = response.errorBody().string();
+                        } catch (IOException e) {
+                            Log.e(TAG, "Error reading error body", e);
                         }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Exception reading error body: " + e.getMessage());
                     }
+                    Log.e(TAG, "API call failed: " + response.code() + " " + errorBody);
                 }
             }
 
             @Override
-            public void onFailure(Call<List<MarkerData>> call, Throwable t) {
-                // Correction de Log.error qui n'existe pas, utilisation de Log.e
-                Log.e(TAG, "API call error: " + t.getMessage());
+            public void onFailure(Call<VehicleJourneyResponse> call, Throwable t) {
+                Log.e(TAG, "API call error", t);
             }
         });
     }

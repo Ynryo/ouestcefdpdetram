@@ -12,7 +12,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.OùEstCeFdpDeTram">
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value="VOTRE_CLE_API"/>
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyAwD8TFH0e71kIv6lhTf0OXAiArK8F7RH8"/>
         <activity
             android:name=".MainActivity"
             android:exported="true">
