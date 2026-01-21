@@ -1,27 +1,19 @@
 package fr.ynryo.ouestcefdpdetram;
 
-import com.google.gson.annotations.SerializedName;
-
 public class MarkerData {
-    @SerializedName("lat")
-    private double lat;
+    private String lineNumber;
+    private Position position;
+    private String fillColor;
 
-    @SerializedName("lon")
-    private double lon;
-
-    @SerializedName("title")
-    private String title;
-
-    // Getters
-    public double getLat() {
-        return lat;
+    public String getLineNumber() {
+        return lineNumber;
     }
 
-    public double getLon() {
-        return lon;
+    public Position getPosition() {
+        return position;
     }
 
-    public String getTitle() {
-        return title;
+    public String getFillColor() {
+        return fillColor;
     }
 }
