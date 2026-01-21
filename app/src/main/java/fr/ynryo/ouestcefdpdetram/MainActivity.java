@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Path;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -96,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // initialiser la carte avec une localisation par défaut (ici Nantes)
         LatLng nantes = new LatLng(47.218371, -1.553621);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nantes, 12.0f)); // Zoom level 12
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nantes, 15.0f)); // Zoom level 12
 
         // demander la permission de géolocalisation si elle n'est pas accordée
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -184,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 mMap.addMarker(new MarkerOptions()
                                         .position(position)
                                         .icon(createCustomMarker(MainActivity.this, marker.getLineNumber(), color, marker.getPosition().getBearing()))
-                                        .anchor(0.5f, 1.0f));
+                                        .anchor(0.5f, 0.5f));
 
                                 Log.d(TAG, "Marker added: " + marker.getLineNumber() + " at " + position.toString());
                             }
@@ -211,31 +212,52 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public static BitmapDescriptor createCustomMarker(Context context, String text, int color, float bearing) {
+        // 1. Inflate du layout custom (qui contient l'ImageView et le TextView)
         View markerLayout = LayoutInflater.from(context).inflate(R.layout.custom_marker, null);
 
-        ImageView markerCircle = markerLayout.findViewById(R.id.marker_circle); // marker
-        View lineMarkerColor1 = markerCircle.findViewById(R.id.lineMarkerColor1);
-        View lineMarkerColor2 = markerCircle.findViewById(R.id.lineMarkerColor2);
+        // 2. Récupération des vues
+        ImageView markerCircle = markerLayout.findViewById(R.id.marker_circle);
+        TextView lineNumber = markerLayout.findViewById(R.id.line_number);
 
+        // 3. Gestion du Drawable avec teintage sélectif
+        // On récupère le layer-list, on le mutate pour ne pas modifier les autres marqueurs
+        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.marker_circle);
+        if (drawable instanceof LayerDrawable) {
+            LayerDrawable layerDrawable = (LayerDrawable) drawable.mutate();
 
-        Drawable markerCircleDrawable = ContextCompat.getDrawable(context, R.drawable.marker_circle).mutate();
-        markerCircle.setImageDrawable(markerCircleDrawable);
+            // On cherche la couche du fond (le triangle et le cercle extérieur) par son ID
+            Drawable backgroundPart = layerDrawable.findDrawableByLayerId(R.id.marker_background);
 
-        TextView lineNumber = markerLayout.findViewById(R.id.line_number); // texte sous le marker
+            if (backgroundPart != null) {
+                // On applique la couleur de la ligne uniquement sur cette couche
+                DrawableCompat.setTint(backgroundPart, color);
+            }
+            markerCircle.setImageDrawable(layerDrawable);
+        } else {
+            // Fallback au cas où le XML ne serait pas un LayerDrawable
+            markerCircle.setImageDrawable(drawable);
+        }
+
+        // 4. Configuration du texte (numéro de ligne)
         lineNumber.setText(text);
         lineNumber.setTextColor(color);
-        lineMarkerColor1.setBackgroundColor(color);
-        lineMarkerColor2.setBackgroundColor(color);
 
-
+        // 5. Application de la rotation sur l'ImageView
+        // Le pivot est déjà défini au centre (24,24) dans le XML du Vector
         markerCircle.setRotation(bearing);
 
-        markerLayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        // 6. Rendu du Layout en Bitmap pour Google Maps
+        markerLayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
         markerLayout.layout(0, 0, markerLayout.getMeasuredWidth(), markerLayout.getMeasuredHeight());
 
-        final Bitmap bitmap = Bitmap.createBitmap(markerLayout.getMeasuredWidth(), markerLayout.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(markerLayout.getMeasuredWidth(),
+                markerLayout.getMeasuredHeight(),
+                Bitmap.Config.ARGB_8888);
+
         Canvas canvas = new Canvas(bitmap);
         markerLayout.draw(canvas);
+
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 }

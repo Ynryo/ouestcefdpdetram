@@ -1,27 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="48dp"
-    android:height="48dp"
-    android:viewportWidth="48"
-    android:viewportHeight="48">
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/marker_background">
+        <vector
+            android:width="48dp"
+            android:height="48dp"
+            android:viewportWidth="48"
+            android:viewportHeight="48">
+            <group
+                android:pivotX="24"
+                android:pivotY="24">
+                <path
+                    android:fillColor="#FF0000"
+                    android:pathData="M24,4 L16,20 L32,20 Z" />
+                <path
+                    android:fillColor="#FF0000"
+                    android:pathData="M24,24m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" />
+            </group>
+        </vector>
+    </item>
 
-    <group
-        android:pivotX="24"
-        android:pivotY="24">
-
-        <path
-            android:id="@+id/lineMarkerColor1"
-            android:fillColor="#E53935"
-            android:pathData="M24,4 L16,20 L32,20 Z" />
-
-        <path
-            android:id="@+id/lineMarkerColor2"
-            android:fillColor="#E53935"
-            android:pathData="M24,24m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" />
-
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M24,24m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
-
-    </group>
-</vector>
+    <item>
+        <vector
+            android:width="48dp"
+            android:height="48dp"
+            android:viewportWidth="48"
+            android:viewportHeight="48">
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M24,24m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+        </vector>
+    </item>
+</layer-list>
