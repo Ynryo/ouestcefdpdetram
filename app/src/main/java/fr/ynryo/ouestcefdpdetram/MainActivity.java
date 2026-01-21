@@ -6,7 +6,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Path;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.location.Location;
@@ -185,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 mMap.addMarker(new MarkerOptions()
                                         .position(position)
                                         .icon(createCustomMarker(MainActivity.this, marker.getLineNumber(), color, marker.getPosition().getBearing()))
-                                        .anchor(0.5f, 0.5f));
+                                        .anchor(0.5f, 0.5f)); // mid du xml (milieu du cercle)
 
                                 Log.d(TAG, "Marker added: " + marker.getLineNumber() + " at " + position.toString());
                             }
@@ -211,13 +210,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    public static BitmapDescriptor createCustomMarker(Context context, String text, int color, float bearing) {
+    public static BitmapDescriptor createCustomMarker(Context context, String lineNumberText, int color, float bearing) {
         // 1. Inflate du layout custom (qui contient l'ImageView et le TextView)
         View markerLayout = LayoutInflater.from(context).inflate(R.layout.custom_marker, null);
 
         // 2. Récupération des vues
         ImageView markerCircle = markerLayout.findViewById(R.id.marker_circle);
-        TextView lineNumber = markerLayout.findViewById(R.id.line_number);
+        TextView lineNumberView = markerLayout.findViewById(R.id.line_number);
 
         // 3. Gestion du Drawable avec teintage sélectif
         // On récupère le layer-list, on le mutate pour ne pas modifier les autres marqueurs
@@ -239,8 +238,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         // 4. Configuration du texte (numéro de ligne)
-        lineNumber.setText(text);
-        lineNumber.setTextColor(color);
+        lineNumberView.setText(lineNumberText);
+        lineNumberView.setTextColor(color);
 
         // 5. Application de la rotation sur l'ImageView
         // Le pivot est déjà défini au centre (24,24) dans le XML du Vector
