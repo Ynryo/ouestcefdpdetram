@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
+    // thread pour mettre à jour les marqueurs
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
         public void run() {
@@ -66,18 +68,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     };
 
+    // init de la carte
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // initialiser le client de localisation
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this); // get la map
 
-        FloatingActionButton fab = findViewById(R.id.fab_center_location);
+        FloatingActionButton fab = findViewById(R.id.fab_center_location); // button center loc
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -91,18 +94,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
 
-        // Initialiser la carte avec une localisation par défaut (par exemple, Nantes)
+        // initialiser la carte avec une localisation par défaut (ici Nantes)
         LatLng nantes = new LatLng(47.218371, -1.553621);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nantes, 12.0f)); // Zoom level 12
 
+        // demander la permission de géolocalisation si elle n'est pas accordée
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // si la permission n'est pas accordée, demander la permission
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         } else {
+            // si la permission est accordée, activer la géolocalisation
             mMap.setMyLocationEnabled(true);
         }
     }
 
+    // centrer la carte sur la localisation de l'utilisateur
     private void centerMapOnUserLocation() {
+        // si on a pas la perm de loc, on fait rien
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
@@ -130,29 +138,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    // mise à jour des marqueurs
     @Override
     protected void onResume() {
         super.onResume();
         handler.post(vehicleUpdateRunnable);
     }
 
+    // suppression des marqueurs
     @Override
     protected void onPause() {
         super.onPause();
         handler.removeCallbacks(vehicleUpdateRunnable);
     }
 
+    // mise à jour des marqueurs
     @Override
     public void onCameraIdle() {
         loadTramMarkers();
     }
 
+    // chargement des marqueurs
     private void loadTramMarkers() {
-        if (mMap == null) return;
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+        if (mMap == null) return; // si pas de map return
+        Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
 
         NaolibApiService service = retrofit.create(NaolibApiService.class);
 
@@ -160,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Call<VehicleJourneyResponse> call = service.getVehicleMarkers(bounds.southwest.latitude, bounds.southwest.longitude, bounds.northeast.latitude, bounds.northeast.longitude);
 
-        call.enqueue(new Callback<VehicleJourneyResponse>() {
+        call.enqueue(new Callback<VehicleJourneyResponse>() { // appel asynchrone
             @Override
             public void onResponse(Call<VehicleJourneyResponse> call, Response<VehicleJourneyResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -204,22 +213,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static BitmapDescriptor createCustomMarker(Context context, String text, int color, float bearing) {
         View markerLayout = LayoutInflater.from(context).inflate(R.layout.custom_marker, null);
 
-        ImageView markerCircle = markerLayout.findViewById(R.id.marker_circle);
-        ImageView markerPointer = markerLayout.findViewById(R.id.marker_pointer);
-        TextView lineNumber = markerLayout.findViewById(R.id.line_number);
+        ImageView markerCircle = markerLayout.findViewById(R.id.marker_circle); // marker
+        View lineMarkerColor1 = markerCircle.findViewById(R.id.lineMarkerColor1);
+        View lineMarkerColor2 = markerCircle.findViewById(R.id.lineMarkerColor2);
 
-        Drawable circleDrawable = ContextCompat.getDrawable(context, R.drawable.marker_circle).mutate();
-        DrawableCompat.setTint(circleDrawable, color);
-        markerCircle.setImageDrawable(circleDrawable);
 
-        Drawable pointerDrawable = ContextCompat.getDrawable(context, R.drawable.ic_triangle).mutate();
-        DrawableCompat.setTint(pointerDrawable, color);
-        markerPointer.setImageDrawable(pointerDrawable);
+        Drawable markerCircleDrawable = ContextCompat.getDrawable(context, R.drawable.marker_circle).mutate();
+        markerCircle.setImageDrawable(markerCircleDrawable);
 
+        TextView lineNumber = markerLayout.findViewById(R.id.line_number); // texte sous le marker
         lineNumber.setText(text);
-        lineNumber.setBackgroundColor(color);
+        lineNumber.setTextColor(color);
+        lineMarkerColor1.setBackgroundColor(color);
+        lineMarkerColor2.setBackgroundColor(color);
 
-        markerPointer.setRotation(bearing);
+
+        markerCircle.setRotation(bearing);
 
         markerLayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
         markerLayout.layout(0, 0, markerLayout.getMeasuredWidth(), markerLayout.getMeasuredHeight());

@@ -9,23 +9,15 @@
         android:layout_height="40dp"
         android:src="@drawable/marker_circle" />
 
-    <ImageView
-        android:id="@+id/marker_pointer"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_below="@id/marker_circle"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/ic_triangle" />
-
     <TextView
         android:id="@+id/line_number"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/marker_pointer"
+        android:layout_below="@id/marker_circle"
         android:layout_centerHorizontal="true"
-        android:background="#FF0000"
-        android:padding="5dp"
+        android:padding="2dp"
         android:text="2"
-        android:textColor="@android:color/white" />
+        android:textFontWeight="500"
+        android:textColor="#FF0000" />
 
 </RelativeLayout>
