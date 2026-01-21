@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.location.Location;
+import android.media.MediaPlayer; // IMPORT AJOUTÉ
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -59,6 +60,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
+    private MediaPlayer mediaPlayer; // CHAMP AJOUTÉ
+
     // thread pour mettre à jour les marqueurs
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
@@ -73,6 +76,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // --- DÉBUT LOGIQUE AUDIO AJOUTÉE ---
+        // Initialiser et démarrer la musique
+        try {
+            mediaPlayer = MediaPlayer.create(this, R.raw.hub_intro_sound);
+            if (mediaPlayer != null) {
+                mediaPlayer.setLooping(false); // Ne pas répéter
+                mediaPlayer.start();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur lors de la lecture du fichier audio", e);
+        }
+        // --- FIN LOGIQUE AUDIO AJOUTÉE ---
+
 
         // initialiser le client de localisation
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -150,6 +167,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onPause() {
         super.onPause();
         handler.removeCallbacks(vehicleUpdateRunnable);
+    }
+
+    // Libérer le MediaPlayer quand l'activité est détruite pour éviter les fuites de mémoire.
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 
     // mise à jour des marqueurs
