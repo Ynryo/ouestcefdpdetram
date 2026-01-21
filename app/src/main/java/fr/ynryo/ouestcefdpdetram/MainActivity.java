@@ -7,9 +7,11 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.location.Location;
 import android.media.MediaPlayer; // IMPORT AJOUTÉ
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -204,10 +206,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             if (marker.getPosition() != null && marker.getFillColor() != null) {
                                 LatLng position = new LatLng(marker.getPosition().getLatitude(), marker.getPosition().getLongitude());
                                 int color = Color.parseColor(marker.getFillColor());
+                                int textColor = Color.parseColor(marker.getColor());
+
 
                                 mMap.addMarker(new MarkerOptions()
                                         .position(position)
-                                        .icon(createCustomMarker(MainActivity.this, marker.getLineNumber(), color, marker.getPosition().getBearing()))
+                                        .icon(createCustomMarker(MainActivity.this, marker.getLineNumber(), color, textColor, marker.getPosition().getBearing()))
                                         .anchor(0.5f, 0.5f)); // mid du xml (milieu du cercle)
 
                                 Log.d(TAG, "Marker added: " + marker.getLineNumber() + " at " + position.toString());
@@ -234,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    public static BitmapDescriptor createCustomMarker(Context context, String lineNumberText, int color, float bearing) {
+    public static BitmapDescriptor createCustomMarker(Context context, String lineNumberText, int color, int textColor, float bearing) {
         // 1. Inflate du layout custom (qui contient l'ImageView et le TextView)
         View markerLayout = LayoutInflater.from(context).inflate(R.layout.custom_marker, null);
 
@@ -263,10 +267,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // 4. Configuration du texte (numéro de ligne)
         lineNumberView.setText(lineNumberText);
-        lineNumberView.setTextColor(color);
+        lineNumberView.setTextColor(textColor);
+
+        //on ajoute un rectangle en fond du texte (plus simple à edit)
+        GradientDrawable gradientDrawable = new GradientDrawable();
+        gradientDrawable.setShape(GradientDrawable.RECTANGLE);
+        gradientDrawable.setColor(color);
+        gradientDrawable.setCornerRadius(10);
+//        gradientDrawable.setPadding(2, 2, 2, 2);
+        lineNumberView.setBackground(gradientDrawable);
+
+
+
 
         // 5. Application de la rotation sur l'ImageView
-        // Le pivot est déjà défini au centre (24,24) dans le XML du Vector
         markerCircle.setRotation(bearing);
 
         // 6. Rendu du Layout en Bitmap pour Google Maps
