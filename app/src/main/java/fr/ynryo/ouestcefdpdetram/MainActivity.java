@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false); // Désactive le bouton de localisation par défaut
 
         // initialiser la carte avec une localisation par défaut (ici Nantes)
         LatLng nantes = new LatLng(47.218371, -1.553621);
