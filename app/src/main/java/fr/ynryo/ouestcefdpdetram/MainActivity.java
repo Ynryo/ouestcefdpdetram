@@ -10,8 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.location.Location;
-import android.media.MediaPlayer; // IMPORT AJOUTÉ
-import android.os.Build;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -109,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
         mMap.getUiSettings().setMyLocationButtonEnabled(false); // Désactive le bouton de localisation par défaut
+        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE); // Ajouté: Met la carte en mode satellite
 
         // initialiser la carte avec une localisation par défaut (ici Nantes)
         LatLng nantes = new LatLng(47.218371, -1.553621);
@@ -203,15 +203,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     List<MarkerData> markers = response.body().getItems();
                     if (markers != null) {
                         for (MarkerData marker : markers) {
-                            if (marker.getPosition() != null && marker.getFillColor() != null) {
+                            if (marker.getPosition() != null && marker.getFillColor() != null && marker.getColor() != null) {
                                 LatLng position = new LatLng(marker.getPosition().getLatitude(), marker.getPosition().getLongitude());
-                                int color = Color.parseColor(marker.getFillColor());
+                                int fillColor = Color.parseColor(marker.getFillColor());
                                 int textColor = Color.parseColor(marker.getColor());
-
 
                                 mMap.addMarker(new MarkerOptions()
                                         .position(position)
-                                        .icon(createCustomMarker(MainActivity.this, marker.getLineNumber(), color, textColor, marker.getPosition().getBearing()))
+                                        .icon(createCustomMarker(MainActivity.this, marker.getLineNumber(), fillColor, textColor, marker.getPosition().getBearing()))
                                         .anchor(0.5f, 0.5f)); // mid du xml (milieu du cercle)
 
                                 Log.d(TAG, "Marker added: " + marker.getLineNumber() + " at " + position.toString());
@@ -238,16 +237,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    public static BitmapDescriptor createCustomMarker(Context context, String lineNumberText, int color, int textColor, float bearing) {
-        // 1. Inflate du layout custom (qui contient l'ImageView et le TextView)
+    private static int dpToPx(Context context, int dp) {
+        return (int) (dp * context.getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    public static BitmapDescriptor createCustomMarker(Context context, String lineNumberText, int fillColor, int textColor, float bearing) {
         View markerLayout = LayoutInflater.from(context).inflate(R.layout.custom_marker, null);
 
-        // 2. Récupération des vues
         ImageView markerCircle = markerLayout.findViewById(R.id.marker_circle);
         TextView lineNumberView = markerLayout.findViewById(R.id.line_number);
 
-        // 3. Gestion du Drawable avec teintage sélectif
-        // On récupère le layer-list, on le mutate pour ne pas modifier les autres marqueurs
+        // ici on teinte
         Drawable drawable = ContextCompat.getDrawable(context, R.drawable.marker_circle);
         if (drawable instanceof LayerDrawable) {
             LayerDrawable layerDrawable = (LayerDrawable) drawable.mutate();
@@ -256,8 +256,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Drawable backgroundPart = layerDrawable.findDrawableByLayerId(R.id.marker_background);
 
             if (backgroundPart != null) {
-                // On applique la couleur de la ligne uniquement sur cette couche
-                DrawableCompat.setTint(backgroundPart, color);
+                DrawableCompat.setTint(backgroundPart, fillColor);
             }
             markerCircle.setImageDrawable(layerDrawable);
         } else {
@@ -268,19 +267,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // 4. Configuration du texte (numéro de ligne)
         lineNumberView.setText(lineNumberText);
         lineNumberView.setTextColor(textColor);
+        int paddingPx = dpToPx(context, 5);
+        lineNumberView.setPadding(paddingPx, paddingPx / 2, paddingPx, paddingPx / 2);
 
-        //on ajoute un rectangle en fond du texte (plus simple à edit)
+
+        // Applique le fond avec des coins arrondis
         GradientDrawable gradientDrawable = new GradientDrawable();
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
-        gradientDrawable.setColor(color);
+        gradientDrawable.setColor(fillColor);
         gradientDrawable.setCornerRadius(10);
-//        gradientDrawable.setPadding(2, 2, 2, 2);
+
         lineNumberView.setBackground(gradientDrawable);
 
-
-
-
-        // 5. Application de la rotation sur l'ImageView
         markerCircle.setRotation(bearing);
 
         // 6. Rendu du Layout en Bitmap pour Google Maps
