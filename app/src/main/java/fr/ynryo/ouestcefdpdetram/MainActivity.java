@@ -77,8 +77,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // --- DÉBUT LOGIQUE AUDIO AJOUTÉE ---
-        // Initialiser et démarrer la musique
         try {
             mediaPlayer = MediaPlayer.create(this, R.raw.hub_intro_sound);
             if (mediaPlayer != null) {
@@ -88,8 +86,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } catch (Exception e) {
             Log.e(TAG, "Erreur lors de la lecture du fichier audio", e);
         }
-        // --- FIN LOGIQUE AUDIO AJOUTÉE ---
-
 
         // initialiser le client de localisation
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
