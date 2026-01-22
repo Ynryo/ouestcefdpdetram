@@ -14,7 +14,6 @@ public interface NaolibApiService {
             @Query("neLon") double neLon
     );
 
-    // Nouvelle méthode pour récupérer les détails d'un véhicule
     @GET("{vehicleId}")
     Call<VehicleDetails> getVehicleDetails(
             @Path(value = "vehicleId", encoded = true) String vehicleId

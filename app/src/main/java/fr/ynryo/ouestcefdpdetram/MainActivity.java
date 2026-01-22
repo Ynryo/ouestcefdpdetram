@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -39,9 +40,14 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import retrofit2.Call;
@@ -79,15 +85,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        try {
-            mediaPlayer = MediaPlayer.create(this, R.raw.hub_intro_sound);
-            if (mediaPlayer != null) {
-                mediaPlayer.setLooping(false); // Ne pas répéter
-                mediaPlayer.start();
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur lors de la lecture du fichier audio", e);
-        }
+//        try {
+//            mediaPlayer = MediaPlayer.create(this, R.raw.hub_intro_sound);
+//            if (mediaPlayer != null) {
+//                mediaPlayer.setLooping(false); // Ne pas répéter
+//                mediaPlayer.start();
+//            }
+//        } catch (Exception e) {
+//            Log.e(TAG, "Erreur lors de la lecture du fichier audio", e);
+//        }
 
         // initialiser le client de localisation
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -110,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnCameraIdleListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.getUiSettings().setMyLocationButtonEnabled(false); // Désactive le bouton de localisation par défaut
-        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE); // Ajouté: Met la carte en mode satellite
+        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
         // initialiser la carte avec une localisation par défaut (ici Nantes)
         LatLng nantes = new LatLng(47.218371, -1.553621);
@@ -179,66 +185,117 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void fetchVehicleDetails(String vehicleId) {
+    private void fetchVehicleDetails(MarkerData marker) {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         NaolibApiService service = retrofit.create(NaolibApiService.class);
-        Call<VehicleDetails> call = service.getVehicleDetails(vehicleId);
+        try {
+            String encodedId = URLEncoder.encode(marker.getId(), "UTF-8");
+            Log.i(TAG, "Encodage de l'ID: " + encodedId);
+            Call<VehicleDetails> call = service.getVehicleDetails(encodedId);
 
-        call.enqueue(new Callback<VehicleDetails>() {
-            @Override
-            public void onResponse(Call<VehicleDetails> call, Response<VehicleDetails> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    VehicleDetails details = response.body();
-                    Log.i(TAG, "Détails du véhicule reçus pour ID: " + details.getId());
-                    Log.i(TAG, "Destination: " + details.getDestination());
-                    
-                    if (details.getCalls() != null) {
-                        Log.i(TAG, "Nombre d'arrêts à venir: " + details.getCalls().size());
-                        // Log des 3 premiers arrêts pour vérification
-                        for (int i = 0; i < Math.min(3, details.getCalls().size()); i++) {
-                            fr.ynryo.ouestcefdpdetram.Call stop = details.getCalls().get(i);
-                            Log.i(TAG, "  Arrêt " + (i + 1) + ": " + stop.getStopName() + " (Heure prévue: " + stop.getExpectedTime() + ")");
+            call.enqueue(new Callback<VehicleDetails>() {
+                @Override
+                public void onResponse(Call<VehicleDetails> call, Response<VehicleDetails> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        VehicleDetails details = response.body();
+                        // 1. Création de la BottomSheet
+                        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(MainActivity.this);
+                        View view = getLayoutInflater().inflate(R.layout.vehicule_details, null);
+                        bottomSheetDialog.setContentView(view);
+
+                        // 2. Remplissage des infos principales
+                        TextView tvDestination = view.findViewById(R.id.tvDestination);
+                        TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
+
+                        tvDestination.setText(details.getDestination());
+                        // Note: details.getLineId() renvoie un int, on peut l'afficher ou récupérer le numéro de ligne depuis le marker si besoin
+                        // Pour l'instant on met une valeur par défaut ou on utilise l'ID s'il est pertinent
+                        tvLigne.setText(String.valueOf(marker.getLineNumber()));
+                        tvLigne.setBackgroundColor(Color.parseColor(marker.getFillColor()));
+
+                        // 3. Remplissage dynamique des arrêts
+                        LinearLayout stopsContainer = view.findViewById(R.id.stopsContainer);
+                        stopsContainer.removeAllViews(); // On nettoie les exemples du XML
+
+                        if (details.getCalls() != null) {
+                            for (fr.ynryo.ouestcefdpdetram.Call stop : details.getCalls()) {
+                                // Création d'une ligne d'arrêt (Row)
+                                LinearLayout row = new LinearLayout(MainActivity.this);
+                                row.setOrientation(LinearLayout.HORIZONTAL);
+                                row.setPadding(0, 16, 0, 16); // Un peu d'espacement
+
+                                // Nom de l'arrêt
+                                TextView tvStopName = new TextView(MainActivity.this);
+                                tvStopName.setText(stop.getStopName());
+                                tvStopName.setTextColor(Color.BLACK);
+                                tvStopName.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+                                // Heure de l'arrêt (Formatage de 2026-01-22T18:43:00+01:00 vers 18:43)
+                                TextView tvStopTime = new TextView(MainActivity.this);
+                                try {
+                                    // Parsing de la date ISO
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                        ZonedDateTime zdt = ZonedDateTime.parse(stop.getExpectedTime());
+                                        String formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
+                                        tvStopTime.setText(formattedTime);
+                                    } else {
+                                        // Fallback pour vieux Android si nécessaire
+                                        tvStopTime.setText(stop.getExpectedTime().substring(11, 16));
+                                    }
+                                } catch (Exception e) {
+                                    tvStopTime.setText("??:??");
+                                }
+                                tvStopTime.setTextColor(Color.DKGRAY);
+                                tvStopTime.setTypeface(null, android.graphics.Typeface.BOLD);
+
+                                // Ajout des textes dans la ligne
+                                row.addView(tvStopName);
+                                row.addView(tvStopTime);
+
+                                // Ajout la ligne dans le conteneur
+                                stopsContainer.addView(row);
+                            }
                         }
-                    }
 
-                    // TODO: Afficher ces détails à l'utilisateur, par exemple dans une BottomSheet ou une AlertDialog.
+                        // 4. Afficher la fenêtre
+                        bottomSheetDialog.show();
 
-                } else {
-                    String errorBody = "Unknown error";
-                    try {
-                        if (response.errorBody() != null) {
-                            errorBody = response.errorBody().string();
+                    } else {
+                        String errorBody = "Unknown error";
+                        try {
+                            if (response.errorBody() != null) {
+                                errorBody = response.errorBody().string();
+                            }
+                        } catch (IOException e) {
+                            Log.e(TAG, "Error reading error body for vehicle details", e);
                         }
-                    } catch (IOException e) {
-                        Log.e(TAG, "Error reading error body for vehicle details", e);
+                        Log.e(TAG, "API call failed for details (" + marker.getId() + "): " + response.code() + " " + errorBody);
                     }
-                    Log.e(TAG, "API call failed for details (" + vehicleId + "): " + response.code() + " " + errorBody);
                 }
-            }
 
-            @Override
-            public void onFailure(Call<VehicleDetails> call, Throwable t) {
-                Log.e(TAG, "API call error for details (" + vehicleId + ")", t);
-            }
-        });
+                @Override
+                public void onFailure(Call<VehicleDetails> call, Throwable t) {
+                    Log.e(TAG, "API call error for details (" + marker.getId() + ")", t);
+                }
+            });
+        }catch (Exception e) {
+            Log.e(TAG, "Erreur d'encodage de l'ID", e);
+        }
+
     }
 
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        Object tag = marker.getTag();
-        if (tag instanceof String) {
-            String markerId = (String) tag;
-            Log.d(TAG, "Marker clicked with ID: " + markerId);
-            fetchVehicleDetails(markerId);
-            
-            // Retourne false pour permettre l'affichage de la fenêtre d'information par défaut
-            return false;
-        }
+        MarkerData tag = (MarkerData) marker.getTag();
+        String markerId = (String) tag.getId();
+        Log.d(TAG, "Marker clicked with ID: " + markerId);
+        fetchVehicleDetails(tag);
+        // Retourne false pour permettre l'affichage de la fenêtre d'information par défaut
         return false;
     }
 
@@ -277,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         .icon(createCustomMarker(MainActivity.this, marker.getLineNumber(), fillColor, textColor, marker.getPosition().getBearing()))
                                         .anchor(0.5f, 0.5f)); // mid du xml (milieu du cercle)
                                 
-                                mapMarker.setTag(marker.getId());
+                                mapMarker.setTag(marker);
                             }
                         }
                     }
