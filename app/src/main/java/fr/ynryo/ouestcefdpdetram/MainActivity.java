@@ -212,8 +212,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
 
                         tvDestination.setText(details.getDestination());
-                        // Note: details.getLineId() renvoie un int, on peut l'afficher ou récupérer le numéro de ligne depuis le marker si besoin
-                        // Pour l'instant on met une valeur par défaut ou on utilise l'ID s'il est pertinent
                         tvLigne.setText(String.valueOf(marker.getLineNumber()));
                         tvLigne.setBackgroundColor(Color.parseColor(marker.getFillColor()));
 
