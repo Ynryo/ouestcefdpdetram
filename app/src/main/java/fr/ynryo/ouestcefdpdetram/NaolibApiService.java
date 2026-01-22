@@ -2,6 +2,7 @@ package fr.ynryo.ouestcefdpdetram;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface NaolibApiService {
@@ -11,5 +12,11 @@ public interface NaolibApiService {
             @Query("swLon") double swLon,
             @Query("neLat") double neLat,
             @Query("neLon") double neLon
+    );
+
+    // Nouvelle méthode pour récupérer les détails d'un véhicule
+    @GET("{vehicleId}")
+    Call<VehicleDetails> getVehicleDetails(
+            @Path(value = "vehicleId", encoded = true) String vehicleId
     );
 }

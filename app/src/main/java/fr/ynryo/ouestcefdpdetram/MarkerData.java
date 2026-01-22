@@ -7,14 +7,6 @@ public class MarkerData {
     private String fillColor;
     private String color;
 
-    public MarkerData(String id, String lineNumber, Position position, String fillColor, String color) {
-        this.id = id;
-        this.lineNumber = lineNumber;
-        this.position = position;
-        this.fillColor = fillColor;
-        this.color = color;
-    }
-
     public String getId() {
         return id;
     }

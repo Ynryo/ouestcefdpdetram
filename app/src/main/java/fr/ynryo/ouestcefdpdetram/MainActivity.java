@@ -36,6 +36,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -49,7 +50,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
     private static final String BASE_URL = "https://bus-tracker.fr/api/vehicle-journeys/";
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
-    private MediaPlayer mediaPlayer; // CHAMP AJOUTÉ
+    private MediaPlayer mediaPlayer;
 
     // thread pour mettre à jour les marqueurs
     private final Runnable vehicleUpdateRunnable = new Runnable() {
@@ -107,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
+        mMap.setOnMarkerClickListener(this);
         mMap.getUiSettings().setMyLocationButtonEnabled(false); // Désactive le bouton de localisation par défaut
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE); // Ajouté: Met la carte en mode satellite
 
@@ -168,7 +170,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         handler.removeCallbacks(vehicleUpdateRunnable);
     }
 
-    // Libérer le MediaPlayer quand l'activité est détruite pour éviter les fuites de mémoire.
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -176,6 +177,69 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mediaPlayer.release();
             mediaPlayer = null;
         }
+    }
+
+    private void fetchVehicleDetails(String vehicleId) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        NaolibApiService service = retrofit.create(NaolibApiService.class);
+        Call<VehicleDetails> call = service.getVehicleDetails(vehicleId);
+
+        call.enqueue(new Callback<VehicleDetails>() {
+            @Override
+            public void onResponse(Call<VehicleDetails> call, Response<VehicleDetails> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    VehicleDetails details = response.body();
+                    Log.i(TAG, "Détails du véhicule reçus pour ID: " + details.getId());
+                    Log.i(TAG, "Destination: " + details.getDestination());
+                    
+                    if (details.getCalls() != null) {
+                        Log.i(TAG, "Nombre d'arrêts à venir: " + details.getCalls().size());
+                        // Log des 3 premiers arrêts pour vérification
+                        for (int i = 0; i < Math.min(3, details.getCalls().size()); i++) {
+                            fr.ynryo.ouestcefdpdetram.Call stop = details.getCalls().get(i);
+                            Log.i(TAG, "  Arrêt " + (i + 1) + ": " + stop.getStopName() + " (Heure prévue: " + stop.getExpectedTime() + ")");
+                        }
+                    }
+
+                    // TODO: Afficher ces détails à l'utilisateur, par exemple dans une BottomSheet ou une AlertDialog.
+
+                } else {
+                    String errorBody = "Unknown error";
+                    try {
+                        if (response.errorBody() != null) {
+                            errorBody = response.errorBody().string();
+                        }
+                    } catch (IOException e) {
+                        Log.e(TAG, "Error reading error body for vehicle details", e);
+                    }
+                    Log.e(TAG, "API call failed for details (" + vehicleId + "): " + response.code() + " " + errorBody);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<VehicleDetails> call, Throwable t) {
+                Log.e(TAG, "API call error for details (" + vehicleId + ")", t);
+            }
+        });
+    }
+
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        Object tag = marker.getTag();
+        if (tag instanceof String) {
+            String markerId = (String) tag;
+            Log.d(TAG, "Marker clicked with ID: " + markerId);
+            fetchVehicleDetails(markerId);
+            
+            // Retourne false pour permettre l'affichage de la fenêtre d'information par défaut
+            return false;
+        }
+        return false;
     }
 
     // mise à jour des marqueurs
@@ -208,12 +272,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 int fillColor = Color.parseColor(marker.getFillColor());
                                 int textColor = Color.parseColor(marker.getColor());
 
-                                mMap.addMarker(new MarkerOptions()
+                                Marker mapMarker = mMap.addMarker(new MarkerOptions()
                                         .position(position)
                                         .icon(createCustomMarker(MainActivity.this, marker.getLineNumber(), fillColor, textColor, marker.getPosition().getBearing()))
                                         .anchor(0.5f, 0.5f)); // mid du xml (milieu du cercle)
-
-                                Log.d(TAG, "Marker added: " + marker.getLineNumber() + " at " + position.toString());
+                                
+                                mapMarker.setTag(marker.getId());
                             }
                         }
                     }
