@@ -237,8 +237,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 try {
                                     // Parsing de la date ISO
                                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                        ZonedDateTime zdt = ZonedDateTime.parse(stop.getExpectedTime());
-                                        String formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
+                                        ZonedDateTime zdt;
+                                        String formattedTime;
+                                        if (stop.getExpectedTime() == null && stop.getAimedTime() != null) {
+                                            zdt = ZonedDateTime.parse(stop.getAimedTime());
+                                            formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm")) + " (prévue)";
+                                            tvStopTime.setTextColor(Color.RED);
+                                        } else {
+                                            zdt = ZonedDateTime.parse(stop.getExpectedTime());
+                                            formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
+                                        }
                                         tvStopTime.setText(formattedTime);
                                     } else {
                                         // Fallback pour vieux Android si nécessaire
