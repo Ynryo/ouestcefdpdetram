@@ -4,27 +4,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#FFFFFF">
+    android:background="#FFFFFF"
+    android:paddingBottom="24dp"> <TextView
+    android:id="@+id/tvLigneNumero"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#D32F2F"
+    android:textColor="#FFFFFF"
+    android:textStyle="bold"
+    android:padding="8dp"
+    android:text="38"
+    android:textSize="18sp"
+    android:gravity="center"
+    android:minWidth="50dp"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- === ZONE 1 : LIGNE ET DESTINATION (EN HAUT) === -->
-
-    <!-- Le rectangle rouge avec le numéro de ligne -->
-    <TextView
-        android:id="@+id/tvLigneNumero"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="#D32F2F"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        android:padding="8dp"
-        android:text="38"
-        android:textSize="18sp"
-        android:gravity="center"
-        android:minWidth="50dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- La destination (reste de la ligne) -->
     <TextView
         android:id="@+id/tvDestination"
         android:layout_width="0dp"
@@ -38,8 +33,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/tvLigneNumero"
         app:layout_constraintBottom_toBottomOf="@id/tvLigneNumero" />
-
-    <!-- === ZONE 2 : LISTE DES ARRÊTS (EN DESSOUS) === -->
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -61,8 +54,10 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Prochains arrêts"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="8dp"
+                android:textColor="#000000">
             </TextView>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -76,8 +71,6 @@
             android:layout_width="match_parent"
             android:orientation="vertical">
 
-
-            <!-- Ligne d'arrêt 1 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -87,99 +80,17 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Stop 1"
+                    android:text="La daronne à Thomas (miam karine)"
                     android:textColor="#333333"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="14:05"
-                    android:textStyle="bold"
-                    android:textColor="#000000"/>
-            </LinearLayout>
-
-            <!-- Ligne d'arrêt 2 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="4dp">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Stop 2"
-                    android:textColor="#333333"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="14:08"
-                    android:textStyle="bold"
-                    android:textColor="#000000"/>
-            </LinearLayout>
-
-            <!-- Ligne d'arrêt 3 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="4dp">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Stop 3"
-                    android:textColor="#333333"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="14:15"
-                    android:textStyle="bold"
-                    android:textColor="#000000"/>
-            </LinearLayout>
-
-            <!-- Ligne d'arrêt 4 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="4dp">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Stop 4"
-                    android:textColor="#333333"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="14:22"
-                    android:textStyle="bold"
-                    android:textColor="#000000"/>
-            </LinearLayout>
-
-            <!-- Ligne d'arrêt 5 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="4dp">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Stop 5"
-                    android:textColor="#333333"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="14:30"
+                    android:text="25h99"
                     android:textStyle="bold"
                     android:textColor="#000000"/>
             </LinearLayout>
 
         </LinearLayout>
     </LinearLayout>
-
-    <!-- Conteneur vertical pour les 5 lignes d'arrêts -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

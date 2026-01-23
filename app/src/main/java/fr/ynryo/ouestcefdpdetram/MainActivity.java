@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
@@ -14,6 +15,8 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.SpannableString;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -214,10 +217,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         tvDestination.setText(details.getDestination());
                         tvLigne.setText(String.valueOf(marker.getLineNumber()));
                         tvLigne.setBackgroundColor(Color.parseColor(marker.getFillColor()));
+                        tvLigne.setTextColor(Color.parseColor(marker.getColor()));
 
                         // 3. Remplissage dynamique des arrêts
                         LinearLayout stopsContainer = view.findViewById(R.id.stopsContainer);
-                        stopsContainer.removeAllViews(); // On nettoie les exemples du XML
+                        stopsContainer.removeAllViews(); // remove exemples du xml
 
                         if (details.getCalls() != null) {
                             for (fr.ynryo.ouestcefdpdetram.Call stop : details.getCalls()) {
@@ -235,27 +239,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 // Heure de l'arrêt (Formatage de 2026-01-22T18:43:00+01:00 vers 18:43)
                                 TextView tvStopTime = new TextView(MainActivity.this);
                                 try {
-                                    // Parsing de la date ISO
-                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                        ZonedDateTime zdt;
-                                        String formattedTime;
-                                        if (stop.getExpectedTime() == null && stop.getAimedTime() != null) {
-                                            zdt = ZonedDateTime.parse(stop.getAimedTime());
-                                            formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm")) + " (prévue)";
-                                            tvStopTime.setTextColor(Color.RED);
-                                        } else {
-                                            zdt = ZonedDateTime.parse(stop.getExpectedTime());
-                                            formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
-                                        }
+                                    ZonedDateTime zdt;
+                                    String formattedTime;
+                                    if (stop.getExpectedTime() != null) {
+                                        zdt = ZonedDateTime.parse(stop.getExpectedTime());
+                                        formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
+                                        tvStopTime.setTextColor(Color.rgb(15, 150, 40));
                                         tvStopTime.setText(formattedTime);
+                                    } else if (stop.getAimedTime() != null){
+                                        zdt = ZonedDateTime.parse(stop.getAimedTime());
+                                        formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm")) + " (prévue)";
+
+                                        SpannableString spanString = new SpannableString(formattedTime);
+                                        spanString.setSpan(new StyleSpan(Typeface.ITALIC), 0, spanString.length(), 0);
+
+                                        tvStopTime.setTextColor(Color.rgb(255, 156, 56));
+                                        tvStopTime.setText(spanString);
                                     } else {
-                                        // Fallback pour vieux Android si nécessaire
-                                        tvStopTime.setText(stop.getExpectedTime().substring(11, 16));
+                                        tvStopTime.setTextColor(Color.rgb(245, 74, 69));
+                                        SpannableString spanString = new SpannableString("??:??");
+                                        spanString.setSpan(new StyleSpan(Typeface.ITALIC), 0, spanString.length(), 0);
+                                        tvStopTime.setText(spanString);
                                     }
                                 } catch (Exception e) {
                                     tvStopTime.setText("??:??");
+                                    SpannableString spanString = new SpannableString("");
+                                    spanString.setSpan(new StyleSpan(Typeface.ITALIC), 0, spanString.length(), 0);
+                                    tvStopTime.setText(spanString);
                                 }
-                                tvStopTime.setTextColor(Color.DKGRAY);
                                 tvStopTime.setTypeface(null, android.graphics.Typeface.BOLD);
 
                                 // Ajout des textes dans la ligne
