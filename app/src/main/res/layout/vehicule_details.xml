@@ -5,20 +5,22 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="#FFFFFF"
-    android:paddingBottom="24dp"> <TextView
-    android:id="@+id/tvLigneNumero"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:background="#D32F2F"
-    android:textColor="#FFFFFF"
-    android:textStyle="bold"
-    android:padding="8dp"
-    android:text="38"
-    android:textSize="18sp"
-    android:gravity="center"
-    android:minWidth="50dp"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent" />
+    android:paddingBottom="24dp">
+
+    <TextView
+        android:id="@+id/tvLigneNumero"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#D32F2F"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:padding="8dp"
+        android:text="38"
+        android:textSize="18sp"
+        android:gravity="center"
+        android:minWidth="50dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tvDestination"
