@@ -52,7 +52,12 @@ import java.net.URLEncoder;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -75,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private MediaPlayer mediaPlayer;
     private List<Marker> listMarkers = new ArrayList<Marker>();
     private List<MarkerData> markersData = new ArrayList<MarkerData>();
+    private Map<String, Marker> activeMarkers = new HashMap<>();
 
 
     // thread pour mettre à jour les marqueurs
@@ -137,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             // si la permission est accordée, activer la géolocalisation
             mMap.setMyLocationEnabled(true);
-            centerMapOnUserLocation();
+//            centerMapOnUserLocation();
         }
     }
 
@@ -249,26 +255,43 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    private void showMarkers(List<MarkerData> markers) {
+    private void showMarkers(List<MarkerData> markersFetched) {
         if (mMap == null) return; // si pas de map return
-        if (markers == null) return;
-        mMap.clear(); // TODO: ne pas clear les marqueurs qui sont dans la nouvelle requete
-        for (MarkerData markerData : markers) {
-            if (markerData.getPosition() != null && markerData.getFillColor() != null && markerData.getColor() != null) {
-                LatLng position = new LatLng(markerData.getPosition().getLatitude(), markerData.getPosition().getLongitude());
-                int fillColor = Color.parseColor(markerData.getFillColor());
-                int textColor = Color.parseColor(markerData.getColor());
-                float mapRotation = mMap.getCameraPosition().bearing;
+        if (markersFetched == null) return;
+        // TODO: ne pas clear les marqueurs qui sont dans la nouvelle requete
+        // check if marker already exist
+        Set<String> newMarkerIds = new HashSet<>();
+        for (MarkerData d : markersFetched) {
+            newMarkerIds.add(d.getId());
+        }
 
-                Marker mapMarker = mMap.addMarker(new MarkerOptions()
+        // on suppr les markers qui n'existent plus dans la nouvelle map fetched
+        Iterator<Map.Entry<String, Marker>> iterator = activeMarkers.entrySet().iterator(); // itérateur sur les clés des markers existants
+        while (iterator.hasNext()) {
+            Map.Entry<String, Marker> entry = iterator.next();
+            String markerId = entry.getKey();
+            if(!newMarkerIds.contains(markerId)) {
+                entry.getValue().remove(); //remove de la map
+                iterator.remove();
+            }
+        }
+
+        float mapRotation = mMap.getCameraPosition().bearing;
+        for (MarkerData markerData : markersFetched) {
+            LatLng position = new LatLng(markerData.getPosition().getLatitude(), markerData.getPosition().getLongitude());
+
+            if (activeMarkers.containsKey(markerData.getId())) {
+                Marker existingMarker = activeMarkers.get(markerData.getId());
+                existingMarker.setPosition(position);
+                existingMarker.setIcon(createCustomMarker(MainActivity.this, markerData, mapRotation));
+                existingMarker.setTag(markerData);
+            } else {
+                Marker newMarker = mMap.addMarker(new MarkerOptions()
                         .position(position)
-                        .icon(createCustomMarker(
-                                MainActivity.this,
-                                markerData,
-                                mapRotation
-                        )).anchor(0.5f, 0.5f)); // mid du xml (milieu du cercle)
-                mapMarker.setTag(markerData);
-
+                        .icon(createCustomMarker(MainActivity.this, markerData, mapRotation))
+                        .anchor(0.5f, 0.5f));
+                newMarker.setTag(markerData);
+                activeMarkers.put(markerData.getId(), newMarker);
             }
         }
     }
