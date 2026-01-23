@@ -48,10 +48,10 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -60,7 +60,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener {
 
     private GoogleMap mMap;
     private static final String BASE_URL = "https://bus-tracker.fr/api/vehicle-journeys/";
@@ -73,12 +73,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     private MediaPlayer mediaPlayer;
+    private List<Marker> listMarkers = new ArrayList<Marker>();
+    private List<MarkerData> markersData = new ArrayList<MarkerData>();
+
 
     // thread pour mettre à jour les marqueurs
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
         public void run() {
-            loadTramMarkers();
+            fullReloadMarkers();
             handler.postDelayed(this, UPDATE_INTERVAL);
         }
     };
@@ -119,12 +122,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
         mMap.setOnMarkerClickListener(this);
+        mMap.setOnCameraMoveListener(this);
         mMap.getUiSettings().setMyLocationButtonEnabled(false); // Désactive le bouton de localisation par défaut
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
         // initialiser la carte avec une localisation par défaut (ici Nantes)
         LatLng nantes = new LatLng(47.218371, -1.553621);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nantes, 15.0f)); // Zoom level 12
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nantes, 15.0f)); // Zoom level 15
 
         // demander la permission de géolocalisation si elle n'est pas accordée
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -133,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             // si la permission est accordée, activer la géolocalisation
             mMap.setMyLocationEnabled(true);
+            centerMapOnUserLocation();
         }
     }
 
@@ -166,6 +171,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    public void fullReloadMarkers() {
+        fetchMarkersFromAPI();
+    }
+
     // mise à jour des marqueurs
     @Override
     protected void onResume() {
@@ -186,6 +195,81 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
+        }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        MarkerData tag = (MarkerData) marker.getTag();
+        String markerId = (String) tag.getId();
+        Log.d(TAG, "Marker clicked with ID: " + markerId);
+        fetchVehicleDetails(tag);
+        // Retourne false pour permettre l'affichage de la fenêtre d'information par défaut
+        return false;
+    }
+
+    // mise à jour des marqueurs_çucdbg
+    @Override
+    public void onCameraIdle() {
+        fullReloadMarkers();
+    }
+
+    @Override
+    public void onCameraMove() {
+        showMarkers(markersData);
+    }
+
+    private static int dpToPx(Context context, int dp) {
+        return (int) (dp * context.getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private void fetchMarkersFromAPI() {
+        if (mMap == null) return; // si pas de map return
+        Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
+        NaolibApiService service = retrofit.create(NaolibApiService.class);
+        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+        Call<VehicleJourneyResponse> call = service.getVehicleMarkers(bounds.southwest.latitude, bounds.southwest.longitude, bounds.northeast.latitude, bounds.northeast.longitude);
+        call.enqueue(new Callback<VehicleJourneyResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<VehicleJourneyResponse> call, Response<VehicleJourneyResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<MarkerData> markersDataResponse = response.body().getItems(); // liste des marqueurs (que les datas)
+                    markersData = markersDataResponse;
+                    showMarkers(markersDataResponse);
+
+                } else {
+                    Log.e(TAG, "API call failed: " + response.code() + " " + response.errorBody());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<VehicleJourneyResponse> call, @NonNull Throwable t) {
+                Log.e(TAG, "API call error", t);
+            }
+        });
+    }
+
+    private void showMarkers(List<MarkerData> markers) {
+        if (mMap == null) return; // si pas de map return
+        if (markers == null) return;
+        mMap.clear(); // TODO: ne pas clear les marqueurs qui sont dans la nouvelle requete
+        for (MarkerData markerData : markers) {
+            if (markerData.getPosition() != null && markerData.getFillColor() != null && markerData.getColor() != null) {
+                LatLng position = new LatLng(markerData.getPosition().getLatitude(), markerData.getPosition().getLongitude());
+                int fillColor = Color.parseColor(markerData.getFillColor());
+                int textColor = Color.parseColor(markerData.getColor());
+                float mapRotation = mMap.getCameraPosition().bearing;
+
+                Marker mapMarker = mMap.addMarker(new MarkerOptions()
+                        .position(position)
+                        .icon(createCustomMarker(
+                                MainActivity.this,
+                                markerData,
+                                mapRotation
+                        )).anchor(0.5f, 0.5f)); // mid du xml (milieu du cercle)
+                mapMarker.setTag(markerData);
+
+            }
         }
     }
 
@@ -274,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     spanString.setSpan(new StyleSpan(Typeface.ITALIC), 0, spanString.length(), 0);
                                     tvStopTime.setText(spanString);
                                 }
-                                tvStopTime.setTypeface(null, android.graphics.Typeface.BOLD);
+                                tvStopTime.setTypeface(null, Typeface.BOLD);
 
                                 // Ajout des textes dans la ligne
                                 row.addView(tvStopName);
@@ -300,6 +384,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                         Log.e(TAG, "API call failed for details (" + marker.getId() + "): " + response.code() + " " + errorBody);
                     }
+                    return;
                 }
 
                 @Override
@@ -313,105 +398,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-        MarkerData tag = (MarkerData) marker.getTag();
-        String markerId = (String) tag.getId();
-        Log.d(TAG, "Marker clicked with ID: " + markerId);
-        fetchVehicleDetails(tag);
-        // Retourne false pour permettre l'affichage de la fenêtre d'information par défaut
-        return false;
-    }
-
-    // mise à jour des marqueurs
-    @Override
-    public void onCameraIdle() {
-        loadTramMarkers();
-    }
-
-    // chargement des marqueurs
-    private void loadTramMarkers() {
-        if (mMap == null) return; // si pas de map return
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
-
-        NaolibApiService service = retrofit.create(NaolibApiService.class);
-
-        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
-
-        Call<VehicleJourneyResponse> call = service.getVehicleMarkers(bounds.southwest.latitude, bounds.southwest.longitude, bounds.northeast.latitude, bounds.northeast.longitude);
-
-        call.enqueue(new Callback<VehicleJourneyResponse>() { // appel asynchrone
-            @Override
-            public void onResponse(Call<VehicleJourneyResponse> call, Response<VehicleJourneyResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    mMap.clear();
-                    List<MarkerData> markers = response.body().getItems();
-                    if (markers != null) {
-                        for (MarkerData marker : markers) {
-                            if (marker.getPosition() != null && marker.getFillColor() != null && marker.getColor() != null) {
-                                LatLng position = new LatLng(marker.getPosition().getLatitude(), marker.getPosition().getLongitude());
-                                int fillColor = Color.parseColor(marker.getFillColor());
-                                int textColor = Color.parseColor(marker.getColor());
-
-                                Marker mapMarker = mMap.addMarker(new MarkerOptions()
-                                        .position(position)
-                                        .icon(createCustomMarker(MainActivity.this, marker.getLineNumber(), fillColor, textColor, marker.getPosition().getBearing()))
-                                        .anchor(0.5f, 0.5f)); // mid du xml (milieu du cercle)
-                                
-                                mapMarker.setTag(marker);
-                            }
-                        }
-                    }
-                } else {
-                    String errorBody = "Unknown error";
-                    if (response.errorBody() != null) {
-                        try {
-                            errorBody = response.errorBody().string();
-                        } catch (IOException e) {
-                            Log.e(TAG, "Error reading error body", e);
-                        }
-                    }
-                    Log.e(TAG, "API call failed: " + response.code() + " " + errorBody);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<VehicleJourneyResponse> call, Throwable t) {
-                Log.e(TAG, "API call error", t);
-            }
-        });
-    }
-
-    private static int dpToPx(Context context, int dp) {
-        return (int) (dp * context.getResources().getDisplayMetrics().density + 0.5f);
-    }
-
-    public static BitmapDescriptor createCustomMarker(Context context, String lineNumberText, int fillColor, int textColor, float bearing) {
+    //create marker
+    public static BitmapDescriptor createCustomMarker(Context context, MarkerData markerData, float mapRotation) {
         View markerLayout = LayoutInflater.from(context).inflate(R.layout.custom_marker, null);
-
         ImageView markerCircle = markerLayout.findViewById(R.id.marker_circle);
         TextView lineNumberView = markerLayout.findViewById(R.id.line_number);
+        int fillColor = Color.parseColor(markerData.getFillColor());
+        int textColor = Color.parseColor(markerData.getColor());
+        float bearing = markerData.getPosition().getBearing();
 
         // ici on teinte
         Drawable drawable = ContextCompat.getDrawable(context, R.drawable.marker_circle);
-        if (drawable instanceof LayerDrawable) {
-            LayerDrawable layerDrawable = (LayerDrawable) drawable.mutate();
-
-            // On cherche la couche du fond (le triangle et le cercle extérieur) par son ID
-            Drawable backgroundPart = layerDrawable.findDrawableByLayerId(R.id.marker_background);
-
-            if (backgroundPart != null) {
-                DrawableCompat.setTint(backgroundPart, fillColor);
-            }
-            markerCircle.setImageDrawable(layerDrawable);
-        } else {
-            // Fallback au cas où le XML ne serait pas un LayerDrawable
-            markerCircle.setImageDrawable(drawable);
+        LayerDrawable layerDrawable = (LayerDrawable) drawable.mutate();
+        Drawable backgroundPart = layerDrawable.findDrawableByLayerId(R.id.marker_background);
+        if (backgroundPart != null) {
+            DrawableCompat.setTint(backgroundPart, fillColor);
         }
+        markerCircle.setImageDrawable(layerDrawable);
 
         // 4. Configuration du texte (numéro de ligne)
-        lineNumberView.setText(lineNumberText);
+        lineNumberView.setText(markerData.getLineNumber());
         lineNumberView.setTextColor(textColor);
         int paddingPx = dpToPx(context, 5);
         lineNumberView.setPadding(paddingPx, paddingPx / 2, paddingPx, paddingPx / 2);
@@ -422,10 +428,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         gradientDrawable.setShape(GradientDrawable.RECTANGLE);
         gradientDrawable.setColor(fillColor);
         gradientDrawable.setCornerRadius(10);
-
         lineNumberView.setBackground(gradientDrawable);
 
-        markerCircle.setRotation(bearing);
+        markerCircle.setRotation(bearing - mapRotation);
 
         // 6. Rendu du Layout en Bitmap pour Google Maps
         markerLayout.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
