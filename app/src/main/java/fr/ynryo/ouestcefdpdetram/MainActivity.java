@@ -22,6 +22,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -189,11 +190,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void fetchVehicleDetails(MarkerData marker) {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+        // création de la BottomSheet
+        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(MainActivity.this);
+        View view = getLayoutInflater().inflate(R.layout.vehicule_details, null);
+        bottomSheetDialog.setContentView(view);
 
+        // récupération des vues du layout
+        ProgressBar loader = view.findViewById(R.id.loader);
+        View scrollStops = view.findViewById(R.id.scrollStops);
+        TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
+        TextView tvDestination = view.findViewById(R.id.tvDestination);
+        LinearLayout stopsContainer = view.findViewById(R.id.stopsContainer);
+
+        tvLigne.setText(String.valueOf(marker.getLineNumber()));
+        tvLigne.setBackgroundColor(Color.parseColor(marker.getFillColor()));
+        tvLigne.setTextColor(Color.parseColor(marker.getColor()));
+
+        // on montre le loader, on cache la liste
+        loader.setVisibility(View.VISIBLE);
+        scrollStops.setVisibility(View.INVISIBLE);
+        bottomSheetDialog.show();
+
+        Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
         NaolibApiService service = retrofit.create(NaolibApiService.class);
         try {
             String encodedId = URLEncoder.encode(marker.getId(), "UTF-8");
@@ -203,24 +221,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             call.enqueue(new Callback<VehicleDetails>() {
                 @Override
                 public void onResponse(Call<VehicleDetails> call, Response<VehicleDetails> response) {
+                    loader.setVisibility(View.GONE); // invisible et ne prends pas d'espace (display none)
                     if (response.isSuccessful() && response.body() != null) {
                         VehicleDetails details = response.body();
-                        // 1. Création de la BottomSheet
-                        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(MainActivity.this);
-                        View view = getLayoutInflater().inflate(R.layout.vehicule_details, null);
-                        bottomSheetDialog.setContentView(view);
-
-                        // 2. Remplissage des infos principales
-                        TextView tvDestination = view.findViewById(R.id.tvDestination);
-                        TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
 
                         tvDestination.setText(details.getDestination());
-                        tvLigne.setText(String.valueOf(marker.getLineNumber()));
-                        tvLigne.setBackgroundColor(Color.parseColor(marker.getFillColor()));
-                        tvLigne.setTextColor(Color.parseColor(marker.getColor()));
 
-                        // 3. Remplissage dynamique des arrêts
-                        LinearLayout stopsContainer = view.findViewById(R.id.stopsContainer);
+                        // remplissage dynamique des arrêts
                         stopsContainer.removeAllViews(); // remove exemples du xml
 
                         if (details.getCalls() != null) {
@@ -278,7 +285,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                         }
 
-                        // 4. Afficher la fenêtre
+                        // afficher la fenêtre
+                        scrollStops.setVisibility(View.VISIBLE);
                         bottomSheetDialog.show();
 
                     } else {
