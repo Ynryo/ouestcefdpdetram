@@ -65,7 +65,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
     private static final String BASE_URL = "https://bus-tracker.fr/api/vehicle-journeys/";
@@ -73,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final int UPDATE_INTERVAL = 5000; // 5 seconds
+    private final int COLOR_GREEN = Color.rgb(15, 150, 40);
+
 
     private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -128,8 +130,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
         mMap.setOnMarkerClickListener(this);
-        mMap.setOnCameraMoveListener(this);
-        mMap.getUiSettings().setMyLocationButtonEnabled(false); // Désactive le bouton de localisation par défaut
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
         // initialiser la carte avec une localisation par défaut (ici Nantes)
@@ -220,11 +222,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fullReloadMarkers();
     }
 
-    @Override
-    public void onCameraMove() {
-        showMarkers(markersData);
-    }
-
     private static int dpToPx(Context context, int dp) {
         return (int) (dp * context.getResources().getDisplayMetrics().density + 0.5f);
     }
@@ -258,7 +255,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void showMarkers(List<MarkerData> markersFetched) {
         if (mMap == null) return; // si pas de map return
         if (markersFetched == null) return;
-        // TODO: ne pas clear les marqueurs qui sont dans la nouvelle requete
         // check if marker already exist
         Set<String> newMarkerIds = new HashSet<>();
         for (MarkerData d : markersFetched) {
@@ -350,25 +346,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 tvStopName.setTextColor(Color.BLACK);
                                 tvStopName.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
+                                ImageView expectedTimeIcon = new ImageView(MainActivity.this);
+                                expectedTimeIcon.setImageResource(R.drawable.sensors_24px);
+                                expectedTimeIcon.setPadding(0, 0, 8, 0);
+                                expectedTimeIcon.setColorFilter(COLOR_GREEN);
+                                expectedTimeIcon.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
+
+
                                 // Heure de l'arrêt (Formatage de 2026-01-22T18:43:00+01:00 vers 18:43)
                                 TextView tvStopTime = new TextView(MainActivity.this);
+                                boolean isExpectedTime = stop.getExpectedTime() != null;
                                 try {
                                     ZonedDateTime zdt;
                                     String formattedTime;
-                                    if (stop.getExpectedTime() != null) {
+                                    if (isExpectedTime) {
                                         zdt = ZonedDateTime.parse(stop.getExpectedTime());
                                         formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
-                                        tvStopTime.setTextColor(Color.rgb(15, 150, 40));
+                                        tvStopTime.setTextColor(COLOR_GREEN);
                                         tvStopTime.setText(formattedTime);
                                     } else if (stop.getAimedTime() != null){
                                         zdt = ZonedDateTime.parse(stop.getAimedTime());
-                                        formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm")) + " (prévue)";
-
-                                        SpannableString spanString = new SpannableString(formattedTime);
-                                        spanString.setSpan(new StyleSpan(Typeface.ITALIC), 0, spanString.length(), 0);
-
-                                        tvStopTime.setTextColor(Color.rgb(255, 156, 56));
-                                        tvStopTime.setText(spanString);
+                                        formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
+                                        tvStopTime.setTextColor(Color.DKGRAY);
+                                        tvStopTime.setText(formattedTime);
                                     } else {
                                         tvStopTime.setTextColor(Color.rgb(245, 74, 69));
                                         SpannableString spanString = new SpannableString("??:??");
@@ -385,6 +385,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                                 // Ajout des textes dans la ligne
                                 row.addView(tvStopName);
+                                if (isExpectedTime) row.addView(expectedTimeIcon);
                                 row.addView(tvStopTime);
 
                                 // Ajout la ligne dans le conteneur
@@ -426,17 +427,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         View markerLayout = LayoutInflater.from(context).inflate(R.layout.custom_marker, null);
         ImageView markerCircle = markerLayout.findViewById(R.id.marker_circle);
         TextView lineNumberView = markerLayout.findViewById(R.id.line_number);
-        int fillColor = Color.parseColor(markerData.getFillColor());
-        int textColor = Color.parseColor(markerData.getColor());
+        String fillColorString = markerData.getFillColor();
+        int fillColor = Color.parseColor(fillColorString != null && !fillColorString.isEmpty() ? fillColorString : "#424242");
+        String textColorString = markerData.getColor();
+        int textColor = Color.parseColor(textColorString != null && !textColorString.isEmpty() ? textColorString : "#FFFFFF");
         float bearing = markerData.getPosition().getBearing();
 
         // ici on teinte
         Drawable drawable = ContextCompat.getDrawable(context, R.drawable.marker_circle);
         LayerDrawable layerDrawable = (LayerDrawable) drawable.mutate();
         Drawable backgroundPart = layerDrawable.findDrawableByLayerId(R.id.marker_background);
+        Drawable arrowPart = layerDrawable.findDrawableByLayerId(R.id.marker_arrow);
+
         if (backgroundPart != null) {
             DrawableCompat.setTint(backgroundPart, fillColor);
+            DrawableCompat.setTint(arrowPart, fillColor);
         }
+
+        if (bearing == 0) {
+            arrowPart.setAlpha(0);
+        } else {
+            arrowPart.setAlpha(255);
+        }
+
         markerCircle.setImageDrawable(layerDrawable);
 
         // 4. Configuration du texte (numéro de ligne)
