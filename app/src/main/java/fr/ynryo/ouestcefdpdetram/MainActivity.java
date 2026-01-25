@@ -17,9 +17,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -68,24 +70,16 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
-    private static final String BASE_URL = "https://bus-tracker.fr/api/vehicle-journeys/";
+    private MediaPlayer mediaPlayer;
     private static final String TAG = "MainActivity";
-
     private final Handler handler = new Handler(Looper.getMainLooper());
+    private static final String BASE_URL = "https://bus-tracker.fr/api/vehicle-journeys/";
     private final int UPDATE_INTERVAL = 5000; // 5 seconds
     private final int COLOR_GREEN = Color.rgb(15, 150, 40);
-
-
-    private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-
-    private MediaPlayer mediaPlayer;
-    private List<Marker> listMarkers = new ArrayList<Marker>();
+    private FusedLocationProviderClient fusedLocationClient;
     private List<MarkerData> markersData = new ArrayList<MarkerData>();
     private Map<String, Marker> activeMarkers = new HashMap<>();
-
-
-    // thread pour mettre à jour les marqueurs
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
         public void run() {
@@ -181,45 +175,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void fullReloadMarkers() {
         fetchMarkersFromAPI();
-    }
-
-    // mise à jour des marqueurs
-    @Override
-    protected void onResume() {
-        super.onResume();
-        handler.post(vehicleUpdateRunnable);
-    }
-
-    // suppression des marqueurs
-    @Override
-    protected void onPause() {
-        super.onPause();
-        handler.removeCallbacks(vehicleUpdateRunnable);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
-    }
-
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-        MarkerData tag = (MarkerData) marker.getTag();
-        String markerId = (String) tag.getId();
-        Log.d(TAG, "Marker clicked with ID: " + markerId);
-        fetchVehicleDetails(tag);
-        // Retourne false pour permettre l'affichage de la fenêtre d'information par défaut
-        return false;
-    }
-
-    // mise à jour des marqueurs_çucdbg
-    @Override
-    public void onCameraIdle() {
-        fullReloadMarkers();
     }
 
     private static int dpToPx(Context context, int dp) {
@@ -329,8 +284,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         VehicleDetails details = response.body();
 
                         tvDestination.setText(details.getDestination());
-
-                        // remplissage dynamique des arrêts
                         stopsContainer.removeAllViews(); // remove exemples du xml
 
                         if (details.getCalls() != null) {
@@ -340,11 +293,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 row.setOrientation(LinearLayout.HORIZONTAL);
                                 row.setPadding(0, 16, 0, 16); // Un peu d'espacement
 
+                                //vide
+                                ImageView voidSpace = new ImageView(MainActivity.this);
+                                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
+                                voidSpace.setLayoutParams(params);
+
                                 // Nom de l'arrêt
                                 TextView tvStopName = new TextView(MainActivity.this);
                                 tvStopName.setText(stop.getStopName());
                                 tvStopName.setTextColor(Color.BLACK);
-                                tvStopName.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+                                tvStopName.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
+
+                                ImageView inOutIcon = new ImageView(MainActivity.this);
+                                if (stop.getFlags().contains("NO_PICKUP")) {
+                                    inOutIcon.setImageResource(R.drawable.south_east_24px);
+                                } else if (stop.getFlags().contains("NO_DROP_OFF")) {
+                                    inOutIcon.setImageResource(R.drawable.north_east_24px);
+                                }
+                                inOutIcon.setPadding(8, 0, 0, 0);
+                                inOutIcon.setColorFilter(Color.BLACK);
+                                inOutIcon.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
 
                                 ImageView expectedTimeIcon = new ImageView(MainActivity.this);
                                 expectedTimeIcon.setImageResource(R.drawable.sensors_24px);
@@ -385,6 +353,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                                 // Ajout des textes dans la ligne
                                 row.addView(tvStopName);
+                                row.addView(inOutIcon);
+                                row.addView(voidSpace);
                                 if (isExpectedTime) row.addView(expectedTimeIcon);
                                 row.addView(tvStopTime);
 
@@ -416,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Log.e(TAG, "API call error for details (" + marker.getId() + ")", t);
                 }
             });
-        }catch (Exception e) {
+        } catch (Exception e) {
             Log.e(TAG, "Erreur d'encodage de l'ID", e);
         }
 
@@ -481,5 +451,44 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         markerLayout.draw(canvas);
 
         return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
+    // mise à jour des marqueurs
+    @Override
+    protected void onResume() {
+        super.onResume();
+        handler.post(vehicleUpdateRunnable);
+    }
+
+    // suppression des marqueurs
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handler.removeCallbacks(vehicleUpdateRunnable);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        MarkerData tag = (MarkerData) marker.getTag();
+        String markerId = (String) tag.getId();
+        Log.d(TAG, "Marker clicked with ID: " + markerId);
+        fetchVehicleDetails(tag);
+        // Retourne false pour permettre l'affichage de la fenêtre d'information par défaut
+        return false;
+    }
+
+    // mise à jour des marqueurs_çucdbg
+    @Override
+    public void onCameraIdle() {
+        fullReloadMarkers();
     }
 }

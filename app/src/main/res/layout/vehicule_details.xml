@@ -98,11 +98,22 @@
                     android:paddingVertical="4dp">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:text="Exemple Stop"
                         android:textColor="#333333" />
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="0"
+                        android:layout_marginStart="8dp"
+                        android:src="@drawable/north_east_24px" />
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"/>
 
                     <ImageView
                         android:layout_width="wrap_content"
