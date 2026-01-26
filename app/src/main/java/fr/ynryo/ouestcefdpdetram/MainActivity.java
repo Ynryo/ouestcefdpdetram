@@ -207,6 +207,163 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    private void fetchVehicleDetails(MarkerData marker) {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(MainActivity.this);
+        View view = getLayoutInflater().inflate(R.layout.vehicule_details, null);
+        bottomSheetDialog.setContentView(view);
+
+        //set header text et color
+        TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
+        tvLigne.setText(String.valueOf(marker.getLineNumber()));
+        tvLigne.setBackgroundColor(Color.parseColor(marker.getFillColor()));
+        tvLigne.setTextColor(Color.parseColor(marker.getColor()));
+
+        //affichage du loader
+        view.findViewById(R.id.loader).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.scrollStops).setVisibility(View.INVISIBLE);
+        bottomSheetDialog.show();
+
+        // Appel API
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        NaolibApiService service = retrofit.create(NaolibApiService.class);
+
+        try {
+            String encodedId = URLEncoder.encode(marker.getId(), "UTF-8");
+            Call<VehicleDetails> call = service.getVehicleDetails(encodedId);
+
+            call.enqueue(new Callback<VehicleDetails>() {
+                @Override
+                public void onResponse(Call<VehicleDetails> call, Response<VehicleDetails> response) {
+                    //loader off
+                    view.findViewById(R.id.loader).setVisibility(View.GONE);
+
+                    if (response.isSuccessful() && response.body() != null) {
+                        showVehicleDetails(view, response.body());
+                    } else {
+                        Log.e(TAG, "API Error: " + response.code());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<VehicleDetails> call, Throwable t) {
+                    view.findViewById(R.id.loader).setVisibility(View.GONE);
+                    Log.e(TAG, "Network Error", t);
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Encoding error", e);
+        }
+    }
+
+    private void showVehicleDetails(View rootView, VehicleDetails details) {
+        TextView tvDestination = rootView.findViewById(R.id.tvDestination);
+        LinearLayout stopsContainer = rootView.findViewById(R.id.stopsContainer);
+        View scrollStops = rootView.findViewById(R.id.scrollStops);
+
+        tvDestination.setText(details.getDestination());
+        stopsContainer.removeAllViews();
+
+        if (details.getCalls() != null) {
+            for (fr.ynryo.ouestcefdpdetram.Call stop : details.getCalls()) {
+                LinearLayout.LayoutParams paramsMRight = new LinearLayout.LayoutParams(0, -1);
+                // row create
+                LinearLayout row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setPadding(0, 16, 0, 16);
+                row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+                // 1 nom de l'arrêt
+                TextView tvStopName = new TextView(this);
+                tvStopName.setText(stop.getStopName());
+                tvStopName.setTextColor(Color.BLACK);
+                tvStopName.setLayoutParams(new LinearLayout.LayoutParams(0, 0));
+
+                // 2 icône de montée/descente (calls flags)
+                ImageView inOutIcon = new ImageView(this);
+                if (stop.getFlags().contains("NO_PICKUP")) {
+                    inOutIcon.setImageResource(R.drawable.logout_24px);
+                } else if (stop.getFlags().contains("NO_DROP_OFF")) {
+                    inOutIcon.setImageResource(R.drawable.login_24px);
+                }
+                inOutIcon.setPadding(8, 0, 0, 0);
+                inOutIcon.setColorFilter(Color.BLACK);
+
+                // 3 espace vide flexible (Spacer)
+                View spacer = new View(this);
+                spacer.setLayoutParams(new LinearLayout.LayoutParams(0, 0, 1f));
+
+                // 4 icône expected time
+                ImageView expectedTimeIcon = new ImageView(this);
+                boolean isExpectedTime = stop.getExpectedTime() != null;
+                if (isExpectedTime) {
+                    expectedTimeIcon.setImageResource(R.drawable.sensors_24px);
+                    expectedTimeIcon.setPadding(0, 0, 8, 0);
+                    expectedTimeIcon.setColorFilter(COLOR_GREEN);
+                }
+
+                TextView tvDelay = new TextView(this);
+                if (stop.getExpectedTime() != null && stop.getAimedTime() != null) {
+                    try {
+                        ZonedDateTime expected = ZonedDateTime.parse(stop.getExpectedTime());
+                        ZonedDateTime aimed = ZonedDateTime.parse(stop.getAimedTime());
+
+                        long diff = java.time.temporal.ChronoUnit.MINUTES.between(aimed, expected);
+
+                        if (diff > 0) {
+                            // Retard : on affiche "+X min"
+                            tvDelay.setText("+" + diff + " min");
+                            tvDelay.setTextColor(Color.RED);
+                        } else if (diff < 0) {
+                            // En avance : on affiche "-X min"
+                            tvDelay.setText(diff + " min");
+                            tvDelay.setTextColor(Color.BLUE);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Erreur calcul retard", e);
+                    }
+                }
+
+
+                // 5 heure
+                TextView tvStopTime = new TextView(this);
+                formatStopAndSetTime(tvStopTime, stop, isExpectedTime);
+                tvStopTime.setTypeface(null, Typeface.BOLD);
+
+                // row build
+                row.addView(tvStopName);
+                row.addView(inOutIcon);
+                row.addView(spacer);
+                row.addView(tvDelay, paramsMRight);
+                row.addView(expectedTimeIcon);
+                row.addView(tvStopTime);
+
+                stopsContainer.addView(row);
+            }
+        }
+        // On affiche enfin le contenu
+        scrollStops.setVisibility(View.VISIBLE);
+    }
+
+    private void formatStopAndSetTime(TextView textView, fr.ynryo.ouestcefdpdetram.Call stop, boolean isExpected) {
+        try {
+            String rawTime = isExpected ? stop.getExpectedTime() : stop.getAimedTime();
+            if (rawTime != null) {
+                ZonedDateTime zdt = ZonedDateTime.parse(rawTime);
+                String formatted = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
+                textView.setText(formatted);
+                textView.setTextColor(isExpected ? COLOR_GREEN : Color.DKGRAY);
+            } else {
+                textView.setText("??:??");
+                textView.setTextColor(Color.RED);
+            }
+        } catch (Exception e) {
+            textView.setText("??:??");
+        }
+    }
+
     private void showMarkers(List<MarkerData> markersFetched) {
         if (mMap == null) return; // si pas de map return
         if (markersFetched == null) return;
@@ -247,152 +404,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void fetchVehicleDetails(MarkerData marker) {
-        // création de la BottomSheet
-        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(MainActivity.this);
-        View view = getLayoutInflater().inflate(R.layout.vehicule_details, null);
-        bottomSheetDialog.setContentView(view);
-
-        // récupération des vues du layout
-        ProgressBar loader = view.findViewById(R.id.loader);
-        View scrollStops = view.findViewById(R.id.scrollStops);
-        TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
-        TextView tvDestination = view.findViewById(R.id.tvDestination);
-        LinearLayout stopsContainer = view.findViewById(R.id.stopsContainer);
-
-        tvLigne.setText(String.valueOf(marker.getLineNumber()));
-        tvLigne.setBackgroundColor(Color.parseColor(marker.getFillColor()));
-        tvLigne.setTextColor(Color.parseColor(marker.getColor()));
-
-        // on montre le loader, on cache la liste
-        loader.setVisibility(View.VISIBLE);
-        scrollStops.setVisibility(View.INVISIBLE);
-        bottomSheetDialog.show();
-
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
-        NaolibApiService service = retrofit.create(NaolibApiService.class);
-        try {
-            String encodedId = URLEncoder.encode(marker.getId(), "UTF-8");
-            Log.i(TAG, "Encodage de l'ID: " + encodedId);
-            Call<VehicleDetails> call = service.getVehicleDetails(encodedId);
-
-            call.enqueue(new Callback<VehicleDetails>() {
-                @Override
-                public void onResponse(Call<VehicleDetails> call, Response<VehicleDetails> response) {
-                    loader.setVisibility(View.GONE); // invisible et ne prends pas d'espace (display none)
-                    if (response.isSuccessful() && response.body() != null) {
-                        VehicleDetails details = response.body();
-
-                        tvDestination.setText(details.getDestination());
-                        stopsContainer.removeAllViews(); // remove exemples du xml
-
-                        if (details.getCalls() != null) {
-                            for (fr.ynryo.ouestcefdpdetram.Call stop : details.getCalls()) {
-                                // Création d'une ligne d'arrêt (Row)
-                                LinearLayout row = new LinearLayout(MainActivity.this);
-                                row.setOrientation(LinearLayout.HORIZONTAL);
-                                row.setPadding(0, 16, 0, 16); // Un peu d'espacement
-
-                                //vide
-                                ImageView voidSpace = new ImageView(MainActivity.this);
-                                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
-                                voidSpace.setLayoutParams(params);
-
-                                // Nom de l'arrêt
-                                TextView tvStopName = new TextView(MainActivity.this);
-                                tvStopName.setText(stop.getStopName());
-                                tvStopName.setTextColor(Color.BLACK);
-                                tvStopName.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
-
-                                ImageView inOutIcon = new ImageView(MainActivity.this);
-                                if (stop.getFlags().contains("NO_PICKUP")) {
-                                    inOutIcon.setImageResource(R.drawable.south_east_24px);
-                                } else if (stop.getFlags().contains("NO_DROP_OFF")) {
-                                    inOutIcon.setImageResource(R.drawable.north_east_24px);
-                                }
-                                inOutIcon.setPadding(8, 0, 0, 0);
-                                inOutIcon.setColorFilter(Color.BLACK);
-                                inOutIcon.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
-
-                                ImageView expectedTimeIcon = new ImageView(MainActivity.this);
-                                expectedTimeIcon.setImageResource(R.drawable.sensors_24px);
-                                expectedTimeIcon.setPadding(0, 0, 8, 0);
-                                expectedTimeIcon.setColorFilter(COLOR_GREEN);
-                                expectedTimeIcon.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
-
-
-                                // Heure de l'arrêt (Formatage de 2026-01-22T18:43:00+01:00 vers 18:43)
-                                TextView tvStopTime = new TextView(MainActivity.this);
-                                boolean isExpectedTime = stop.getExpectedTime() != null;
-                                try {
-                                    ZonedDateTime zdt;
-                                    String formattedTime;
-                                    if (isExpectedTime) {
-                                        zdt = ZonedDateTime.parse(stop.getExpectedTime());
-                                        formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
-                                        tvStopTime.setTextColor(COLOR_GREEN);
-                                        tvStopTime.setText(formattedTime);
-                                    } else if (stop.getAimedTime() != null){
-                                        zdt = ZonedDateTime.parse(stop.getAimedTime());
-                                        formattedTime = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
-                                        tvStopTime.setTextColor(Color.DKGRAY);
-                                        tvStopTime.setText(formattedTime);
-                                    } else {
-                                        tvStopTime.setTextColor(Color.rgb(245, 74, 69));
-                                        SpannableString spanString = new SpannableString("??:??");
-                                        spanString.setSpan(new StyleSpan(Typeface.ITALIC), 0, spanString.length(), 0);
-                                        tvStopTime.setText(spanString);
-                                    }
-                                } catch (Exception e) {
-                                    tvStopTime.setText("??:??");
-                                    SpannableString spanString = new SpannableString("");
-                                    spanString.setSpan(new StyleSpan(Typeface.ITALIC), 0, spanString.length(), 0);
-                                    tvStopTime.setText(spanString);
-                                }
-                                tvStopTime.setTypeface(null, Typeface.BOLD);
-
-                                // Ajout des textes dans la ligne
-                                row.addView(tvStopName);
-                                row.addView(inOutIcon);
-                                row.addView(voidSpace);
-                                if (isExpectedTime) row.addView(expectedTimeIcon);
-                                row.addView(tvStopTime);
-
-                                // Ajout la ligne dans le conteneur
-                                stopsContainer.addView(row);
-                            }
-                        }
-
-                        // afficher la fenêtre
-                        scrollStops.setVisibility(View.VISIBLE);
-                        bottomSheetDialog.show();
-
-                    } else {
-                        String errorBody = "Unknown error";
-                        try {
-                            if (response.errorBody() != null) {
-                                errorBody = response.errorBody().string();
-                            }
-                        } catch (IOException e) {
-                            Log.e(TAG, "Error reading error body for vehicle details", e);
-                        }
-                        Log.e(TAG, "API call failed for details (" + marker.getId() + "): " + response.code() + " " + errorBody);
-                    }
-                    return;
-                }
-
-                @Override
-                public void onFailure(Call<VehicleDetails> call, Throwable t) {
-                    Log.e(TAG, "API call error for details (" + marker.getId() + ")", t);
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur d'encodage de l'ID", e);
-        }
-
-    }
-
-    //create marker
     public static BitmapDescriptor createCustomMarker(Context context, MarkerData markerData, float mapRotation) {
         View markerLayout = LayoutInflater.from(context).inflate(R.layout.custom_marker, null);
         ImageView markerCircle = markerLayout.findViewById(R.id.marker_circle);
@@ -423,7 +434,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         markerCircle.setImageDrawable(layerDrawable);
 
         // 4. Configuration du texte (numéro de ligne)
-        lineNumberView.setText(markerData.getLineNumber());
+        lineNumberView.setText(markerData.getLineNumber() != null ? markerData.getLineNumber() : "INCONNU");
         lineNumberView.setTextColor(textColor);
         int paddingPx = dpToPx(context, 5);
         lineNumberView.setPadding(paddingPx, paddingPx / 2, paddingPx, paddingPx / 2);

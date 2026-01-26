@@ -81,7 +81,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Arrivée réelle"
+                    android:text="Heure de départ"
                     android:textColor="#000000"/>
             </LinearLayout>
 
@@ -108,7 +108,7 @@
                         android:layout_height="match_parent"
                         android:layout_weight="0"
                         android:layout_marginStart="8dp"
-                        android:src="@drawable/north_east_24px" />
+                        android:src="@drawable/login_24px" />
 
                     <ImageView
                         android:layout_width="wrap_content"
