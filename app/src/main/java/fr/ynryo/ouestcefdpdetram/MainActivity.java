@@ -211,8 +211,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //set header text et color
         TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
         tvLigne.setText(String.valueOf(marker.getLineNumber()));
-        tvLigne.setBackgroundColor(Color.parseColor(marker.getFillColor()));
-        tvLigne.setTextColor(Color.parseColor(marker.getColor()));
+        String fillColorString = marker.getFillColor();
+        tvLigne.setBackgroundColor(Color.parseColor(fillColorString != null && !fillColorString.isEmpty() ? fillColorString : "#424242"));
+        String textColorString = marker.getColor();
+        tvLigne.setTextColor(Color.parseColor(textColorString != null && !textColorString.isEmpty() ? textColorString : "#FFFFFF"));
 
         //affichage du loader
         view.findViewById(R.id.loader).setVisibility(View.VISIBLE);
@@ -275,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 TextView tvStopName = new TextView(this);
                 tvStopName.setText(stop.getStopName());
                 tvStopName.setTextColor(Color.BLACK);
-                tvStopName.setLayoutParams(new LinearLayout.LayoutParams(0, 0));
+                tvStopName.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
                 // 2 icône de montée/descente (calls flags)
                 ImageView inOutIcon = new ImageView(this);
@@ -432,7 +434,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // 4. Configuration du texte (numéro de ligne)
         lineNumberView.setText(markerData.getLineNumber() != null ? markerData.getLineNumber() : "INCONNU");
         lineNumberView.setTextColor(textColor);
-        lineNumberView.setPadding(5, 5/2, 5, 5/2);
+        lineNumberView.setPadding(10, 5, 10, 5);
 
 
         // Applique le fond avec des coins arrondis
@@ -459,14 +461,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
-    // mise à jour des marqueurs
     @Override
     protected void onResume() {
         super.onResume();
         handler.post(vehicleUpdateRunnable);
     }
 
-    // suppression des marqueurs
     @Override
     protected void onPause() {
         super.onPause();
@@ -492,7 +492,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return false;
     }
 
-    // mise à jour des marqueurs_çucdbg
     @Override
     public void onCameraIdle() {
         fullReloadMarkers();
