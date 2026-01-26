@@ -177,10 +177,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fetchMarkersFromAPI();
     }
 
-    private static int dpToPx(Context context, int dp) {
-        return (int) (dp * context.getResources().getDisplayMetrics().density + 0.5f);
-    }
-
     private void fetchMarkersFromAPI() {
         if (mMap == null) return; // si pas de map return
         Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
@@ -436,8 +432,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // 4. Configuration du texte (numéro de ligne)
         lineNumberView.setText(markerData.getLineNumber() != null ? markerData.getLineNumber() : "INCONNU");
         lineNumberView.setTextColor(textColor);
-        int paddingPx = dpToPx(context, 5);
-        lineNumberView.setPadding(paddingPx, paddingPx / 2, paddingPx, paddingPx / 2);
+        lineNumberView.setPadding(5, 5/2, 5, 5/2);
 
 
         // Applique le fond avec des coins arrondis
