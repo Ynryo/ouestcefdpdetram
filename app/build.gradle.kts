@@ -23,6 +23,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            applicationIdSuffix = "release"
+            versionNameSuffix = "-release"
+        }
+        getByName("debug") {
+            versionNameSuffix = "-debug"
+            applicationIdSuffix = "debug"
         }
     }
     compileOptions {
@@ -38,6 +44,7 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.play.services.maps)
+    implementation("com.google.maps.android:android-maps-utils:3.8.2")
     implementation("com.google.maps.android:android-maps-utils:2.3.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")

@@ -1,8 +1,5 @@
 package fr.ynryo.ouestcefdpdetram;
 
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-
 public class MarkerData {
     private String id;
     private String lineNumber;
@@ -25,7 +22,7 @@ public class MarkerData {
     public String getFillColor() {
         return fillColor;
     }
-    
+
     public String getColor() {
         return color;
     }

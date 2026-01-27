@@ -15,16 +15,11 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.SpannableString;
-import android.text.style.StyleSpan;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -47,9 +42,9 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.color.DynamicColors;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -94,15 +89,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        try {
-//            mediaPlayer = MediaPlayer.create(this, R.raw.hub_intro_sound);
-//            if (mediaPlayer != null) {
-//                mediaPlayer.setLooping(false); // Ne pas répéter
-//                mediaPlayer.start();
-//            }
-//        } catch (Exception e) {
-//            Log.e(TAG, "Erreur lors de la lecture du fichier audio", e);
-//        }
+        //TODO: dynamic color
+        DynamicColors.applyToActivitiesIfAvailable(this.getApplication());
 
         // initialiser le client de localisation
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);

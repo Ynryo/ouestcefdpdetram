@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
+    <!-- Couleurs du thème M3 (simples) -->
+    <color name="primary">#2196F3</color>
+    <color name="onPrimary">#FFFFFF</color>
+    <color name="primaryContainer">#BBDEFB</color>
+    <color name="onPrimaryContainer">#0D47A1</color>
+    <color name="secondary">#4CAF50</color>
+    <color name="onSecondary">#FFFFFF</color>
+    <color name="background">#FFFFFF</color>
+    <color name="onBackground">#000000</color>
 </resources>
