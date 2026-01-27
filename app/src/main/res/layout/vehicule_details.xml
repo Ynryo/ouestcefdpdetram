@@ -2,38 +2,52 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="#FFFFFF">
 
-    <TextView
-        android:id="@+id/tvLigneNumero"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/tvLigneRow"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#D32F2F"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        android:padding="8dp"
-        android:text="38"
-        android:textSize="18sp"
-        android:gravity="center"
-        android:minWidth="50dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/tvDestination"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:text="Destination"
-        android:gravity="center_vertical"
-        android:paddingStart="12dp"
-        android:textColor="#000000"
-        android:textSize="18sp"
-        app:layout_constraintStart_toEndOf="@id/tvLigneNumero"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvLigneNumero"
-        app:layout_constraintBottom_toBottomOf="@id/tvLigneNumero" />
+        <TextView
+            android:id="@+id/tvLigneNumero"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#D32F2F"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:padding="8dp"
+            android:text="38"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:minWidth="50dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="HardcodedText" />
+
+        <TextView
+            android:id="@+id/tvDestination"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Destination"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:ignore="HardcodedText" />
+
+        <ImageView
+            android:layout_width="10dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/naolib" />
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/loader"
@@ -41,7 +55,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/tvLigneNumero"
+        app:layout_constraintTop_toBottomOf="@id/tvLigneRow"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -74,14 +88,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Prochains arrêts"
+                    android:text="@string/nexts_stops"
                     android:layout_marginBottom="8dp"
                     android:textColor="#000000"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Heure de départ"
+                    android:text="@string/start_time"
                     android:textColor="#000000"/>
             </LinearLayout>
 
@@ -100,8 +114,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Exemple Stop"
-                        android:textColor="#333333" />
+                        android:text="Arrêt d'exemple"
+                        android:textColor="#333333"
+                        tools:ignore="HardcodedText" />
 
                     <ImageView
                         android:layout_width="wrap_content"
@@ -127,7 +142,8 @@
                         android:layout_height="wrap_content"
                         android:text="14:05"
                         android:textColor="#000000"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        tools:ignore="HardcodedText" />
                 </LinearLayout>
 
             </LinearLayout>
