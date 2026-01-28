@@ -43,12 +43,12 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:ignore="HardcodedText" />
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:padding="5dp"
-            android:src="@drawable/naolib"
-            app:tint="#000" />
+<!--        <ImageView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:padding="5dp"-->
+<!--            android:src="@drawable/naolib"-->
+<!--            app:tint="#000" />-->
     </LinearLayout>
 
     <ProgressBar
