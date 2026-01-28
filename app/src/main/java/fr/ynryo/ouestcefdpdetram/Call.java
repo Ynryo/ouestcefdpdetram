@@ -1,5 +1,7 @@
 package fr.ynryo.ouestcefdpdetram;
 
+import androidx.annotation.NonNull;
+
 import java.util.List;
 
 public class Call {
@@ -37,5 +39,19 @@ public class Call {
 
     public List<String> getFlags() {
         return flags;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "Call{" +
+                "aimedTime='" + aimedTime + '\'' +
+                ", expectedTime='" + expectedTime + '\'' +
+                ", stopRef='" + stopRef + '\'' +
+                ", stopName='" + stopName + '\'' +
+                ", stopOrder=" + stopOrder +
+                ", callStatus='" + callStatus + '\'' +
+                ", flags=" + flags +
+                '}';
     }
 }

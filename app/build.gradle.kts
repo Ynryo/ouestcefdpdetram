@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "fr.ynryo.ouestcefdpdetram"
-        minSdk = 26
+        minSdk = 33
         targetSdk = 36
         versionCode = 2
         versionName = "1.0.6"

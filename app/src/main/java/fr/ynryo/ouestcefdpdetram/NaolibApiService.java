@@ -18,4 +18,9 @@ public interface NaolibApiService {
     Call<VehicleDetails> getVehicleDetails(
             @Path(value = "vehicleId", encoded = true) String vehicleId
     );
+
+    @GET("{networkId}")
+    Call<NetworkJourneyResponse> getNetworkInfomations(
+            @Path(value = "networkId", encoded = true) int networkId
+    );
 }

@@ -6,6 +6,7 @@ public class MarkerData {
     private Position position;
     private String fillColor;
     private String color;
+    private int networkId;
 
     public String getId() {
         return id;
@@ -25,5 +26,9 @@ public class MarkerData {
 
     public String getColor() {
         return color;
+    }
+
+    public int getNetworkId() {
+        return networkId;
     }
 }
