@@ -1,5 +1,7 @@
 package fr.ynryo.ouestcefdpdetram.apiResponses.markers;
 
+import androidx.annotation.NonNull;
+
 public class Position {
     private double latitude;
     private double longitude;
@@ -15,5 +17,15 @@ public class Position {
 
     public float getBearing() {
         return bearing;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "Position{" +
+                "latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", bearing=" + bearing +
+                '}';
     }
 }

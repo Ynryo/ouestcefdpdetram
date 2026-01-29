@@ -10,6 +10,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerDataResponse;
@@ -23,13 +24,17 @@ public class FetchingManager {
     private static final String BASE_URL = "https://bus-tracker.fr/api/vehicle-journeys/";
     private final MainActivity context;
 
-    // INTERFACES pour gérer l'asynchrone
     public interface OnMarkersListener {
         void onMarkersReceived(List<MarkerData> markers);
     }
 
     public interface OnVehicleDetailsListener {
         void onDetailsReceived(VehicleData details);
+        void onError(String error);
+    }
+
+    public interface OnNetworkDataListener {
+        void onDetailsReceived(NetworkData data);
         void onError(String error);
     }
 
@@ -73,7 +78,6 @@ public class FetchingManager {
                 @Override
                 public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        // ON PRÉVIENT LE LISTENER QUE C'EST PRÊT
                         listener.onDetailsReceived(response.body());
                     } else {
                         listener.onError("Code erreur: " + response.code());
@@ -87,5 +91,23 @@ public class FetchingManager {
         } catch (Exception e) {
             listener.onError("Encoding error");
         }
+    }
+
+    public void fetchNetworkData(int networkId, OnNetworkDataListener listener) {
+        getService().getNetworkInformations(networkId).enqueue(new Callback<NetworkData>() {
+            @Override
+            public void onResponse(@NonNull Call<NetworkData> call, @NonNull Response<NetworkData> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    listener.onDetailsReceived(response.body());
+                } else {
+                    listener.onError("Code erreur: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<NetworkData> call, @NonNull Throwable t) {
+                listener.onError(t.getMessage());
+            }
+        });
     }
 }

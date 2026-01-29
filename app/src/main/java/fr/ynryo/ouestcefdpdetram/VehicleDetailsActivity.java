@@ -43,12 +43,13 @@ public class VehicleDetailsActivity {
         view.findViewById(R.id.scrollStops).setVisibility(View.INVISIBLE);
         bottomSheetDialog.show();
 
-        // APPEL AVEC CALLBACK
         context.getFetcher().fetchVehicleStopsInfo(data, new FetchingManager.OnVehicleDetailsListener() {
             @Override
             public void onDetailsReceived(VehicleData details) {
-                // On cache le loader ici, quand la donnée arrive enfin !
                 view.findViewById(R.id.loader).setVisibility(View.GONE);
+
+
+
                 showVehicleDetails(details, view);
             }
 

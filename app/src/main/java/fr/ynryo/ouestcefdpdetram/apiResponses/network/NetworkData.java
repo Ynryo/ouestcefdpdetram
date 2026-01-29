@@ -2,7 +2,7 @@ package fr.ynryo.ouestcefdpdetram.apiResponses.network;
 
 import java.net.URI;
 
-public class networkResponse {
+public class NetworkData {
     private int id;
     private String ref;
     private String name;

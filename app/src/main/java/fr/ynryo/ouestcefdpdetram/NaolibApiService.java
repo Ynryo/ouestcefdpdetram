@@ -1,6 +1,6 @@
 package fr.ynryo.ouestcefdpdetram;
 
-import fr.ynryo.ouestcefdpdetram.apiResponses.network.networkResponse;
+import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerDataResponse;
 import retrofit2.Call;
@@ -23,7 +23,7 @@ public interface NaolibApiService {
     );
 
     @GET("{networkId}")
-    Call<networkResponse> getNetworkInfomations(
+    Call<NetworkData> getNetworkInformations(
             @Path(value = "networkId", encoded = true) int networkId
     );
 }
