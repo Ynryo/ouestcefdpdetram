@@ -2,6 +2,7 @@ package fr.ynryo.ouestcefdpdetram;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.PictureDrawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,11 +10,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.Call;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
@@ -47,10 +50,27 @@ public class VehicleDetailsActivity {
             @Override
             public void onDetailsReceived(VehicleData details) {
                 view.findViewById(R.id.loader).setVisibility(View.GONE);
-
-
-
                 showVehicleDetails(details, view);
+
+                if (details.getNetworkId() == 0) return;
+
+                context.getFetcher().fetchNetworkData(details.getNetworkId(), new FetchingManager.OnNetworkDataListener() {
+                    @Override
+                    public void onDetailsReceived(NetworkData data) {
+                        ImageView ivLogo = view.findViewById(R.id.ivNetworkLogo);
+                        ivLogo.setColorFilter(Color.BLACK);
+
+                        Glide.with(context)
+                                .as(PictureDrawable.class)
+                                .load(data.getLogoHref().toString())
+                                .into(ivLogo);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.w("VehicleDetailsActivity", "Erreur lors de la récuperation du logo");
+                    }
+                });
             }
 
             @Override

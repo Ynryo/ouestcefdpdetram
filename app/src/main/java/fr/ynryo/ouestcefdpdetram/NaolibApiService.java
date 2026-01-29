@@ -24,6 +24,6 @@ public interface NaolibApiService {
 
     @GET("networks/{networkId}?withDetails=true")
     Call<NetworkData> getNetworkInformations(
-            @Path(value = "networkId", encoded = true) int networkId
+            @Path(value = "networkId") int networkId
     );
 }
