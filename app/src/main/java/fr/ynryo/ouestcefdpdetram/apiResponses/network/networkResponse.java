@@ -1,8 +1,8 @@
-package fr.ynryo.ouestcefdpdetram;
+package fr.ynryo.ouestcefdpdetram.apiResponses.network;
 
 import java.net.URI;
 
-public class NetworkJourneyResponse {
+public class networkResponse {
     private int id;
     private String ref;
     private String name;

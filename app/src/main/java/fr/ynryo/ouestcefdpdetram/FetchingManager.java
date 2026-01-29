@@ -10,6 +10,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerDataResponse;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -26,7 +29,7 @@ public class FetchingManager {
     }
 
     public interface OnVehicleDetailsListener {
-        void onDetailsReceived(VehicleDetails details);
+        void onDetailsReceived(VehicleData details);
         void onError(String error);
     }
 
@@ -49,15 +52,15 @@ public class FetchingManager {
         getService().getVehicleMarkers(
                 bounds.southwest.latitude, bounds.southwest.longitude,
                 bounds.northeast.latitude, bounds.northeast.longitude
-        ).enqueue(new Callback<VehicleJourneyResponse>() {
+        ).enqueue(new Callback<MarkerDataResponse>() {
             @Override
-            public void onResponse(@NonNull Call<VehicleJourneyResponse> call, @NonNull Response<VehicleJourneyResponse> response) {
+            public void onResponse(@NonNull Call<MarkerDataResponse> call, @NonNull Response<MarkerDataResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     listener.onMarkersReceived(response.body().getItems());
                 }
             }
             @Override
-            public void onFailure(@NonNull Call<VehicleJourneyResponse> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<MarkerDataResponse> call, @NonNull Throwable t) {
                 Log.e("FetchingManager", "Markers failure", t);
             }
         });
@@ -66,9 +69,9 @@ public class FetchingManager {
     public void fetchVehicleStopsInfo(MarkerData marker, OnVehicleDetailsListener listener) {
         try {
             String encodedId = URLEncoder.encode(marker.getId(), StandardCharsets.UTF_8.toString());
-            getService().getVehicleDetails(encodedId).enqueue(new Callback<VehicleDetails>() {
+            getService().getVehicleDetails(encodedId).enqueue(new Callback<VehicleData>() {
                 @Override
-                public void onResponse(@NonNull Call<VehicleDetails> call, @NonNull Response<VehicleDetails> response) {
+                public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         // ON PRÉVIENT LE LISTENER QUE C'EST PRÊT
                         listener.onDetailsReceived(response.body());
@@ -77,7 +80,7 @@ public class FetchingManager {
                     }
                 }
                 @Override
-                public void onFailure(@NonNull Call<VehicleDetails> call, @NonNull Throwable t) {
+                public void onFailure(@NonNull Call<VehicleData> call, @NonNull Throwable t) {
                     listener.onError(t.getMessage());
                 }
             });

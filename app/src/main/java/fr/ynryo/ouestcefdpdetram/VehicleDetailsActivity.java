@@ -3,7 +3,6 @@ package fr.ynryo.ouestcefdpdetram;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -14,6 +13,10 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+
+import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.Call;
+import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 
 public class VehicleDetailsActivity {
     private final int COLOR_GREEN = Color.rgb(15, 150, 40);
@@ -43,7 +46,7 @@ public class VehicleDetailsActivity {
         // APPEL AVEC CALLBACK
         context.getFetcher().fetchVehicleStopsInfo(data, new FetchingManager.OnVehicleDetailsListener() {
             @Override
-            public void onDetailsReceived(VehicleDetails details) {
+            public void onDetailsReceived(VehicleData details) {
                 // On cache le loader ici, quand la donnée arrive enfin !
                 view.findViewById(R.id.loader).setVisibility(View.GONE);
                 showVehicleDetails(details, view);
@@ -58,7 +61,7 @@ public class VehicleDetailsActivity {
         });
     }
 
-    private void showVehicleDetails(VehicleDetails details, View view) {
+    private void showVehicleDetails(VehicleData details, View view) {
         LinearLayout stopsContainer = view.findViewById(R.id.stopsContainer);
         stopsContainer.removeAllViews();
 
@@ -84,7 +87,7 @@ public class VehicleDetailsActivity {
         // 1 nom de l'arrêt
         TextView tvStopName = new TextView(context);
         tvStopName.setText(stop.getStopName());
-        tvStopName.setTextColor(Color.RED);
+        tvStopName.setTextColor(Color.BLACK);
         tvStopName.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
         // 2 icône de montée/descente (calls flags)
@@ -148,7 +151,7 @@ public class VehicleDetailsActivity {
         return row;
     }
 
-    private void formatStopAndSetTime(TextView textView, fr.ynryo.ouestcefdpdetram.Call stop, boolean isExpected) {
+    private void formatStopAndSetTime(TextView textView, Call stop, boolean isExpected) {
         try {
             String rawTime = isExpected ? stop.getExpectedTime() : stop.getAimedTime();
             if (rawTime != null) {

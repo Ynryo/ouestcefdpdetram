@@ -44,6 +44,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
+
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener {
     private GoogleMap mMap;
     private final Handler handler = new Handler(Looper.getMainLooper());

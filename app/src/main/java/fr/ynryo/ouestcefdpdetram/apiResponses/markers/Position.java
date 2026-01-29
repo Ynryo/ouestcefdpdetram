@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram;
+package fr.ynryo.ouestcefdpdetram.apiResponses.markers;
 
 public class Position {
     private double latitude;

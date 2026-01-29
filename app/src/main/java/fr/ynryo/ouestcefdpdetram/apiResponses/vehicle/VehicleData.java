@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram;
+package fr.ynryo.ouestcefdpdetram.apiResponses.vehicle;
 
 import android.content.Context;
 
@@ -6,7 +6,9 @@ import androidx.annotation.NonNull;
 
 import java.util.List;
 
-public class VehicleDetails {
+import fr.ynryo.ouestcefdpdetram.apiResponses.markers.Position;
+
+public class VehicleData {
     private String id;
     private int lineId;
     private String direction;
