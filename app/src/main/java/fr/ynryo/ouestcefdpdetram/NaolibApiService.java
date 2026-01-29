@@ -9,7 +9,7 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface NaolibApiService {
-    @GET("markers")
+    @GET("vehicle-journeys/markers")
     Call<MarkerDataResponse> getVehicleMarkers(
             @Query("swLat") double swLat,
             @Query("swLon") double swLon,
@@ -17,12 +17,12 @@ public interface NaolibApiService {
             @Query("neLon") double neLon
     );
 
-    @GET("{vehicleId}")
+    @GET("vehicle-journeys/{vehicleId}")
     Call<VehicleData> getVehicleDetails(
             @Path(value = "vehicleId", encoded = true) String vehicleId
     );
 
-    @GET("{networkId}")
+    @GET("networks/{networkId}?withDetails=true")
     Call<NetworkData> getNetworkInformations(
             @Path(value = "networkId", encoded = true) int networkId
     );

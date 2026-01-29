@@ -1,5 +1,7 @@
 package fr.ynryo.ouestcefdpdetram.apiResponses.markers;
 
+import androidx.annotation.NonNull;
+
 public class MarkerData {
     private String id;
     private String lineNumber;
@@ -30,5 +32,18 @@ public class MarkerData {
 
     public int getNetworkId() {
         return networkId;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "MarkerData{" +
+                "id='" + id + '\'' +
+                ", lineNumber='" + lineNumber + '\'' +
+                ", position=" + position +
+                ", fillColor='" + fillColor + '\'' +
+                ", color='" + color + '\'' +
+                ", networkId=" + networkId +
+                '}';
     }
 }

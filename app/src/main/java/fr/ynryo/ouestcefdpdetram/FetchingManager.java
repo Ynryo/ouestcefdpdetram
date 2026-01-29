@@ -21,7 +21,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class FetchingManager {
-    private static final String BASE_URL = "https://bus-tracker.fr/api/vehicle-journeys/";
+    private static final String BASE_URL = "https://bus-tracker.fr/api/";
     private final MainActivity context;
 
     public interface OnMarkersListener {
