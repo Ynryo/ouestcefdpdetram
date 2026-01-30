@@ -4,7 +4,7 @@ import androidx.annotation.NonNull;
 
 import java.util.List;
 
-public class MarkerDataResponse {
+public class MarkersList {
     private List<MarkerData> items;
 
     // on a une classe à part parce que y'a que items dans la response api

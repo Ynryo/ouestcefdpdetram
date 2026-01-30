@@ -13,7 +13,7 @@ import java.util.List;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerDataResponse;
+import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkersList;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -57,15 +57,15 @@ public class FetchingManager {
         getService().getVehicleMarkers(
                 bounds.southwest.latitude, bounds.southwest.longitude,
                 bounds.northeast.latitude, bounds.northeast.longitude
-        ).enqueue(new Callback<MarkerDataResponse>() {
+        ).enqueue(new Callback<MarkersList>() {
             @Override
-            public void onResponse(@NonNull Call<MarkerDataResponse> call, @NonNull Response<MarkerDataResponse> response) {
+            public void onResponse(@NonNull Call<MarkersList> call, @NonNull Response<MarkersList> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     listener.onMarkersReceived(response.body().getItems());
                 }
             }
             @Override
-            public void onFailure(@NonNull Call<MarkerDataResponse> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<MarkersList> call, @NonNull Throwable t) {
                 Log.e("FetchingManager", "Markers failure", t);
             }
         });
@@ -94,7 +94,7 @@ public class FetchingManager {
     }
 
     public void fetchNetworkData(int networkId, OnNetworkDataListener listener) {
-        getService().getNetworkInformations(networkId).enqueue(new Callback<NetworkData>() {
+        getService().getNetworkData(networkId).enqueue(new Callback<NetworkData>() {
             @Override
             public void onResponse(@NonNull Call<NetworkData> call, @NonNull Response<NetworkData> response) {
                 if (response.isSuccessful() && response.body() != null) {

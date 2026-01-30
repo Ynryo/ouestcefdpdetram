@@ -1,8 +1,10 @@
 package fr.ynryo.ouestcefdpdetram;
 
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworksList;
+import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionsList;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerDataResponse;
+import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkersList;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
@@ -10,7 +12,7 @@ import retrofit2.http.Query;
 
 public interface NaolibApiService {
     @GET("vehicle-journeys/markers")
-    Call<MarkerDataResponse> getVehicleMarkers(
+    Call<MarkersList> getVehicleMarkers(
             @Query("swLat") double swLat,
             @Query("swLon") double swLon,
             @Query("neLat") double neLat,
@@ -22,8 +24,14 @@ public interface NaolibApiService {
             @Path(value = "vehicleId", encoded = true) String vehicleId
     );
 
+    @GET("regions")
+    Call<RegionsList> getRegions();
+
+    @GET("networks")
+    Call<NetworksList> getNetworks();
+
     @GET("networks/{networkId}?withDetails=true")
-    Call<NetworkData> getNetworkInformations(
+    Call<NetworkData> getNetworkData(
             @Path(value = "networkId") int networkId
     );
 }
