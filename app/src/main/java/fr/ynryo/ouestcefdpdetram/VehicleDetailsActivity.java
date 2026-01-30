@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.time.ZonedDateTime;
@@ -63,6 +64,7 @@ public class VehicleDetailsActivity {
                         Glide.with(context)
                                 .as(PictureDrawable.class)
                                 .load(data.getLogoHref().toString())
+                                .diskCacheStrategy(DiskCacheStrategy.DATA)
                                 .into(ivLogo);
                     }
 
@@ -113,9 +115,9 @@ public class VehicleDetailsActivity {
 
         // 2 icône de montée/descente (calls flags)
         ImageView inOutIcon = new ImageView(context);
-        if (stop.getFlags().contains("NO_PICKUP")) {
+        if (stop.getFlags() != null && stop.getFlags().contains("NO_PICKUP")) {
             inOutIcon.setImageResource(R.drawable.logout_24px);
-        } else if (stop.getFlags().contains("NO_DROP_OFF")) {
+        } else if (stop.getFlags() != null && stop.getFlags().contains("NO_DROP_OFF")) {
             inOutIcon.setImageResource(R.drawable.login_24px);
         }
         inOutIcon.setPadding(8, 0, 0, 0);
