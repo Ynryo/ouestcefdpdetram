@@ -26,6 +26,7 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 
 public class VehicleDetailsActivity {
     private final int COLOR_GREEN = Color.rgb(15, 150, 40);
+    private final int COLOR_ORANGE = Color.rgb(224, 159, 7);
     private MainActivity context;
     private BottomSheetDialog bottomSheetDialog;
 
@@ -103,20 +104,30 @@ public class VehicleDetailsActivity {
     }
 
     private View createRow(Call stop) {
-        LinearLayout.LayoutParams paramsMRight = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         // row create
         LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(0, 16, 0, 16);
         row.setGravity(android.view.Gravity.CENTER_VERTICAL);
 
-        // 1 nom de l'arrêt
-        TextView tvStopName = new TextView(context);
-        tvStopName.setText(stop.getStopName());
-        tvStopName.setTextColor(Color.BLACK);
-        tvStopName.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        //bloc de gauche
+        LinearLayout llLeft = new LinearLayout(context);
+        llLeft.setOrientation(LinearLayout.HORIZONTAL);
+        llLeft.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        llLeft.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
-        // 2 icône de montée/descente (calls flags)
+        //nom de l'arrêt
+        TextView tvStopName = new TextView(context);
+        tvStopName.setTextColor(Color.BLACK);
+        tvStopName.setText(stop.getStopName());
+
+        tvStopName.setSingleLine(true);
+        tvStopName.setEllipsize(android.text.TextUtils.TruncateAt.MARQUEE);
+        tvStopName.setMarqueeRepeatLimit(-1); // Infini
+        tvStopName.setHorizontallyScrolling(true);
+        tvStopName.setSelected(true);
+
+        //icône de montée/descente (calls flags)
         ImageView inOutIcon = new ImageView(context);
         List<String> flags = stop.getFlags();
         if (flags != null && flags.contains("NO_PICKUP")) {
@@ -124,14 +135,21 @@ public class VehicleDetailsActivity {
         } else if (flags != null && flags.contains("NO_DROP_OFF")) {
             inOutIcon.setImageResource(R.drawable.login_24px);
         }
-        inOutIcon.setPadding(8, 0, 0, 0);
+        inOutIcon.setPadding(8, 0, 8, 0);
         inOutIcon.setColorFilter(Color.BLACK);
 
-        // 3 espace vide flexible (Spacer)
-        View spacer = new View(context);
-        spacer.setLayoutParams(new LinearLayout.LayoutParams(0, 0, 1f));
+        //add to llLeft
+        llLeft.addView(tvStopName);
+        llLeft.addView(inOutIcon);
 
-        // 4 icône expected time
+        //bloc de droite
+        LinearLayout llRight = new LinearLayout(context);
+        llRight.setOrientation(LinearLayout.HORIZONTAL);
+        llRight.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.END);
+        llRight.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0f));
+
+
+        //icône expected time
         ImageView expectedTimeIcon = new ImageView(context);
         boolean isExpectedTime = stop.getExpectedTime() != null;
         if (isExpectedTime) {
@@ -140,6 +158,7 @@ public class VehicleDetailsActivity {
             expectedTimeIcon.setColorFilter(COLOR_GREEN);
         }
 
+        //delay
         TextView tvDelay = new TextView(context);
         tvDelay.setTypeface(null, Typeface.BOLD);
         if (stop.getExpectedTime() != null && stop.getAimedTime() != null) {
@@ -154,8 +173,8 @@ public class VehicleDetailsActivity {
                     tvDelay.setText("Retard de " + diff + " min");
                     tvDelay.setTextColor(Color.RED);
                 } else if (diff < 0) {
-                    tvDelay.setText(diff + " min");
-                    tvDelay.setTextColor(Color.BLUE);
+                    tvDelay.setText("Avance de " + Math.abs(diff) + " min");
+                    tvDelay.setTextColor(COLOR_ORANGE);
                 }
                 tvDelay.setPadding(8, 0, 0, 0);
             } catch (Exception e) {
@@ -163,19 +182,18 @@ public class VehicleDetailsActivity {
             }
         }
 
-
-        // 5 heure
+        //heure
         TextView tvStopTime = new TextView(context);
         formatStopAndSetTime(tvStopTime, stop, isExpectedTime);
         tvStopTime.setTypeface(null, Typeface.BOLD);
 
+        llRight.addView(expectedTimeIcon);
+        llRight.addView(tvStopTime);
+        llRight.addView(tvDelay);
+
         // row build
-        row.addView(tvStopName);
-        row.addView(inOutIcon);
-        row.addView(spacer);
-        row.addView(expectedTimeIcon);
-        row.addView(tvStopTime);
-        row.addView(tvDelay, paramsMRight);
+        row.addView(llLeft);
+        row.addView(llRight);
         return row;
     }
 
