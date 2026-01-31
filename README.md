@@ -17,7 +17,7 @@ Une application Android moderne et réactive pour suivre en temps réel les tram
 ## **🛠️ Stack Technique**
 
 * **Langage** : Java
-* **Réseau** : [Retrofit 2](https://square.github.io/retrofit/) \+ GSON pour la consommation de l'API Naolib/Bus-Tracker.
+* **Réseau** : [Retrofit 2](https://square.github.io/retrofit/) \+ GSON pour la consommation de l'API Bus-Tracker.
 * **Images** : [Glide](https://github.com/bumptech/glide) pour le chargement et le cache des logos de réseaux.
 * **Maps** : Google Maps SDK for Android.
 * **UI/UX** : Material Design 3 (Dynamic Colors), BottomSheetDialog, Custom Marker Layouts.  
@@ -27,7 +27,7 @@ Une application Android moderne et réactive pour suivre en temps réel les tram
 
 ### **Prérequis**
 
-* Android Studio Ladybug (ou plus récent).
+* Android Studio.
 * Android Gradle Plugin (AGP) **8.7.3**.
 * Compile SDK **35**.
 
@@ -60,4 +60,4 @@ Cette application s'appuie sur le travail de **Kevin Biojout** et son projet [bu
 
 ## **📝 À propos**
 
-Développé par un étudiant qui en avait marre d'attendre son tram. 🏳️‍🌈
+Développé par un étudiant qui en avait marre d'attendre son tram.
