@@ -61,7 +61,8 @@ public class VehicleDetailsActivity {
                     @Override
                     public void onDetailsReceived(NetworkData data) {
                         ImageView ivLogo = view.findViewById(R.id.ivNetworkLogo);
-                        ivLogo.setColorFilter(Color.BLACK);
+                        ivLogo.setAdjustViewBounds(true);
+                        ivLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
                         Glide.with(context)
                                 .as(PictureDrawable.class)
