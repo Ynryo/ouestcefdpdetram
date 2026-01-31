@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
 }
@@ -14,6 +16,11 @@ android {
         versionName = "1.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        var properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+        manifestPlaceholders.putAll(mapOf("MAPS_API_KEY" to properties.getProperty("MAPS_API_KEY")))
+
     }
 
     buildTypes {
@@ -23,12 +30,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            applicationIdSuffix = "release"
+            applicationIdSuffix = ".release"
             versionNameSuffix = "-release"
         }
         getByName("debug") {
+            applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-            applicationIdSuffix = "debug"
         }
     }
     compileOptions {
