@@ -16,6 +16,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.Call;
@@ -100,7 +102,7 @@ public class VehicleDetailsActivity {
     }
 
     private View createRow(Call stop) {
-        LinearLayout.LayoutParams paramsMRight = new LinearLayout.LayoutParams(0, -1);
+        LinearLayout.LayoutParams paramsMRight = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         // row create
         LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
@@ -115,9 +117,10 @@ public class VehicleDetailsActivity {
 
         // 2 icône de montée/descente (calls flags)
         ImageView inOutIcon = new ImageView(context);
-        if (stop.getFlags() != null && stop.getFlags().contains("NO_PICKUP")) {
+        List<String> flags = stop.getFlags();
+        if (flags != null && flags.contains("NO_PICKUP")) {
             inOutIcon.setImageResource(R.drawable.logout_24px);
-        } else if (stop.getFlags() != null && stop.getFlags().contains("NO_DROP_OFF")) {
+        } else if (flags != null && flags.contains("NO_DROP_OFF")) {
             inOutIcon.setImageResource(R.drawable.login_24px);
         }
         inOutIcon.setPadding(8, 0, 0, 0);
@@ -137,22 +140,23 @@ public class VehicleDetailsActivity {
         }
 
         TextView tvDelay = new TextView(context);
+        tvDelay.setTypeface(null, Typeface.BOLD);
         if (stop.getExpectedTime() != null && stop.getAimedTime() != null) {
             try {
                 ZonedDateTime expected = ZonedDateTime.parse(stop.getExpectedTime());
                 ZonedDateTime aimed = ZonedDateTime.parse(stop.getAimedTime());
 
-                long diff = java.time.temporal.ChronoUnit.MINUTES.between(aimed, expected);
+                long diff = ChronoUnit.MINUTES.between(aimed, expected);
+                Log.w("delay", String.valueOf(diff));
 
                 if (diff > 0) {
-                    // Retard : on affiche "+X min"
-                    tvDelay.setText("+" + diff + " min");
+                    tvDelay.setText("Retard de " + diff + " min");
                     tvDelay.setTextColor(Color.RED);
                 } else if (diff < 0) {
-                    // En avance : on affiche "-X min"
                     tvDelay.setText(diff + " min");
                     tvDelay.setTextColor(Color.BLUE);
                 }
+                tvDelay.setPadding(8, 0, 0, 0);
             } catch (Exception e) {
                 Log.e("VehicleDetailsActivity", "Erreur calcul retard", e);
             }
@@ -168,9 +172,9 @@ public class VehicleDetailsActivity {
         row.addView(tvStopName);
         row.addView(inOutIcon);
         row.addView(spacer);
-        row.addView(tvDelay, paramsMRight);
         row.addView(expectedTimeIcon);
         row.addView(tvStopTime);
+        row.addView(tvDelay, paramsMRight);
         return row;
     }
 
