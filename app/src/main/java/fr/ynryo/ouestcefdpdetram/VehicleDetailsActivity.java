@@ -51,7 +51,11 @@ public class VehicleDetailsActivity {
 
         // Header express
         TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
-        tvLigne.setText(data.getLineNumber());
+        if (data.getId().contains("SNCF")) {
+            tvLigne.setText(String.valueOf(data.getVehicleNumber()));
+        } else {
+            tvLigne.setText(String.valueOf(data.getLineNumber()));
+        }
         tvLigne.setBackgroundColor(Color.parseColor(data.getFillColor() != null ? data.getFillColor() : "#424242"));
         tvLigne.setTextColor(Color.parseColor(data.getColor() != null ? data.getColor() : "#FFFFFF"));
 
@@ -103,6 +107,11 @@ public class VehicleDetailsActivity {
 
         TextView tvDestination = view.findViewById(R.id.tvDestination);
         tvDestination.setText(details.getDestination());
+        tvDestination.setSingleLine(true);
+        tvDestination.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+        tvDestination.setMarqueeRepeatLimit(-1);
+        tvDestination.setHorizontallyScrolling(true);
+        tvDestination.setSelected(true);
 
         if (details.getCalls() != null) {
             for (Call stop : details.getCalls()) {

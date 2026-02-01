@@ -225,7 +225,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             markerCircle.setImageDrawable(layerDrawable);
         }
 
-        lineNumberView.setText(markerData.getLineNumber());
+        if (markerData.getId().contains("SNCF")) {
+            lineNumberView.setText(String.valueOf(markerData.getVehicleNumber()));
+        } else {
+            lineNumberView.setText(String.valueOf(markerData.getLineNumber()));
+        }
         lineNumberView.setTextColor(textColor);
 
         GradientDrawable gd = new GradientDrawable();

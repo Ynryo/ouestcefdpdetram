@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 public class MarkerData {
     private String id;
     private String lineNumber;
+    private int vehicleNumber;
     private Position position;
     private String fillColor;
     private String color;
@@ -16,6 +17,10 @@ public class MarkerData {
 
     public String getLineNumber() {
         return lineNumber;
+    }
+
+    public int getVehicleNumber() {
+        return vehicleNumber;
     }
 
     public Position getPosition() {
