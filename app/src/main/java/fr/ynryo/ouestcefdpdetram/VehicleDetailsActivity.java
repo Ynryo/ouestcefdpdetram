@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
@@ -119,6 +120,44 @@ public class VehicleDetailsActivity {
         row.setGravity(android.view.Gravity.CENTER_VERTICAL);
 
         //nom de l'arrêt
+        TextView tvStopName = getStopName(stop);
+
+        //bloc de droite
+        LinearLayout llRight = new LinearLayout(context);
+        llRight.setOrientation(LinearLayout.HORIZONTAL);
+        llRight.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.END);
+        llRight.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0f));
+
+
+        //icône expected time
+        ImageView expectedTimeIcon = new ImageView(context);
+        boolean isExpectedTime = stop.getExpectedTime() != null;
+        if (isExpectedTime) {
+            expectedTimeIcon.setImageResource(R.drawable.sensors_24px);
+            expectedTimeIcon.setPadding(0, 0, 8, 0);
+            expectedTimeIcon.setColorFilter(COLOR_GREEN);
+        }
+
+        //delay
+        TextView tvDelay = getDelay(stop);
+
+        //heure
+        TextView tvStopTime = new TextView(context);
+        formatStopAndSetTime(tvStopTime, stop, isExpectedTime);
+        tvStopTime.setTypeface(null, Typeface.BOLD);
+
+        llRight.addView(expectedTimeIcon);
+        llRight.addView(tvStopTime);
+        llRight.addView(tvDelay);
+
+        // row build
+        row.addView(tvStopName);
+        row.addView(llRight);
+        return row;
+    }
+
+    @NonNull
+    private TextView getStopName(Call stop) {
         TextView tvStopName = new TextView(context);
         tvStopName.setTextColor(Color.BLACK);
         tvStopName.setText(stop.getStopName());
@@ -155,24 +194,11 @@ public class VehicleDetailsActivity {
         tvStopName.setMarqueeRepeatLimit(-1);
         tvStopName.setHorizontallyScrolling(true);
         tvStopName.setSelected(true);
+        return tvStopName;
+    }
 
-        //bloc de droite
-        LinearLayout llRight = new LinearLayout(context);
-        llRight.setOrientation(LinearLayout.HORIZONTAL);
-        llRight.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.END);
-        llRight.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0f));
-
-
-        //icône expected time
-        ImageView expectedTimeIcon = new ImageView(context);
-        boolean isExpectedTime = stop.getExpectedTime() != null;
-        if (isExpectedTime) {
-            expectedTimeIcon.setImageResource(R.drawable.sensors_24px);
-            expectedTimeIcon.setPadding(0, 0, 8, 0);
-            expectedTimeIcon.setColorFilter(COLOR_GREEN);
-        }
-
-        //delay
+    @NonNull
+    private TextView getDelay(Call stop) {
         TextView tvDelay = new TextView(context);
         tvDelay.setTypeface(null, Typeface.BOLD);
         if (stop.getExpectedTime() != null && stop.getAimedTime() != null) {
@@ -195,20 +221,7 @@ public class VehicleDetailsActivity {
                 Log.e("VehicleDetailsActivity", "Erreur calcul retard", e);
             }
         }
-
-        //heure
-        TextView tvStopTime = new TextView(context);
-        formatStopAndSetTime(tvStopTime, stop, isExpectedTime);
-        tvStopTime.setTypeface(null, Typeface.BOLD);
-
-        llRight.addView(expectedTimeIcon);
-        llRight.addView(tvStopTime);
-        llRight.addView(tvDelay);
-
-        // row build
-        row.addView(tvStopName);
-        row.addView(llRight);
-        return row;
+        return tvDelay;
     }
 
     private void formatStopAndSetTime(TextView textView, Call stop, boolean isExpected) {
