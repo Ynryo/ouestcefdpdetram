@@ -9,11 +9,12 @@ android {
     compileSdk = 36
 
     defaultConfig {
+        manifestPlaceholders += mapOf()
         applicationId = "fr.ynryo.ouestcefdpdetram"
         minSdk = 33
         targetSdk = 36
         versionCode = 2
-        versionName = "1.0.7"
+        versionName = "1.0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

@@ -1,14 +1,23 @@
 package fr.ynryo.ouestcefdpdetram;
 
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PictureDrawable;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.TextUtils;
+import android.text.style.ImageSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -27,15 +36,14 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 public class VehicleDetailsActivity {
     private final int COLOR_GREEN = Color.rgb(15, 150, 40);
     private final int COLOR_ORANGE = Color.rgb(224, 159, 7);
-    private MainActivity context;
-    private BottomSheetDialog bottomSheetDialog;
+    private final MainActivity context;
 
     public VehicleDetailsActivity(MainActivity context) {
         this.context = context;
     }
 
     public void init(MarkerData data) {
-        bottomSheetDialog = new BottomSheetDialog(context);
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.vehicule_details, null);
         bottomSheetDialog.setContentView(view);
@@ -110,37 +118,43 @@ public class VehicleDetailsActivity {
         row.setPadding(0, 16, 0, 16);
         row.setGravity(android.view.Gravity.CENTER_VERTICAL);
 
-        //bloc de gauche
-        LinearLayout llLeft = new LinearLayout(context);
-        llLeft.setOrientation(LinearLayout.HORIZONTAL);
-        llLeft.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        llLeft.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-
         //nom de l'arrêt
         TextView tvStopName = new TextView(context);
         tvStopName.setTextColor(Color.BLACK);
         tvStopName.setText(stop.getStopName());
+        tvStopName.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        SpannableStringBuilder builder = new SpannableStringBuilder();
+        builder.append(stop.getStopName());
+
+        List<String> flags = stop.getFlags();
+        int iconRes = 0;
+        if (flags != null && flags.contains("NO_PICKUP")) {
+            iconRes = R.drawable.logout_24px;
+        } else if (flags != null && flags.contains("NO_DROP_OFF")) {
+            iconRes = R.drawable.login_24px;
+        }
+
+        if (iconRes != 0) {
+            builder.append("  ");
+            Drawable drawable = ContextCompat.getDrawable(context, iconRes);
+            if (drawable != null) {
+                drawable.mutate();
+                drawable.setColorFilter(new PorterDuffColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN));
+                int size = (int) (tvStopName.getTextSize() * 1.2f);
+                drawable.setBounds(0, 0, size, size);
+                ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);
+                builder.setSpan(imageSpan, builder.length() - 1, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+
+        tvStopName.setText(builder);
 
         tvStopName.setSingleLine(true);
-        tvStopName.setEllipsize(android.text.TextUtils.TruncateAt.MARQUEE);
-        tvStopName.setMarqueeRepeatLimit(-1); // Infini
+        tvStopName.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+        tvStopName.setMarqueeRepeatLimit(-1);
         tvStopName.setHorizontallyScrolling(true);
         tvStopName.setSelected(true);
-
-        //icône de montée/descente (calls flags)
-        ImageView inOutIcon = new ImageView(context);
-        List<String> flags = stop.getFlags();
-        if (flags != null && flags.contains("NO_PICKUP")) {
-            inOutIcon.setImageResource(R.drawable.logout_24px);
-        } else if (flags != null && flags.contains("NO_DROP_OFF")) {
-            inOutIcon.setImageResource(R.drawable.login_24px);
-        }
-        inOutIcon.setPadding(8, 0, 8, 0);
-        inOutIcon.setColorFilter(Color.BLACK);
-
-        //add to llLeft
-        llLeft.addView(tvStopName);
-        llLeft.addView(inOutIcon);
 
         //bloc de droite
         LinearLayout llRight = new LinearLayout(context);
@@ -192,7 +206,7 @@ public class VehicleDetailsActivity {
         llRight.addView(tvDelay);
 
         // row build
-        row.addView(llLeft);
+        row.addView(tvStopName);
         row.addView(llRight);
         return row;
     }
