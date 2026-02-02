@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 @Override
                 public void onError(String error) {
-                    Log.w("MainActivity", "Erreur lors de la récupération des données markers");
+                    Log.e("MainActivity", "Erreur lors de la récupération des données markers");
                 }
             });
             handler.postDelayed(this, 5000);
@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onError(String error) {
-                Log.w("MainActivity", "Erreur lors de la récupération des données markers");
+                Log.e("MainActivity", "Erreur lors de la récupération des données markers");
             }
         });
     }

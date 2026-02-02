@@ -1,7 +1,5 @@
 package fr.ynryo.ouestcefdpdetram;
 
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -65,17 +63,17 @@ public class FetchingManager {
         getService(BASE_URL).getVehicleMarkers(
                 bounds.southwest.latitude, bounds.southwest.longitude,
                 bounds.northeast.latitude, bounds.northeast.longitude
-        ).enqueue(new Callback<MarkersList>() {
+        ).enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<MarkersList> call, @NonNull Response<MarkersList> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     listener.onMarkersReceived(response.body().getItems());
                 }
             }
+
             @Override
             public void onFailure(@NonNull Call<MarkersList> call, @NonNull Throwable t) {
-
-                Log.e("FetchingManager", "Markers failure", t);
+                listener.onError(t.getMessage());
             }
         });
     }
@@ -83,7 +81,7 @@ public class FetchingManager {
     public void fetchVehicleStopsInfo(MarkerData marker, OnVehicleDetailsListener listener) {
         try {
             String encodedId = URLEncoder.encode(marker.getId(), StandardCharsets.UTF_8);
-            getService(BASE_URL).getVehicleDetails(encodedId).enqueue(new Callback<VehicleData>() {
+            getService(BASE_URL).getVehicleDetails(encodedId).enqueue(new Callback<>() {
                 @Override
                 public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
                     if (response.isSuccessful() && response.body() != null) {
@@ -92,18 +90,19 @@ public class FetchingManager {
                         listener.onError("Code erreur: " + response.code());
                     }
                 }
+
                 @Override
                 public void onFailure(@NonNull Call<VehicleData> call, @NonNull Throwable t) {
                     listener.onError(t.getMessage());
                 }
             });
         } catch (Exception e) {
-            listener.onError("Encoding error");
+            listener.onError(e.getMessage());
         }
     }
 
     public void fetchNetworkData(int networkId, OnNetworkDataListener listener) {
-        getService(BASE_URL).getNetworkData(networkId).enqueue(new Callback<NetworkData>() {
+        getService(BASE_URL).getNetworkData(networkId).enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<NetworkData> call, @NonNull Response<NetworkData> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -121,7 +120,7 @@ public class FetchingManager {
     }
 
     public void fetchRouteLine(String routeId, OnRouteLineListener listener) {
-        getService(BASE_URL_CARTO_TCHOO).getRouteLine(Integer.parseInt(routeId)).enqueue(new Callback<RouteData>() {
+        getService(BASE_URL_CARTO_TCHOO).getRouteLine(Integer.parseInt(routeId)).enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<RouteData> call, @NonNull Response<RouteData> response) {
                 if (response.isSuccessful() && response.body() != null) {
