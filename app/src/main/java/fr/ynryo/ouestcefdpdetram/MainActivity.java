@@ -229,9 +229,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         if (markerData.getId().contains("SNCF")) {
-            lineNumberView.setText(String.valueOf(markerData.getVehicleNumber()));
+            lineNumberView.setText(String.valueOf(markerData.getVehicleNumber() != null ? markerData.getVehicleNumber() : "0"));
         } else {
-            lineNumberView.setText(String.valueOf(markerData.getLineNumber()));
+            lineNumberView.setText(String.valueOf(markerData.getLineNumber() != null ? markerData.getLineNumber() : "0"));
         }
         lineNumberView.setTextColor(textColor);
 
