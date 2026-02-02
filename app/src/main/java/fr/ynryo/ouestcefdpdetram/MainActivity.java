@@ -53,8 +53,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FusedLocationProviderClient fusedLocationClient;
     private final Map<String, Marker> activeMarkers = new HashMap<>();
     private final FetchingManager fetcher = new FetchingManager(this);
-
-    // Boucle de mise à jour automatique toutes les 5 secondes
+    private RouteArtist routeArtist;
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
         public void run() {
@@ -84,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         FloatingActionButton fab = findViewById(R.id.fab_center_location);
         fab.setOnClickListener(view -> centerMapOnUserLocation());
+        routeArtist = new RouteArtist(this);
     }
 
     @Override
@@ -122,9 +122,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onMarkerClick(@NonNull Marker marker) {
         MarkerData data = (MarkerData) marker.getTag();
         if (data != null) {
-            // On lance l'initialisation de la BottomSheet avec les données du marqueur
-            VehicleDetailsActivity vehicleDetailsActivity = new VehicleDetailsActivity(this);
-            vehicleDetailsActivity.init(data);
+            new VehicleDetailsActivity(this).init(data);
+
+            //draw route
+            if (data.getId().contains("SNCF")) {
+                routeArtist.drawVehicleRoute(data);
+            }
         }
         return true; // true pour indiquer qu'on gère l'événement
     }
@@ -251,5 +254,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public GoogleMap getMap() { return mMap; }
+
     public FetchingManager getFetcher() { return fetcher; }
 }

@@ -1,10 +1,11 @@
 package fr.ynryo.ouestcefdpdetram;
 
+import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkersList;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworksList;
 import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionsList;
+import fr.ynryo.ouestcefdpdetram.apiResponses.route.RouteData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkersList;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
@@ -33,5 +34,10 @@ public interface NaolibApiService {
     @GET("networks/{networkId}?withDetails=true")
     Call<NetworkData> getNetworkData(
             @Path(value = "networkId") int networkId
+    );
+
+    @GET("carto.php?action=train")
+    Call<RouteData> getRouteLine(
+            @Query("numero") int vehicleRoute
     );
 }

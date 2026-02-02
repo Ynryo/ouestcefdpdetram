@@ -29,10 +29,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.Call;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 
 public class VehicleDetailsActivity {
     private final int COLOR_GREEN = Color.rgb(15, 150, 40);
@@ -43,7 +43,7 @@ public class VehicleDetailsActivity {
         this.context = context;
     }
 
-    public void init(MarkerData data) {
+    public void init(MarkerData markerData) {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.vehicule_details, null);
@@ -51,19 +51,19 @@ public class VehicleDetailsActivity {
 
         // Header express
         TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
-        if (data.getId().contains("SNCF")) {
-            tvLigne.setText(String.valueOf(data.getVehicleNumber()));
+        if (markerData.getId().contains("SNCF")) {
+            tvLigne.setText(String.valueOf(markerData.getVehicleNumber()));
         } else {
-            tvLigne.setText(String.valueOf(data.getLineNumber()));
+            tvLigne.setText(String.valueOf(markerData.getLineNumber()));
         }
-        tvLigne.setBackgroundColor(Color.parseColor(data.getFillColor() != null ? data.getFillColor() : "#424242"));
-        tvLigne.setTextColor(Color.parseColor(data.getColor() != null ? data.getColor() : "#FFFFFF"));
+        tvLigne.setBackgroundColor(Color.parseColor(markerData.getFillColor() != null ? markerData.getFillColor() : "#424242"));
+        tvLigne.setTextColor(Color.parseColor(markerData.getColor() != null ? markerData.getColor() : "#FFFFFF"));
 
         view.findViewById(R.id.loader).setVisibility(View.VISIBLE);
         view.findViewById(R.id.scrollStops).setVisibility(View.INVISIBLE);
         bottomSheetDialog.show();
 
-        context.getFetcher().fetchVehicleStopsInfo(data, new FetchingManager.OnVehicleDetailsListener() {
+        context.getFetcher().fetchVehicleStopsInfo(markerData, new FetchingManager.OnVehicleDetailsListener() {
             @Override
             public void onDetailsReceived(VehicleData details) {
                 view.findViewById(R.id.loader).setVisibility(View.GONE);
@@ -73,14 +73,14 @@ public class VehicleDetailsActivity {
 
                 context.getFetcher().fetchNetworkData(details.getNetworkId(), new FetchingManager.OnNetworkDataListener() {
                     @Override
-                    public void onDetailsReceived(NetworkData data) {
+                    public void onDetailsReceived(NetworkData nData) {
                         ImageView ivLogo = view.findViewById(R.id.ivNetworkLogo);
                         ivLogo.setAdjustViewBounds(true);
                         ivLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
                         Glide.with(context)
                                 .as(PictureDrawable.class)
-                                .load(data.getLogoHref().toString())
+                                .load(nData.getLogoHref().toString())
                                 .diskCacheStrategy(DiskCacheStrategy.DATA)
                                 .into(ivLogo);
                     }
@@ -216,7 +216,6 @@ public class VehicleDetailsActivity {
                 ZonedDateTime aimed = ZonedDateTime.parse(stop.getAimedTime());
 
                 long diff = ChronoUnit.MINUTES.between(aimed, expected);
-                Log.w("delay", String.valueOf(diff));
 
                 if (diff > 0) {
                     tvDelay.setText("Retard de " + diff + " min");

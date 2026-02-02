@@ -10,10 +10,11 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkersList;
+import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.route.RouteData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -22,7 +23,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class FetchingManager {
     private static final String BASE_URL = "https://bus-tracker.fr/api/";
+    private static final String BASE_URL_CARTO_TCHOO = "https://api.tchoo.net/api/";
     private final MainActivity context;
+
+    public FetchingManager(MainActivity context) {
+        this.context = context;
+    }
 
     public interface OnMarkersListener {
         void onMarkersReceived(List<MarkerData> markers);
@@ -38,13 +44,14 @@ public class FetchingManager {
         void onError(String error);
     }
 
-    public FetchingManager(MainActivity context) {
-        this.context = context;
+    public interface OnRouteLineListener {
+        void onDetailsReceived(RouteData data);
+        void onError(String error);
     }
 
-    private NaolibApiService getService() {
+    private NaolibApiService getService(String base_url) {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(base_url)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         return retrofit.create(NaolibApiService.class);
@@ -54,7 +61,7 @@ public class FetchingManager {
         if (context.getMap() == null) return;
 
         LatLngBounds bounds = context.getMap().getProjection().getVisibleRegion().latLngBounds;
-        getService().getVehicleMarkers(
+        getService(BASE_URL).getVehicleMarkers(
                 bounds.southwest.latitude, bounds.southwest.longitude,
                 bounds.northeast.latitude, bounds.northeast.longitude
         ).enqueue(new Callback<MarkersList>() {
@@ -66,6 +73,7 @@ public class FetchingManager {
             }
             @Override
             public void onFailure(@NonNull Call<MarkersList> call, @NonNull Throwable t) {
+
                 Log.e("FetchingManager", "Markers failure", t);
             }
         });
@@ -73,8 +81,8 @@ public class FetchingManager {
 
     public void fetchVehicleStopsInfo(MarkerData marker, OnVehicleDetailsListener listener) {
         try {
-            String encodedId = URLEncoder.encode(marker.getId(), StandardCharsets.UTF_8.toString());
-            getService().getVehicleDetails(encodedId).enqueue(new Callback<VehicleData>() {
+            String encodedId = URLEncoder.encode(marker.getId(), StandardCharsets.UTF_8);
+            getService(BASE_URL).getVehicleDetails(encodedId).enqueue(new Callback<VehicleData>() {
                 @Override
                 public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
                     if (response.isSuccessful() && response.body() != null) {
@@ -94,7 +102,7 @@ public class FetchingManager {
     }
 
     public void fetchNetworkData(int networkId, OnNetworkDataListener listener) {
-        getService().getNetworkData(networkId).enqueue(new Callback<NetworkData>() {
+        getService(BASE_URL).getNetworkData(networkId).enqueue(new Callback<NetworkData>() {
             @Override
             public void onResponse(@NonNull Call<NetworkData> call, @NonNull Response<NetworkData> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -106,6 +114,24 @@ public class FetchingManager {
 
             @Override
             public void onFailure(@NonNull Call<NetworkData> call, @NonNull Throwable t) {
+                listener.onError(t.getMessage());
+            }
+        });
+    }
+
+    public void fetchRouteLine(String routeId, OnRouteLineListener listener) {
+        getService(BASE_URL_CARTO_TCHOO).getRouteLine(Integer.parseInt(routeId)).enqueue(new Callback<RouteData>() {
+            @Override
+            public void onResponse(@NonNull Call<RouteData> call, @NonNull Response<RouteData> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    listener.onDetailsReceived(response.body());
+                } else {
+                    listener.onError("Code erreur: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<RouteData> call, @NonNull Throwable t) {
                 listener.onError(t.getMessage());
             }
         });
