@@ -32,6 +32,7 @@ public class FetchingManager {
 
     public interface OnMarkersListener {
         void onMarkersReceived(List<MarkerData> markers);
+        void onError(String error);
     }
 
     public interface OnVehicleDetailsListener {

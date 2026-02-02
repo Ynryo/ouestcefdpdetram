@@ -12,6 +12,7 @@ import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -61,6 +62,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 @Override
                 public void onMarkersReceived(List<MarkerData> markers) {
                     showMarkers(markers);
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.w("MainActivity", "Erreur lors de la récupération des données markers");
                 }
             });
             handler.postDelayed(this, 5000);
@@ -135,7 +141,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onCameraIdle() {
         // Refresh des marqueurs quand la carte s'arrête de bouger
-        fetcher.fetchMarkers(markers -> showMarkers(markers));
+        fetcher.fetchMarkers(new FetchingManager.OnMarkersListener() {
+            @Override
+            public void onMarkersReceived(List<MarkerData> markers) {
+                showMarkers(markers);
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.w("MainActivity", "Erreur lors de la récupération des données markers");
+            }
+        });
     }
 
     @Override
