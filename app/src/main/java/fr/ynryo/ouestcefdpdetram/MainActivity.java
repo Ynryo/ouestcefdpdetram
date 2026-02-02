@@ -212,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Marker newMarker = mMap.addMarker(new MarkerOptions()
                         .position(position)
                         .icon(createCustomMarker(this, markerData, mapRotation))
-                        .anchor(0.5f, 0.5f));
+                        .anchor(0.5f, 0.3f));
                 if (newMarker != null) {
                     newMarker.setTag(markerData);
                     activeMarkers.put(markerData.getId(), newMarker);
