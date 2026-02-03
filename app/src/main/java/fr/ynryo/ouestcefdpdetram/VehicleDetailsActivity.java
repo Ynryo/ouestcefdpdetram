@@ -37,6 +37,7 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
 public class VehicleDetailsActivity {
     private final int COLOR_GREEN = Color.rgb(15, 150, 40);
     private final int COLOR_ORANGE = Color.rgb(224, 159, 7);
+    private final int COLOR_DARK_ORANGE = Color.rgb(224, 112, 7);
     private final MainActivity context;
 
     public VehicleDetailsActivity(MainActivity context) {
@@ -225,7 +226,11 @@ public class VehicleDetailsActivity {
 
                 if (diff > 0) {
                     tvDelay.setText("Retard de " + diff + " min");
-                    tvDelay.setTextColor(Color.RED);
+                    if (diff <= 5) {
+                        tvDelay.setTextColor(COLOR_DARK_ORANGE);
+                    } else {
+                        tvDelay.setTextColor(Color.RED);
+                    }
                 } else if (diff < 0) {
                     tvDelay.setText("Avance de " + Math.abs(diff) + " min");
                     tvDelay.setTextColor(COLOR_ORANGE);
