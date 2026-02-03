@@ -2,5 +2,9 @@
     <string name="app_name" translatable="false">Où est ce fdp de tram</string>
     <string name="nexts_stops">Prochains arrêts</string>
     <string name="start_time">Heure de départ</string>
-    <string name="title_activity_maps">MapsActivity</string>
+    <string name="title_activity_maps" translatable="false">MapsActivity</string>
+    <string name="network_error">Erreur de réseau</string>
+    <string name="no_data">Aucune donnée</string>
+    <string name="center_map_on_loc">Centrer la position de la carte</string>
+    <string name="vehicle_position">Marker de position du véhicule</string>
 </resources>

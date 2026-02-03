@@ -29,6 +29,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_margin="16dp"
+        android:contentDescription="@string/center_map_on_loc"
         android:src="@drawable/my_location_24px"
         app:backgroundTint="?attr/colorPrimary"
         app:tint="?attr/colorOnPrimary" />
