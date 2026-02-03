@@ -120,20 +120,24 @@ public class FetchingManager {
     }
 
     public void fetchRouteLine(String routeId, OnRouteLineListener listener) {
-        getService(BASE_URL_CARTO_TCHOO).getRouteLine(Integer.parseInt(routeId)).enqueue(new Callback<>() {
-            @Override
-            public void onResponse(@NonNull Call<RouteData> call, @NonNull Response<RouteData> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    listener.onDetailsReceived(response.body());
-                } else {
-                    listener.onError("Code erreur: " + response.code());
+        try {
+            getService(BASE_URL_CARTO_TCHOO).getRouteLine(Integer.parseInt(routeId)).enqueue(new Callback<>() {
+                @Override
+                public void onResponse(@NonNull Call<RouteData> call, @NonNull Response<RouteData> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        listener.onDetailsReceived(response.body());
+                    } else {
+                        listener.onError("Code erreur: " + response.code());
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(@NonNull Call<RouteData> call, @NonNull Throwable t) {
-                listener.onError(t.getMessage());
-            }
-        });
+                @Override
+                public void onFailure(@NonNull Call<RouteData> call, @NonNull Throwable t) {
+                    listener.onError(t.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            listener.onError(e.getMessage());
+        }
     }
 }
