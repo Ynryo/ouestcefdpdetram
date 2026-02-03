@@ -48,16 +48,14 @@ public class VehicleDetailsActivity {
 
     public void init(MarkerData markerData) {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
-        LayoutInflater inflater = LayoutInflater.from(context);
         View view = LayoutInflater.from(context).inflate(R.layout.vehicule_details, null);
         bottomSheetDialog.setContentView(view);
 
-        // Header express
         TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
-        if (markerData.getId().contains("SNCF")) {
-            tvLigne.setText(String.valueOf(markerData.getVehicleNumber() != null ? markerData.getVehicleNumber() : "0"));
+        if (markerData.getId().startsWith("SNCF")) {
+            tvLigne.setText(markerData.getVehicleNumber() != null ? markerData.getVehicleNumber() : "ND");
         } else {
-            tvLigne.setText(String.valueOf(markerData.getLineNumber() != null ? markerData.getLineNumber() : "0"));
+            tvLigne.setText(markerData.getLineNumber() != null ? markerData.getLineNumber() : "ND");
         }
         int fillColor = Color.parseColor(markerData.getFillColor() != null ? markerData.getFillColor() : "#424242");
         int textColor = Color.parseColor(markerData.getColor() != null ? markerData.getColor() : "#FFFFFF");

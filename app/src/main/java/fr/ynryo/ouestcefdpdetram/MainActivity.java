@@ -246,10 +246,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             markerCircle.setImageDrawable(layerDrawable);
         }
 
-        if (markerData.getId().contains("SNCF")) {
-            lineNumberView.setText(String.valueOf(markerData.getVehicleNumber() != null ? markerData.getVehicleNumber() : "0"));
+        if (markerData.getId().startsWith("SNCF")) {
+            lineNumberView.setText(markerData.getVehicleNumber() != null ? markerData.getVehicleNumber() : "ND");
         } else {
-            lineNumberView.setText(String.valueOf(markerData.getLineNumber() != null ? markerData.getLineNumber() : "0"));
+            lineNumberView.setText(markerData.getLineNumber() != null ? markerData.getLineNumber() : "BD");
         }
         lineNumberView.setTextColor(textColor);
 
