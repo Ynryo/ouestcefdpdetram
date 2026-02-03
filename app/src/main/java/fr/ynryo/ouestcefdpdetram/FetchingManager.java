@@ -20,7 +20,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class FetchingManager {
-    private static final String BASE_URL = "https://bus-tracker.fr/api/";
+    private static final String BASE_URL_BUS_TRACKER = "https://bus-tracker.fr/api/";
     private static final String BASE_URL_CARTO_TCHOO = "https://api.tchoo.net/api/";
     private final MainActivity context;
 
@@ -60,7 +60,7 @@ public class FetchingManager {
         if (context.getMap() == null) return;
 
         LatLngBounds bounds = context.getMap().getProjection().getVisibleRegion().latLngBounds;
-        getService(BASE_URL).getVehicleMarkers(
+        getService(BASE_URL_BUS_TRACKER).getVehicleMarkers(
                 bounds.southwest.latitude, bounds.southwest.longitude,
                 bounds.northeast.latitude, bounds.northeast.longitude
         ).enqueue(new Callback<>() {
@@ -81,7 +81,7 @@ public class FetchingManager {
     public void fetchVehicleStopsInfo(MarkerData marker, OnVehicleDetailsListener listener) {
         try {
             String encodedId = URLEncoder.encode(marker.getId(), StandardCharsets.UTF_8);
-            getService(BASE_URL).getVehicleDetails(encodedId).enqueue(new Callback<>() {
+            getService(BASE_URL_BUS_TRACKER).getVehicleDetails(encodedId).enqueue(new Callback<>() {
                 @Override
                 public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
                     if (response.isSuccessful() && response.body() != null) {
@@ -102,7 +102,7 @@ public class FetchingManager {
     }
 
     public void fetchNetworkData(int networkId, OnNetworkDataListener listener) {
-        getService(BASE_URL).getNetworkData(networkId).enqueue(new Callback<>() {
+        getService(BASE_URL_BUS_TRACKER).getNetworkData(networkId).enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<NetworkData> call, @NonNull Response<NetworkData> response) {
                 if (response.isSuccessful() && response.body() != null) {

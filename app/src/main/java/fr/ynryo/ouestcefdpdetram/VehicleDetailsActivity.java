@@ -1,5 +1,6 @@
 package fr.ynryo.ouestcefdpdetram;
 
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
@@ -15,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -47,7 +49,7 @@ public class VehicleDetailsActivity {
     public void init(MarkerData markerData) {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
         LayoutInflater inflater = LayoutInflater.from(context);
-        View view = inflater.inflate(R.layout.vehicule_details, null);
+        View view = LayoutInflater.from(context).inflate(R.layout.vehicule_details, null);
         bottomSheetDialog.setContentView(view);
 
         // Header express
@@ -57,10 +59,15 @@ public class VehicleDetailsActivity {
         } else {
             tvLigne.setText(String.valueOf(markerData.getLineNumber() != null ? markerData.getLineNumber() : "0"));
         }
-        tvLigne.setBackgroundColor(Color.parseColor(markerData.getFillColor() != null ? markerData.getFillColor() : "#424242"));
-        tvLigne.setTextColor(Color.parseColor(markerData.getColor() != null ? markerData.getColor() : "#FFFFFF"));
+        int fillColor = Color.parseColor(markerData.getFillColor() != null ? markerData.getFillColor() : "#424242");
+        int textColor = Color.parseColor(markerData.getColor() != null ? markerData.getColor() : "#FFFFFF");
+        tvLigne.setBackgroundColor(fillColor);
+        tvLigne.setTextColor(textColor);
 
-        view.findViewById(R.id.loader).setVisibility(View.VISIBLE);
+        ProgressBar loader = view.findViewById(R.id.loader);
+        loader.setVisibility(View.VISIBLE);
+        loader.setIndeterminateTintList(ColorStateList.valueOf(fillColor));
+
         view.findViewById(R.id.scrollStops).setVisibility(View.INVISIBLE);
         bottomSheetDialog.show();
 
@@ -97,7 +104,7 @@ public class VehicleDetailsActivity {
             public void onError(String error) {
                 view.findViewById(R.id.loader).setVisibility(View.GONE);
                 TextView tvDest = view.findViewById(R.id.tvDestination);
-                tvDest.setText("Erreur de réseau");
+                tvDest.setText(R.string.network_error);
             }
         });
     }
@@ -120,7 +127,7 @@ public class VehicleDetailsActivity {
             }
         } else {
             TextView tvDefault = new TextView(context);
-            tvDefault.setText("Aucune donnée");
+            tvDefault.setText(R.string.no_data);
             tvDefault.setTextColor(Color.BLACK);
             tvDefault.setPadding(0, 0, 0, 16);
             stopsContainer.addView(tvDefault);
@@ -202,7 +209,6 @@ public class VehicleDetailsActivity {
                 builder.setSpan(imageSpan, builder.length() - 1, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
-
         tvStopName.setText(builder);
 
         tvStopName.setSingleLine(true);
@@ -216,26 +222,28 @@ public class VehicleDetailsActivity {
     @NonNull
     private TextView getDelay(Call stop) {
         TextView tvDelay = new TextView(context);
-        tvDelay.setTypeface(null, Typeface.BOLD);
         if (stop.getExpectedTime() != null && stop.getAimedTime() != null) {
             try {
                 ZonedDateTime expected = ZonedDateTime.parse(stop.getExpectedTime());
                 ZonedDateTime aimed = ZonedDateTime.parse(stop.getAimedTime());
 
                 long diff = ChronoUnit.MINUTES.between(aimed, expected);
-
-                if (diff > 0) {
-                    tvDelay.setText("Retard de " + diff + " min");
-                    if (diff <= 5) {
-                        tvDelay.setTextColor(COLOR_DARK_ORANGE);
+                if (diff != 0) {
+                    if (diff > 0) {
+                        String delayText = "Retard de " + diff + " min";
+                        tvDelay.setText(delayText);
+                        if (diff <= 5) {
+                            tvDelay.setTextColor(COLOR_DARK_ORANGE);
+                        } else {
+                            tvDelay.setTextColor(Color.RED);
+                        }
                     } else {
-                        tvDelay.setTextColor(Color.RED);
+                        String delayText = "Avance de " + Math.abs(diff) + " min";
+                        tvDelay.setText(delayText);
+                        tvDelay.setTextColor(COLOR_ORANGE);
                     }
-                } else if (diff < 0) {
-                    tvDelay.setText("Avance de " + Math.abs(diff) + " min");
-                    tvDelay.setTextColor(COLOR_ORANGE);
+                    tvDelay.setPadding(8, 0, 0, 0);
                 }
-                tvDelay.setPadding(8, 0, 0, 0);
             } catch (Exception e) {
                 Log.e("VehicleDetailsActivity", "Erreur calcul retard", e);
             }

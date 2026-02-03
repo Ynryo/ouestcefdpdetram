@@ -1,6 +1,7 @@
 package fr.ynryo.ouestcefdpdetram;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -92,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         routeArtist = new RouteArtist(this);
     }
 
+    @SuppressLint("PotentialBehaviorOverride")
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
