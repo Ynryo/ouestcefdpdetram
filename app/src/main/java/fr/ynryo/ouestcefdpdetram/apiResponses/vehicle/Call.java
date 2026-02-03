@@ -10,6 +10,7 @@ public class Call {
     private String stopRef;
     private String stopName;
     private int stopOrder;
+    private String platformName;
     private String callStatus;
     private List<String> flags;
 
@@ -31,6 +32,10 @@ public class Call {
 
     public int getStopOrder() {
         return stopOrder;
+    }
+
+    public String getPlatformName() {
+        return platformName;
     }
 
     public String getCallStatus() {

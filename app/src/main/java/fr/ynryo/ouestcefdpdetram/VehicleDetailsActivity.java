@@ -6,12 +6,14 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.PictureDrawable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ImageSpan;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -133,48 +135,57 @@ public class VehicleDetailsActivity {
         view.findViewById(R.id.scrollStops).setVisibility(View.VISIBLE);
     }
 
-    private View createRow(Call stop) {
-        // row create
-        LinearLayout row = new LinearLayout(context);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setPadding(0, 16, 0, 16);
-        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+    private LinearLayout createRow(Call stop) {
+        //stop row
+        LinearLayout stopRow = new LinearLayout(context);
+        stopRow.setOrientation(LinearLayout.HORIZONTAL);
+        stopRow.setPadding(0, 16, 0, 16);
+        stopRow.setGravity(Gravity.CENTER_VERTICAL);
 
-        //nom de l'arrêt
-        TextView tvStopName = getStopName(stop);
+        //left part
+        LinearLayout llLeft = new LinearLayout(context);
+        llLeft.setOrientation(LinearLayout.HORIZONTAL);
+        llLeft.setGravity(Gravity.CENTER_VERTICAL);
+        llLeft.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
-        //bloc de droite
+        llLeft.addView(getPlatform(stop));
+        llLeft.addView(getSpacer());
+        llLeft.addView(getStopName(stop));
+
+        //right part
         LinearLayout llRight = new LinearLayout(context);
         llRight.setOrientation(LinearLayout.HORIZONTAL);
-        llRight.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.END);
+        llRight.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
         llRight.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0f));
 
+        llRight.addView(getTime(stop));
+        llRight.addView(getDelay(stop));
 
-        //icône expected time
-        ImageView expectedTimeIcon = new ImageView(context);
-        boolean isExpectedTime = stop.getExpectedTime() != null;
-        if (isExpectedTime) {
-            expectedTimeIcon.setImageResource(R.drawable.sensors_24px);
-            expectedTimeIcon.setPadding(0, 0, 8, 0);
-            expectedTimeIcon.setColorFilter(COLOR_GREEN);
+        //assembling
+        stopRow.addView(llLeft);
+        stopRow.addView(llRight);
+        return stopRow;
+    }
+
+    @NonNull
+    private TextView getPlatform(Call stop) {
+        TextView tvPlatformName = new TextView(context);
+        String platformName = stop.getPlatformName();
+        if (platformName == null) {
+            return tvPlatformName;
         }
+        tvPlatformName.setText(platformName);
+        tvPlatformName.setTextColor(Color.BLACK);
+        tvPlatformName.setPadding(0, 0, 8, 0);
 
-        //delay
-        TextView tvDelay = getDelay(stop);
+        GradientDrawable gdPlatformName = new GradientDrawable();
+        gdPlatformName.setShape(GradientDrawable.RECTANGLE);
+        gdPlatformName.setPadding(8, 4, 8, 4);
+        gdPlatformName.setStroke(2, Color.BLACK);
+        gdPlatformName.setCornerRadius(10);
+        tvPlatformName.setBackground(gdPlatformName);
 
-        //heure
-        TextView tvStopTime = new TextView(context);
-        formatStopAndSetTime(tvStopTime, stop, isExpectedTime);
-        tvStopTime.setTypeface(null, Typeface.BOLD);
-
-        llRight.addView(expectedTimeIcon);
-        llRight.addView(tvStopTime);
-        llRight.addView(tvDelay);
-
-        // row build
-        row.addView(tvStopName);
-        row.addView(llRight);
-        return row;
+        return tvPlatformName;
     }
 
     @NonNull
@@ -182,7 +193,6 @@ public class VehicleDetailsActivity {
         TextView tvStopName = new TextView(context);
         tvStopName.setTextColor(Color.BLACK);
         tvStopName.setText(stop.getStopName());
-        tvStopName.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
         SpannableStringBuilder builder = new SpannableStringBuilder();
         builder.append(stop.getStopName());
@@ -226,22 +236,25 @@ public class VehicleDetailsActivity {
                 ZonedDateTime aimed = ZonedDateTime.parse(stop.getAimedTime());
 
                 long diff = ChronoUnit.MINUTES.between(aimed, expected);
-                if (diff != 0) {
-                    if (diff > 0) {
-                        String delayText = "Retard de " + diff + " min";
-                        tvDelay.setText(delayText);
-                        if (diff <= 5) {
-                            tvDelay.setTextColor(COLOR_DARK_ORANGE);
-                        } else {
-                            tvDelay.setTextColor(Color.RED);
-                        }
-                    } else {
-                        String delayText = "Avance de " + Math.abs(diff) + " min";
-                        tvDelay.setText(delayText);
-                        tvDelay.setTextColor(COLOR_ORANGE);
-                    }
-                    tvDelay.setPadding(8, 0, 0, 0);
+
+                if (diff == 0) {
+                    return tvDelay;
                 }
+
+                if (diff > 0) {
+                    String delayText = "Retard de " + diff + " min";
+                    tvDelay.setText(delayText);
+                    if (diff <= 5) {
+                        tvDelay.setTextColor(COLOR_DARK_ORANGE);
+                    } else {
+                        tvDelay.setTextColor(Color.RED);
+                    }
+                } else {
+                    String delayText = "Avance de " + Math.abs(diff) + " min";
+                    tvDelay.setText(delayText);
+                    tvDelay.setTextColor(COLOR_ORANGE);
+                }
+                tvDelay.setPadding(8, 0, 0, 0);
             } catch (Exception e) {
                 Log.e("VehicleDetailsActivity", "Erreur calcul retard", e);
             }
@@ -249,20 +262,49 @@ public class VehicleDetailsActivity {
         return tvDelay;
     }
 
-    private void formatStopAndSetTime(TextView textView, Call stop, boolean isExpected) {
+    @NonNull
+    private LinearLayout getTime(Call stop) {
+        LinearLayout llTime = new LinearLayout(context);
+        llTime.setOrientation(LinearLayout.HORIZONTAL);
+        llTime.setGravity(Gravity.CENTER_VERTICAL);
+
+        boolean isExpectedTime = stop.getExpectedTime() != null;
+        ImageView ivExpectedTimeIcon = new ImageView(context);
+        if (isExpectedTime) {
+            ivExpectedTimeIcon.setImageResource(R.drawable.sensors_24px);
+            ivExpectedTimeIcon.setPadding(0, 0, 8, 0);
+            ivExpectedTimeIcon.setColorFilter(COLOR_GREEN);
+        }
+
+        llTime.addView(ivExpectedTimeIcon);
+        llTime.addView(formatStopTime(stop, isExpectedTime));
+        return llTime;
+    }
+
+    private TextView formatStopTime(Call stop, boolean isExpected) {
+        TextView tvTime = new TextView(context);
+        tvTime.setTypeface(null, Typeface.BOLD);
         try {
             String rawTime = isExpected ? stop.getExpectedTime() : stop.getAimedTime();
-            if (rawTime != null) {
-                ZonedDateTime zdt = ZonedDateTime.parse(rawTime);
-                String formatted = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
-                textView.setText(formatted);
-                textView.setTextColor(isExpected ? COLOR_GREEN : Color.DKGRAY);
-            } else {
-                textView.setText("??:??");
-                textView.setTextColor(Color.RED);
+            if (rawTime == null) {
+                tvTime.setText("??:??");
+                tvTime.setTextColor(Color.RED);
             }
+
+            ZonedDateTime zdt = ZonedDateTime.parse(rawTime);
+            String formatted = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
+            tvTime.setText(formatted);
+            tvTime.setTextColor(isExpected ? COLOR_GREEN : Color.DKGRAY);
         } catch (Exception e) {
-            textView.setText("??:??");
+            tvTime.setText("??:??");
         }
+        return tvTime;
+    }
+
+    @NonNull
+    private View getSpacer() {
+        View spacer = new View(context);
+        spacer.setLayoutParams(new LinearLayout.LayoutParams(16, 0));
+        return spacer;
     }
 }

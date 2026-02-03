@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
+        //TODO: bring marker to front
         MarkerData data = (MarkerData) marker.getTag();
         if (data != null) {
             new VehicleDetailsActivity(this).init(data);
