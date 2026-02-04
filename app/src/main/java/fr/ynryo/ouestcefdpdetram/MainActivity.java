@@ -1,6 +1,7 @@
 package fr.ynryo.ouestcefdpdetram;
 
 import android.Manifest;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -15,6 +16,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -208,8 +210,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (activeMarkers.containsKey(markerData.getId())) {
                 Marker existingMarker = activeMarkers.get(markerData.getId());
                 if (existingMarker != null) {
-                    existingMarker.setPosition(position);
-                    existingMarker.setIcon(createCustomMarker(this, markerData, mapRotation));
+                    animateMarker(existingMarker, position);
+
+                    MarkerData oldData = (MarkerData) existingMarker.getTag();
+                    boolean needUpdate = false;
+
+                    if (oldData != null) {
+                        float oldBearing = oldData.getPosition().getBearing();
+                        float newBearing = markerData.getPosition().getBearing();
+                        if (Math.abs(oldBearing - newBearing) > 2.0f) {
+                            needUpdate = true;
+                        }
+                    } else {
+                        needUpdate = true;
+                    }
+
+                    if (needUpdate) {
+                        existingMarker.setIcon(createCustomMarker(markerData, mapRotation));
+                    }
+
                     existingMarker.setTag(markerData);
                 }
             } else {
@@ -223,6 +242,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         }
+    }
+
+    public void animateMarker(final Marker marker, final LatLng toPosition) {
+        final LatLng startPosition = marker.getPosition();
+        final long duration = 2000;
+
+        ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
+        valueAnimator.setDuration(duration);
+        valueAnimator.setInterpolator(new LinearInterpolator()); // Vitesse constante
+
+        valueAnimator.addUpdateListener(animation -> {
+            float v = animation.getAnimatedFraction();
+
+            double lng = v * toPosition.longitude + (1 - v) * startPosition.longitude;
+            double lat = v * toPosition.latitude + (1 - v) * startPosition.latitude;
+
+            marker.setPosition(new LatLng(lat, lng));
+        });
+        valueAnimator.start();
     }
 
     public BitmapDescriptor createCustomMarker(MarkerData markerData, float mapRotation) {
