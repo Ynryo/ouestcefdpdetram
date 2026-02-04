@@ -6,7 +6,7 @@ public class MarkerData {
     private String id;
     private String lineNumber;
     private String vehicleNumber;
-    private Position position;
+    private MarkerPosition position;
     private String fillColor;
     private String color;
     private int networkId;
@@ -23,7 +23,7 @@ public class MarkerData {
         return vehicleNumber;
     }
 
-    public Position getPosition() {
+    public MarkerPosition getPosition() {
         return position;
     }
 

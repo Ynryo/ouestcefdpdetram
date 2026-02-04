@@ -2,7 +2,6 @@ package fr.ynryo.ouestcefdpdetram;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -55,7 +54,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FusedLocationProviderClient fusedLocationClient;
     private final Map<String, Marker> activeMarkers = new HashMap<>();
     private final FetchingManager fetcher = new FetchingManager(this);
-    private RouteArtist routeArtist;
+    private final RouteArtist routeArtist = new RouteArtist(this);
+    private View cachedMarkerView;
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
         public void run() {
@@ -90,7 +90,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         FloatingActionButton fab = findViewById(R.id.fab_center_location);
         fab.setOnClickListener(view -> centerMapOnUserLocation());
-        routeArtist = new RouteArtist(this);
+
+        cachedMarkerView = LayoutInflater.from(this).inflate(R.layout.custom_marker, null);
     }
 
     @SuppressLint("PotentialBehaviorOverride")
@@ -103,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
-        // Position par défaut sur Nantes
+        // MarkerPosition par défaut sur Nantes
         LatLng nantes = new LatLng(47.218371, -1.553621);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nantes, 15.0f));
 
@@ -131,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //TODO: bring marker to front
         MarkerData data = (MarkerData) marker.getTag();
         if (data != null) {
-            new VehicleDetailsActivity(this).init(data);
+            new VehicleDetailsManager(this).init(data);
 
             //draw route
             if (data.getId().contains("SNCF")) {
@@ -214,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             } else {
                 Marker newMarker = mMap.addMarker(new MarkerOptions()
                         .position(position)
-                        .icon(createCustomMarker(this, markerData, mapRotation))
+                        .icon(createCustomMarker(markerData, mapRotation))
                         .anchor(0.5f, 0.3f));
                 if (newMarker != null) {
                     newMarker.setTag(markerData);
@@ -224,16 +225,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public static BitmapDescriptor createCustomMarker(Context context, MarkerData markerData, float mapRotation) {
-        View markerLayout = LayoutInflater.from(context).inflate(R.layout.custom_marker, null);
-        ImageView markerCircle = markerLayout.findViewById(R.id.marker_circle);
-        TextView lineNumberView = markerLayout.findViewById(R.id.line_number);
+    public BitmapDescriptor createCustomMarker(MarkerData markerData, float mapRotation) {
+        ImageView markerCircle = cachedMarkerView.findViewById(R.id.marker_circle);
+        TextView lineNumberView = cachedMarkerView.findViewById(R.id.line_number);
 
         int fillColor = Color.parseColor(markerData.getFillColor() != null ? markerData.getFillColor() : "#424242");
         int textColor = Color.parseColor(markerData.getColor() != null ? markerData.getColor() : "#FFFFFF");
         float bearing = markerData.getPosition().getBearing();
 
-        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.marker_circle);
+        Drawable drawable = ContextCompat.getDrawable(this, R.drawable.marker_circle);
         if (drawable != null) {
             LayerDrawable layerDrawable = (LayerDrawable) drawable.mutate();
             Drawable backgroundPart = layerDrawable.findDrawableByLayerId(R.id.marker_background);
@@ -262,12 +262,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         markerCircle.setRotation(bearing - mapRotation);
 
-        markerLayout.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-        markerLayout.layout(0, 0, markerLayout.getMeasuredWidth(), markerLayout.getMeasuredHeight());
+        cachedMarkerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        cachedMarkerView.layout(0, 0, cachedMarkerView.getMeasuredWidth(), cachedMarkerView.getMeasuredHeight());
 
-        Bitmap bitmap = Bitmap.createBitmap(markerLayout.getMeasuredWidth(), markerLayout.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(cachedMarkerView.getMeasuredWidth(), cachedMarkerView.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        markerLayout.draw(canvas);
+        cachedMarkerView.draw(canvas);
 
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }

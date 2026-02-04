@@ -48,12 +48,12 @@ public class FetchingManager {
         void onError(String error);
     }
 
-    private NaolibApiService getService(String base_url) {
+    private ApiService getService(String base_url) {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(base_url)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        return retrofit.create(NaolibApiService.class);
+        return retrofit.create(ApiService.class);
     }
 
     public void fetchMarkers(OnMarkersListener listener) {

@@ -6,15 +6,15 @@ import androidx.annotation.NonNull;
 
 import java.util.List;
 
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.Position;
+import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerPosition;
 
 public class VehicleData {
     private String id;
     private int lineId;
     private String direction;
     private String destination;
-    private List<Call> calls;
-    private Position position;
+    private List<VehicleStop> calls;
+    private MarkerPosition position;
     private int networkId;
     private String serviceDate;
     private String updatedAt;
@@ -36,11 +36,11 @@ public class VehicleData {
         return destination;
     }
 
-    public List<Call> getCalls() {
+    public List<VehicleStop> getCalls() {
         return calls;
     }
 
-    public Position getPosition() {
+    public MarkerPosition getPosition() {
         return position;
     }
 

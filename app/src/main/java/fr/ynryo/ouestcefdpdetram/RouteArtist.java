@@ -44,11 +44,13 @@ public class RouteArtist {
 
                         if (geometry != null && "LineString".equals(geometry.getType())) {
                             try {
-                                List<List<Double>> allPoints = (List<List<Double>>) geometry.getCoordinates();
-
-                                for (List<Double> point : allPoints) {
-                                    options.add(new LatLng(point.get(1), point.get(0))); //switch lat long
-                                    pointsAdded = true;
+                                List<List<Double>> allPoints;
+                                if (geometry.getCoordinates() instanceof List) {
+                                    allPoints = (List<List<Double>>) geometry.getCoordinates();
+                                    for (List<Double> point : allPoints) {
+                                        options.add(new LatLng(point.get(1), point.get(0))); //switch lat long
+                                        pointsAdded = true;
+                                    }
                                 }
                             } catch (ClassCastException e) {
                                 Log.e("RouteArtist", "Format de coordonnées invalide pour LineString");
