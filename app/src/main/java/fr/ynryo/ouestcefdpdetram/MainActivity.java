@@ -88,7 +88,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mapFragment.getMapAsync(this);
         }
 
-
         cachedMarkerView = LayoutInflater.from(this).inflate(R.layout.custom_marker, null);
         fetcher.fetchNetworks(new FetchingManager.OnNetworkListener() { //demande la liste des networks
             @Override

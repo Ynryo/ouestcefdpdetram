@@ -152,8 +152,11 @@ public class VehicleDetailsManager {
         llLeft.setGravity(Gravity.CENTER_VERTICAL);
         llLeft.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
-        llLeft.addView(getPlatform(stop));
-        llLeft.addView(getSpacer());
+        TextView tvPlatform = getPlatform(stop);
+        llLeft.addView(tvPlatform);
+        if (tvPlatform.getText() != "") {
+            llLeft.addView(getSpacer());
+        }
         llLeft.addView(getStopName(stop));
 
         //right part
