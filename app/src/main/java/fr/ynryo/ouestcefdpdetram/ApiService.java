@@ -1,8 +1,9 @@
 package fr.ynryo.ouestcefdpdetram;
 
+import java.util.List;
+
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkersList;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworksList;
 import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionsList;
 import fr.ynryo.ouestcefdpdetram.apiResponses.route.RouteData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
@@ -29,7 +30,7 @@ public interface ApiService {
     Call<RegionsList> getRegions();
 
     @GET("networks")
-    Call<NetworksList> getNetworks();
+    Call<List<NetworkData>> getNetworks();
 
     @GET("networks/{networkId}?withDetails=true")
     Call<NetworkData> getNetworkData(

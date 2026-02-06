@@ -1,5 +1,7 @@
 package fr.ynryo.ouestcefdpdetram.apiResponses.network;
 
+import androidx.annotation.NonNull;
+
 import java.net.URI;
 
 public class NetworkData {
@@ -7,6 +9,7 @@ public class NetworkData {
     private String ref;
     private String name;
     private URI logoHref;
+    private int regionId;
 
     public int getId() {
         return id;
@@ -22,5 +25,21 @@ public class NetworkData {
 
     public URI getLogoHref() {
         return logoHref;
+    }
+
+    public int getRegionId() {
+        return regionId;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "NetworkData{" +
+                "id=" + id +
+                ", ref='" + ref + '\'' +
+                ", name='" + name + '\'' +
+                ", logoHref=" + logoHref +
+                ", regionId=" + regionId +
+                '}';
     }
 }

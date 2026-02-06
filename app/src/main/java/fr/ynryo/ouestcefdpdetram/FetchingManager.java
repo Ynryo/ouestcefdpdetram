@@ -5,7 +5,6 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
@@ -48,6 +47,11 @@ public class FetchingManager {
         void onError(String error);
     }
 
+    public interface OnNetworkListener {
+        void onDetailsReceived(List<NetworkData> data);
+        void onError(String error);
+    }
+
     private ApiService getService(String base_url) {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(base_url)
@@ -80,7 +84,7 @@ public class FetchingManager {
 
     public void fetchVehicleStopsInfo(MarkerData marker, OnVehicleDetailsListener listener) {
         try {
-            String encodedId = URLEncoder.encode(marker.getId(), StandardCharsets.UTF_8);
+            String encodedId = URLEncoder.encode(marker.getId(), "UTF-8");
             getService(BASE_URL_BUS_TRACKER).getVehicleDetails(encodedId).enqueue(new Callback<>() {
                 @Override
                 public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
@@ -133,6 +137,28 @@ public class FetchingManager {
 
                 @Override
                 public void onFailure(@NonNull Call<RouteData> call, @NonNull Throwable t) {
+                    listener.onError(t.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            listener.onError(e.getMessage());
+        }
+    }
+
+    public void fetchNetworks(OnNetworkListener listener) {
+        try {
+            getService(BASE_URL_BUS_TRACKER).getNetworks().enqueue(new Callback<List<NetworkData>>() {
+                @Override
+                public void onResponse(@NonNull Call<List<NetworkData>> call, @NonNull Response<List<NetworkData>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        listener.onDetailsReceived(response.body());
+                    } else {
+                        listener.onError("Code erreur: " + response.code());
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<List<NetworkData>> call, @NonNull Throwable t) {
                     listener.onError(t.getMessage());
                 }
             });

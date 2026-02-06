@@ -37,8 +37,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.material.color.DynamicColors;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener {
     private GoogleMap mMap;
@@ -57,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final Map<String, Marker> activeMarkers = new HashMap<>();
     private final FetchingManager fetcher = new FetchingManager(this);
     private final RouteArtist routeArtist = new RouteArtist(this);
+    private final NetworkFilterDrawer filterDrawer = new NetworkFilterDrawer(this);
     private View cachedMarkerView;
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
@@ -81,8 +81,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DynamicColors.applyToActivitiesIfAvailable(this.getApplication());
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -90,10 +88,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mapFragment.getMapAsync(this);
         }
 
-        FloatingActionButton fab = findViewById(R.id.fab_center_location);
-        fab.setOnClickListener(view -> centerMapOnUserLocation());
 
         cachedMarkerView = LayoutInflater.from(this).inflate(R.layout.custom_marker, null);
+        fetcher.fetchNetworks(new FetchingManager.OnNetworkListener() { //demande la liste des networks
+            @Override
+            public void onDetailsReceived(List<NetworkData> data) {
+                Log.d("MainActivity", data.toString());
+                filterDrawer.populateNetworks(data);
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("MainActivity", "Erreur lors de la récupération des réseaux" + error);
+            }
+        });
+
+        findViewById(R.id.btn_open_menu).setOnClickListener(v -> filterDrawer.open());
+        findViewById(R.id.fab_center_location).setOnClickListener(view -> centerMapOnUserLocation());
     }
 
     @SuppressLint("PotentialBehaviorOverride")
@@ -185,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
     }
 
-    private void showMarkers(List<MarkerData> markersFetched) {
+    void showMarkers(List<MarkerData> markersFetched) {
         if (mMap == null || markersFetched == null) return;
 
         Set<String> newMarkerIds = new HashSet<>();
@@ -193,7 +204,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             newMarkerIds.add(d.getId());
         }
 
-        // Nettoyage des marqueurs obsolètes
         Iterator<Map.Entry<String, Marker>> iterator = activeMarkers.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, Marker> entry = iterator.next();
@@ -204,7 +214,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         float mapRotation = mMap.getCameraPosition().bearing;
-        for (MarkerData markerData : markersFetched) {
+        for (MarkerData markerData : markersFetched) { //pour chaque marker
+
+            if (!filterDrawer.isNetworkVisible(markerData.getNetworkRef())) {
+                if (activeMarkers.containsKey(markerData.getId())) { //si il était là, il part
+                    activeMarkers.get(markerData.getId()).remove();
+                    activeMarkers.remove(markerData.getId());
+                }
+                continue; //si il était pas là, chill
+            }
+
             LatLng position = new LatLng(markerData.getPosition().getLatitude(), markerData.getPosition().getLongitude());
 
             if (activeMarkers.containsKey(markerData.getId())) {

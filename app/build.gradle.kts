@@ -11,7 +11,7 @@ android {
     defaultConfig {
         manifestPlaceholders += mapOf()
         applicationId = "fr.ynryo.ouestcefdpdetram"
-        minSdk = 33
+        minSdk = 30
         targetSdk = 36
         versionName = "1.1.1"
         versionCode = 111

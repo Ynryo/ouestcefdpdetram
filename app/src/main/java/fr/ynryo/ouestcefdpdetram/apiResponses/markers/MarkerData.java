@@ -9,7 +9,6 @@ public class MarkerData {
     private MarkerPosition position;
     private String fillColor;
     private String color;
-    private int networkId;
 
     public String getId() {
         return id;
@@ -35,8 +34,8 @@ public class MarkerData {
         return color;
     }
 
-    public int getNetworkId() {
-        return networkId;
+    public String getNetworkRef() {
+        return id.split("::")[0];
     }
 
     @NonNull
@@ -49,7 +48,7 @@ public class MarkerData {
                 ", position=" + position +
                 ", fillColor='" + fillColor + '\'' +
                 ", color='" + color + '\'' +
-                ", networkId=" + networkId +
+//                ", networkId=" + networkId +
                 '}';
     }
 }
