@@ -1,6 +1,7 @@
 package fr.ynryo.ouestcefdpdetram;
 
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -21,12 +22,14 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 
 public class NetworkFilterDrawer {
     private final MainActivity context;
+    private final SaveManager saveManager;
 
     private final Map<String, Boolean> filters = new HashMap<>(); //ref reseau <> isShowed ?
 
     public NetworkFilterDrawer(MainActivity context) {
         WeakReference<MainActivity> contextRef = new WeakReference<>(context);
         this.context = contextRef.get();
+        this.saveManager = new SaveManager(context);
     }
 
     public void open() {
@@ -43,7 +46,10 @@ public class NetworkFilterDrawer {
         filters.clear();
 
         for (NetworkData network : networks) {
-            filters.put(network.getRef(), false);
+            String networkRef = network.getRef();
+            boolean isVisible = saveManager.loadNetworkFilter(networkRef);
+
+            filters.put(networkRef, isVisible);
 
             View row = LayoutInflater.from(context).inflate(R.layout.item_network, networksContainer, false);
             TextView nameView = row.findViewById(R.id.network_name);
@@ -51,10 +57,12 @@ public class NetworkFilterDrawer {
 
             nameView.setText(network.getName());
             nameView.setTextColor(Color.BLACK);
-            toggle.setChecked(false);
+            toggle.setChecked(isVisible);
 
             toggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                filters.put(network.getRef(), isChecked);
+                filters.put(networkRef, isChecked);
+                saveManager.saveNetworkFilter(networkRef, isChecked);
+
                 context.getFetcher().fetchMarkers(new FetchingManager.OnMarkersListener() {
                     @Override
                     public void onMarkersReceived(List<MarkerData> markers) {
@@ -63,7 +71,7 @@ public class NetworkFilterDrawer {
 
                     @Override
                     public void onError(String error) {
-
+                        Log.e("MainActivity", "Erreur lors de la récupération des données markers" + error);
                     }
                 });
             });

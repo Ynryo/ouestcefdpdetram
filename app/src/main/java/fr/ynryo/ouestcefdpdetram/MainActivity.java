@@ -54,9 +54,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private FusedLocationProviderClient fusedLocationClient;
     private final Map<String, Marker> activeMarkers = new HashMap<>();
-    private final FetchingManager fetcher = new FetchingManager(this);
-    private final RouteArtist routeArtist = new RouteArtist(this);
-    private final NetworkFilterDrawer filterDrawer = new NetworkFilterDrawer(this);
+    private FetchingManager fetcher;
+    private RouteArtist routeArtist;
+    private NetworkFilterDrawer filterDrawer;
+
     private View cachedMarkerView;
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
@@ -80,6 +81,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        fetcher = new FetchingManager(this);
+        routeArtist = new RouteArtist(this);
+        filterDrawer = new NetworkFilterDrawer(this);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
