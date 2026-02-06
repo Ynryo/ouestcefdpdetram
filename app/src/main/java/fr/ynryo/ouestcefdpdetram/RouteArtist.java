@@ -23,9 +23,7 @@ public class RouteArtist {
     }
 
     public void drawVehicleRoute(MarkerData mData) {
-        if (currentRoutePolyline != null) {
-            currentRoutePolyline.remove();
-        }
+        clear();
 
         context.getFetcher().fetchRouteLine(mData.getVehicleNumber(), new FetchingManager.OnRouteLineListener() {
             @Override
@@ -68,5 +66,11 @@ public class RouteArtist {
                 Log.e("RouteArtist", "Erreur lors de la récuperation du tracé\n" + error);
             }
         });
+    }
+
+    public void clear() {
+        if (currentRoutePolyline != null) {
+            currentRoutePolyline.remove();
+        }
     }
 }

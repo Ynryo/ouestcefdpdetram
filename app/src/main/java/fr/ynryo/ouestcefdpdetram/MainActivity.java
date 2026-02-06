@@ -149,6 +149,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //draw route
             if (data.getId().contains("SNCF")) {
                 routeArtist.drawVehicleRoute(data);
+            } else {
+                routeArtist.clear();
             }
         }
         return true; // true pour indiquer qu'on gère l'événement
