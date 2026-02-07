@@ -26,15 +26,18 @@ public class SaveManager {
     }
 
     public void saveAllNetworksVisibility(ArrayList<String> networkRefs, boolean isVisible) {
+        SharedPreferences.Editor editor = prefs.edit();
         for (String networkRef : networkRefs) {
             String key = KEY_PREFIX_NETWORK + networkRef;
-            prefs.edit().putBoolean(key, isVisible).apply();
+            editor.putBoolean(key, isVisible);
         }
+        editor.apply();
     }
 
     public boolean isAllNetworksVisible() {
-        if (prefs.getAll().isEmpty()) return true;
-        for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+        Map<String, ?> entries = prefs.getAll();
+        if (entries.isEmpty()) return true;
+        for (Map.Entry<String, ?> entry : entries.entrySet()) {
             if (entry.getKey().startsWith(KEY_PREFIX_NETWORK) && entry.getValue().equals(false)) {
                 return false;
             }
