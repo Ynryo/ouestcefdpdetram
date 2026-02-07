@@ -23,7 +23,6 @@ public class RouteArtist {
     }
 
     public void drawVehicleRoute(MarkerData mData) {
-        clear();
 
         context.getFetcher().fetchRouteLine(mData.getVehicleNumber(), new FetchingManager.OnRouteLineListener() {
             @Override
@@ -43,6 +42,7 @@ public class RouteArtist {
                         if (geometry != null && "LineString".equals(geometry.getType())) {
                             try {
                                 List<List<Double>> allPoints;
+                                clear();
                                 if (geometry.getCoordinates() instanceof List) {
                                     allPoints = (List<List<Double>>) geometry.getCoordinates();
                                     for (List<Double> point : allPoints) {
@@ -51,6 +51,7 @@ public class RouteArtist {
                                     }
                                 }
                             } catch (ClassCastException e) {
+                                clear();
                                 Log.e("RouteArtist", "Format de coordonnées invalide pour LineString");
                             }
                         }
@@ -63,6 +64,7 @@ public class RouteArtist {
 
             @Override
             public void onError(String error) {
+                clear();
                 Log.e("RouteArtist", "Erreur lors de la récuperation du tracé\n" + error);
             }
         });
