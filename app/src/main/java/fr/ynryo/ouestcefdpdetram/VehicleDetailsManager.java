@@ -27,6 +27,7 @@ import androidx.core.content.ContextCompat;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.color.MaterialColors;
 
 import java.lang.ref.WeakReference;
 import java.time.ZonedDateTime;
@@ -197,7 +198,7 @@ public class VehicleDetailsManager {
     @NonNull
     private TextView getStopName(VehicleStop stop) {
         TextView tvStopName = new TextView(context);
-        tvStopName.setTextColor(Color.BLACK);
+        tvStopName.setTextColor(MaterialColors.getColor(tvStopName, com.google.android.material.R.attr.colorOnSurface));
         tvStopName.setText(stop.getStopName());
 
         SpannableStringBuilder builder = new SpannableStringBuilder();
@@ -300,7 +301,7 @@ public class VehicleDetailsManager {
             ZonedDateTime zdt = ZonedDateTime.parse(rawTime);
             String formatted = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
             tvTime.setText(formatted);
-            tvTime.setTextColor(isExpected ? COLOR_GREEN : Color.DKGRAY);
+            tvTime.setTextColor(isExpected ? COLOR_GREEN : MaterialColors.getColor(tvTime, com.google.android.material.R.attr.colorOnSurface));
         } catch (Exception e) {
             tvTime.setText("??:??");
         }

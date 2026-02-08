@@ -1,6 +1,5 @@
 package fr.ynryo.ouestcefdpdetram;
 
-import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -55,8 +54,6 @@ public class NetworkFilterDrawer {
         MaterialSwitch msShowToggle = allShowRow.findViewById(R.id.network_switch);
 
         tvShowName.setText("Tout afficher");
-        tvShowName.setTextColor(Color.BLACK);
-
         msShowToggle.setChecked(saveManager.isAllNetworksVisible());
         msShowToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isUpdatingMasterSwitch) return;

@@ -10,8 +10,7 @@
     <androidx.drawerlayout.widget.DrawerLayout
         android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".MainActivity">
+        android:layout_height="match_parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -21,7 +20,9 @@
                 android:id="@+id/map"
                 android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                tools:layout_editor_absoluteX="16dp"
+                tools:layout_editor_absoluteY="87dp" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/btn_open_menu"
@@ -31,9 +32,9 @@
                 android:src="@drawable/login_24px"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:backgroundTint="#fff"
-                app:tint="#000"
-                android:contentDescription="Ouvrir le menu" />
+                app:backgroundTint="?attr/colorSecondary"
+                app:tint="?attr/colorOnSecondary"
+                android:contentDescription="Ouvrir le menu"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -42,34 +43,31 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="start"
-            android:background="#fff"
+            android:background="?attr/colorSurface"
             android:orientation="vertical"
             android:clickable="true"
-            android:focusable="true">
+            android:focusable="true"
+            android:fitsSystemWindows="true">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Filtrer les réseaux 🚋"
+                android:text="Filtrer les réseaux"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                android:padding="24dp"
-                android:background="#F5F5F5"
-                android:textColor="#000"/>
+                android:padding="16dp"
+                android:textColor="?attr/colorOnSurface"/>
 
             <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-
                 <LinearLayout
                     android:id="@+id/networks_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical" />
             </ScrollView>
-
         </LinearLayout>
-
     </androidx.drawerlayout.widget.DrawerLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -82,6 +80,5 @@
         android:contentDescription="@string/center_map_on_loc"
         android:src="@drawable/my_location_24px"
         app:backgroundTint="?attr/colorPrimary"
-        app:tint="?attr/colorOnPrimary" />
-
+        app:tint="?attr/colorOnPrimary"/>
 </RelativeLayout>
