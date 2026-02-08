@@ -47,6 +47,7 @@ import java.util.Set;
 
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener {
     private GoogleMap mMap;
@@ -94,16 +95,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         cachedMarkerView = LayoutInflater.from(this).inflate(R.layout.custom_marker, null);
-        fetcher.fetchNetworks(new FetchingManager.OnNetworkListener() { //demande la liste des networks
+        fetcher.fetchRegions(new FetchingManager.OnRegionsListener() { //demande la liste des régions
             @Override
-            public void onDetailsReceived(List<NetworkData> data) {
-                Log.d("MainActivity", data.toString());
-                filterDrawer.populateNetworks(data);
-            }
+            public void onRegionsReceived(List<RegionData> regions) {
+                fetcher.fetchNetworks(new FetchingManager.OnNetworkListener() { //demande la liste des networks
+                    @Override
+                    public void onDetailsReceived(List<NetworkData> data) {
+                        filterDrawer.populateNetworks(regions, data);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e("MainActivity", "Erreur lors de la récupération des réseaux" + error);
+                    }
+                });            }
 
             @Override
             public void onError(String error) {
-                Log.e("MainActivity", "Erreur lors de la récupération des réseaux" + error);
+                Log.e("MainActivity", "Erreur lors de la récupération des régions" + error);
             }
         });
 
@@ -163,7 +172,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onCameraIdle() {
-        // Refresh des marqueurs quand la carte s'arrête de bouger
         fetcher.fetchMarkers(new FetchingManager.OnMarkersListener() {
             @Override
             public void onMarkersReceived(List<MarkerData> markers) {

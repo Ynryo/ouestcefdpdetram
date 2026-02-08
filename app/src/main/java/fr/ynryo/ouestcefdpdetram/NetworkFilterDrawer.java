@@ -1,6 +1,7 @@
 package fr.ynryo.ouestcefdpdetram;
 
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +29,7 @@ public class NetworkFilterDrawer {
     private final Map<String, Boolean> filters = new HashMap<>(); //ref reseau <> isShowed ?
     private List<MaterialSwitch> switches = new ArrayList<>();
     private boolean isBulkUpdate = false;
+    private boolean isUpdatingMasterSwitch = false;
 
     public NetworkFilterDrawer(MainActivity context) {
         WeakReference<MainActivity> contextRef = new WeakReference<>(context);
@@ -46,6 +48,7 @@ public class NetworkFilterDrawer {
         LinearLayout networksContainer = context.findViewById(R.id.networks_container);
         networksContainer.removeAllViews();
         filters.clear();
+        switches.clear();
 
         View allShowRow = LayoutInflater.from(context).inflate(R.layout.item_network, networksContainer, false);
         TextView tvShowName = allShowRow.findViewById(R.id.network_name);
@@ -53,10 +56,12 @@ public class NetworkFilterDrawer {
 
         tvShowName.setText("Tout afficher");
         tvShowName.setTextColor(Color.BLACK);
-        //if no data set checked
+
         msShowToggle.setChecked(saveManager.isAllNetworksVisible());
         msShowToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isUpdatingMasterSwitch) return;
             isBulkUpdate = true;
+
             ArrayList<String> networksName = new ArrayList<>();
             for (MaterialSwitch ms : switches) {
                 ms.setChecked(isChecked);
@@ -64,13 +69,14 @@ public class NetworkFilterDrawer {
                 filters.put(networkRef, isChecked);
                 networksName.add(networkRef);
             }
+
+            isBulkUpdate = false;
             saveManager.saveAllNetworksVisibility(networksName, isChecked);
 
             context.getFetcher().fetchMarkers(new FetchingManager.OnMarkersListener() {
                 @Override
                 public void onMarkersReceived(List<MarkerData> markers) {
                     context.showMarkers(markers);
-                    isBulkUpdate = false;
                 }
 
                 @Override
@@ -88,11 +94,18 @@ public class NetworkFilterDrawer {
             filters.put(networkRef, isVisible);
 
             View row = LayoutInflater.from(context).inflate(R.layout.item_network, networksContainer, false);
-            TextView nameView = row.findViewById(R.id.network_name);
+            TextView tvName = row.findViewById(R.id.network_name);
+            TextView tvCity = row.findViewById(R.id.network_city);
             MaterialSwitch visibilitySwitch = row.findViewById(R.id.network_switch);
 
-            nameView.setText(network.getName());
-            nameView.setTextColor(Color.BLACK);
+            tvName.setText(network.getName());
+            tvCity.setText(network.getAuthority());
+            tvCity.setSingleLine(true);
+            tvCity.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+            tvCity.setMarqueeRepeatLimit(-1);
+            tvCity.setHorizontallyScrolling(true);
+            tvCity.setSelected(true);
+
             visibilitySwitch.setChecked(isVisible);
             visibilitySwitch.setTag(networkRef);
             switches.add(visibilitySwitch);
@@ -102,6 +115,22 @@ public class NetworkFilterDrawer {
 
                 filters.put(networkRef, isChecked);
                 saveManager.saveNetworkFilter(networkRef, isChecked);
+
+                isUpdatingMasterSwitch = true;
+
+                if (!isChecked) {
+                    msShowToggle.setChecked(false);
+                } else {
+                    boolean areAllChecked = true;
+                    for (MaterialSwitch s : switches) {
+                        if (!s.isChecked()) {
+                            areAllChecked = false;
+                            break;
+                        }
+                    }
+                    msShowToggle.setChecked(areAllChecked);
+                }
+                isUpdatingMasterSwitch = false;
 
                 context.getFetcher().fetchMarkers(new FetchingManager.OnMarkersListener() {
                     @Override
@@ -120,7 +149,7 @@ public class NetworkFilterDrawer {
         }
     }
 
-    public boolean isNetworkVisible(String networkRef) { //from marker
+    public boolean isNetworkVisible(String networkRef) {
         if (filters.isEmpty()) return true;
         Boolean networkVisibility = filters.get(networkRef);
         return networkVisibility != null && networkVisibility;

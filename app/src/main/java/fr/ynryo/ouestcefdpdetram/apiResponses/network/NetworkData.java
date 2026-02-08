@@ -8,6 +8,7 @@ public class NetworkData {
     private int id;
     private String ref;
     private String name;
+    private String authority;
     private URI logoHref;
     private int regionId;
 
@@ -21,6 +22,10 @@ public class NetworkData {
 
     public String getName() {
         return name;
+    }
+
+    public String getAuthority() {
+        return authority;
     }
 
     public URI getLogoHref() {

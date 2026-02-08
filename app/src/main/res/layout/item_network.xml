@@ -4,18 +4,28 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:padding="16dp"
+    android:padding="10dp"
     android:background="?attr/selectableItemBackground">
 
     <TextView
         android:id="@+id/network_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:paddingEnd="10dp"
+        android:text="Nom du réseau"
+        android:textSize="16sp"
+        android:textColor="?attr/colorOnBackground"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/network_city"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Nom du réseau"
+        android:text=""
         android:textSize="16sp"
-        android:textColor="?attr/colorOnSurface"
-        android:textStyle="bold" />
+        android:textColor="?attr/colorOnBackground"/>
 
     <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/network_switch"

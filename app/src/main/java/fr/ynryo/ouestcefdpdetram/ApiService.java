@@ -4,7 +4,7 @@ import java.util.List;
 
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkersList;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionsList;
+import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.route.RouteData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
 import retrofit2.Call;
@@ -27,7 +27,7 @@ public interface ApiService {
     );
 
     @GET("regions")
-    Call<RegionsList> getRegions();
+    Call<List<RegionData>> getRegions();
 
     @GET("networks")
     Call<List<NetworkData>> getNetworks();

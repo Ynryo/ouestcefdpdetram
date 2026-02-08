@@ -10,6 +10,7 @@ import java.util.List;
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkersList;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.route.RouteData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
 import retrofit2.Call;
@@ -49,6 +50,11 @@ public class FetchingManager {
 
     public interface OnNetworkListener {
         void onDetailsReceived(List<NetworkData> data);
+        void onError(String error);
+    }
+
+    public interface OnRegionsListener {
+        void onRegionsReceived(List<RegionData> regions);
         void onError(String error);
     }
 
@@ -159,6 +165,28 @@ public class FetchingManager {
 
                 @Override
                 public void onFailure(@NonNull Call<List<NetworkData>> call, @NonNull Throwable t) {
+                    listener.onError(t.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            listener.onError(e.getMessage());
+        }
+    }
+
+    public void fetchRegions(OnRegionsListener listener) {
+        try {
+            getService(BASE_URL_BUS_TRACKER).getRegions().enqueue(new Callback<List<RegionData>>() {
+                @Override
+                public void onResponse(@NonNull Call<List<RegionData>> call, @NonNull Response<List<RegionData>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        listener.onRegionsReceived(response.body());
+                    } else {
+                        listener.onError("Erreur régions: " + response.code());
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<List<RegionData>> call, @NonNull Throwable t) {
                     listener.onError(t.getMessage());
                 }
             });
