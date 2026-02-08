@@ -43,15 +43,14 @@ public class VehicleDetailsManager {
     private final int COLOR_GREEN = Color.rgb(15, 150, 40);
     private final int COLOR_ORANGE = Color.rgb(224, 159, 7);
     private final int COLOR_DARK_ORANGE = Color.rgb(224, 112, 7);
-    private final WeakReference<MainActivity> contextRef;
-    private MainActivity context;
+    private final MainActivity context;
 
     public VehicleDetailsManager(MainActivity context) {
-        this.contextRef = new WeakReference<>(context);
+        WeakReference<MainActivity> contextRef = new WeakReference<>(context);
+        this.context = contextRef.get();
     }
 
     public void init(MarkerData markerData) {
-        this.context = contextRef.get();
         if (this.context == null) return;
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
         View view = LayoutInflater.from(context).inflate(R.layout.vehicule_details, null);
