@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 routeArtist.clear();
             }
         }
-        return true; // true pour indiquer qu'on gère l'événement
+        return true;
     }
 
     @Override
@@ -213,65 +213,47 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     void showMarkers(List<MarkerData> markersFetched) {
         if (mMap == null || markersFetched == null) return;
 
-        Set<String> newMarkerIds = new HashSet<>();
-        for (MarkerData d : markersFetched) {
-            newMarkerIds.add(d.getId());
+        Set<String> fetchedMarkerIds = new HashSet<>();
+        for (MarkerData fetchedMarkerData : markersFetched) { //on met tout les markers dans une liste
+            fetchedMarkerIds.add(fetchedMarkerData.getId());
         }
 
         Iterator<Map.Entry<String, Marker>> iterator = activeMarkers.entrySet().iterator();
-        while (iterator.hasNext()) {
+        while (iterator.hasNext()) { //pour chaque marker fetched
             Map.Entry<String, Marker> entry = iterator.next();
-            if(!newMarkerIds.contains(entry.getKey())) {
+            if(!fetchedMarkerIds.contains(entry.getKey())) { //si le marker n'est pas dans la liste des markers fetched
                 entry.getValue().remove();
                 iterator.remove();
             }
         }
 
-        float mapRotation = mMap.getCameraPosition().bearing;
-        for (MarkerData markerData : markersFetched) { //pour chaque marker
-
-            if (!filterDrawer.isNetworkVisible(markerData.getNetworkRef())) {
-                if (activeMarkers.containsKey(markerData.getId())) { //si il était là, il part
-                    activeMarkers.get(markerData.getId()).remove();
-                    activeMarkers.remove(markerData.getId());
+        for (MarkerData fetchedMarkerData : markersFetched) { //pour chaque marker
+            if (!filterDrawer.isNetworkVisible(fetchedMarkerData.getNetworkRef())) { //si le network n'est pas autorisé d'affichage
+                if (activeMarkers.containsKey(fetchedMarkerData.getId())) { //si il était affiché, c'est ciao
+                    activeMarkers.get(fetchedMarkerData.getId()).remove();
+                    activeMarkers.remove(fetchedMarkerData.getId());
                 }
                 continue; //si il était pas là, chill
             }
 
-            LatLng position = new LatLng(markerData.getPosition().getLatitude(), markerData.getPosition().getLongitude());
+            float mapRotation = mMap.getCameraPosition().bearing;
+            LatLng position = new LatLng(fetchedMarkerData.getPosition().getLatitude(), fetchedMarkerData.getPosition().getLongitude());
 
-            if (activeMarkers.containsKey(markerData.getId())) {
-                Marker existingMarker = activeMarkers.get(markerData.getId());
+            if (activeMarkers.containsKey(fetchedMarkerData.getId())) {
+                Marker existingMarker = activeMarkers.get(fetchedMarkerData.getId());
                 if (existingMarker != null) {
                     animateMarker(existingMarker, position);
-
-                    MarkerData oldData = (MarkerData) existingMarker.getTag();
-                    boolean needUpdate = false;
-
-                    if (oldData != null) {
-                        float oldBearing = oldData.getPosition().getBearing();
-                        float newBearing = markerData.getPosition().getBearing();
-                        if (Math.abs(oldBearing - newBearing) > 2.0f) {
-                            needUpdate = true;
-                        }
-                    } else {
-                        needUpdate = true;
-                    }
-
-                    if (needUpdate) {
-                        existingMarker.setIcon(createCustomMarker(markerData, mapRotation));
-                    }
-
-                    existingMarker.setTag(markerData);
+                    existingMarker.setIcon(createCustomMarker(fetchedMarkerData, mapRotation));
+                    existingMarker.setTag(fetchedMarkerData);
                 }
             } else {
                 Marker newMarker = mMap.addMarker(new MarkerOptions()
                         .position(position)
-                        .icon(createCustomMarker(markerData, mapRotation))
+                        .icon(createCustomMarker(fetchedMarkerData, mapRotation))
                         .anchor(0.5f, 0.3f));
                 if (newMarker != null) {
-                    newMarker.setTag(markerData);
-                    activeMarkers.put(markerData.getId(), newMarker);
+                    newMarker.setTag(fetchedMarkerData);
+                    activeMarkers.put(fetchedMarkerData.getId(), newMarker);
                 }
             }
         }
