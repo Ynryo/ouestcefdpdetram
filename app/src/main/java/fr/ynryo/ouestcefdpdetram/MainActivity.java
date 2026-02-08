@@ -63,18 +63,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
         public void run() {
-            fetcher.fetchMarkers(new FetchingManager.OnMarkersListener() {
-                @Override
-                public void onMarkersReceived(List<MarkerData> markers) {
-                    showMarkers(markers);
-                }
-
-                @Override
-                public void onError(String error) {
-                    Log.e("MainActivity", "Erreur lors de la récupération des données markers");
-                }
-            });
             handler.postDelayed(this, 5000);
+            fetchMarkers();
         }
     };
 
@@ -102,13 +92,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     @Override
                     public void onDetailsReceived(List<NetworkData> data) {
                         filterDrawer.populateNetworks(regions, data);
+                        fetchMarkers();
                     }
 
                     @Override
                     public void onError(String error) {
                         Log.e("MainActivity", "Erreur lors de la récupération des réseaux" + error);
                     }
-                });            }
+                });
+            }
 
             @Override
             public void onError(String error) {
@@ -172,17 +164,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onCameraIdle() {
-        fetcher.fetchMarkers(new FetchingManager.OnMarkersListener() {
-            @Override
-            public void onMarkersReceived(List<MarkerData> markers) {
-                showMarkers(markers);
-            }
-
-            @Override
-            public void onError(String error) {
-                Log.e("MainActivity", "Erreur lors de la récupération des données markers" + error);
-            }
-        });
+        fetchMarkers();
     }
 
     @Override
@@ -208,6 +190,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15.0f));
                     }
                 });
+    }
+
+    public void fetchMarkers() {
+        fetcher.fetchMarkers(new FetchingManager.OnMarkersListener() {
+            @Override
+            public void onMarkersReceived(List<MarkerData> markers) {
+                showMarkers(markers);
+            }
+
+            @Override
+            public void onError(String error) {
+            Log.e("MainActivity", "Erreur lors de la récupération des données markers");
+        }
+        });
     }
 
     void showMarkers(List<MarkerData> markersFetched) {
