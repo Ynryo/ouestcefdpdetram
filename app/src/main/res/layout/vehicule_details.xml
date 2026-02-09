@@ -11,20 +11,23 @@
         android:id="@+id/tvLigneRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:id="@+id/tvLigneNumero"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
-            android:textColor="?attr/colorOnPrimary"
-            android:textStyle="bold"
-            android:padding="8dp"
-            android:text="38"
-            android:textSize="18sp"
             android:gravity="center"
             android:minWidth="50dp"
+            android:padding="8dp"
+            android:text="38"
+            android:textColor="?attr/colorOnPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"
             tools:ignore="HardcodedText" />
 
         <TextView
@@ -44,10 +47,8 @@
             android:id="@+id/ivNetworkLogo"
             android:layout_width="60dp"
             android:layout_height="match_parent"
-            android:layout_marginEnd="8dp"
             android:padding="4dp"
-            android:scaleType="fitCenter"
-            app:tint="?attr/colorOnSurface" />
+            android:scaleType="fitCenter" />
     </LinearLayout>
 
     <ProgressBar

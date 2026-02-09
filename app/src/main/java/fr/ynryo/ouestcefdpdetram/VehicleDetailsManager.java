@@ -87,6 +87,7 @@ public class VehicleDetailsManager {
                     @Override
                     public void onDetailsReceived(NetworkData nData) {
                         ImageView ivLogo = view.findViewById(R.id.ivNetworkLogo);
+                        ivLogo.setBackgroundColor(Color.WHITE);
                         ivLogo.setAdjustViewBounds(true);
                         ivLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
@@ -217,7 +218,10 @@ public class VehicleDetailsManager {
             Drawable drawable = ContextCompat.getDrawable(context, iconRes);
             if (drawable != null) {
                 drawable.mutate();
-                drawable.setColorFilter(new PorterDuffColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN));
+                drawable.setColorFilter(new PorterDuffColorFilter(
+                        MaterialColors.getColor(tvStopName, com.google.android.material.R.attr.colorOnSurface),
+                        PorterDuff.Mode.SRC_IN)
+                );
                 int size = (int) (tvStopName.getTextSize() * 1.2f);
                 drawable.setBounds(0, 0, size, size);
                 ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);
