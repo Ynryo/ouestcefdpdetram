@@ -122,14 +122,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
-        // MarkerPosition par défaut sur Nantes
-        LatLng nantes = new LatLng(47.218371, -1.553621);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nantes, 15.0f));
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         } else {
             mMap.setMyLocationEnabled(true);
+            centerMapOnUserLocation();
         }
     }
 
@@ -183,13 +180,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, location -> {
-                    if (location != null) {
-                        LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15.0f));
-                    }
-                });
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null) {
+                LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15.0f));
+            }
+        });
     }
 
     public void fetchMarkers() {
