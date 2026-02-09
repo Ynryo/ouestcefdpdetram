@@ -53,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private static final float DEFAULT_ZOOM = 13f;
+    private static final LatLng PARIS = new LatLng(48.8566, 2.3522);
     private FusedLocationProviderClient fusedLocationClient;
     private final Map<String, Marker> activeMarkers = new HashMap<>();
     private FetchingManager fetcher;
@@ -178,12 +180,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void centerMapOnUserLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(PARIS, DEFAULT_ZOOM));
             return;
         }
+
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
                 LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15.0f));
+            } else {
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(PARIS, DEFAULT_ZOOM));
             }
         });
     }
