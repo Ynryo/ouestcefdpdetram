@@ -26,7 +26,7 @@ public class NetworkFilterDrawer {
     private final MainActivity context;
     private final SaveManager saveManager;
     private final Map<String, Boolean> filters = new HashMap<>(); //ref reseau <> isShowed ?
-    private List<MaterialSwitch> switches = new ArrayList<>();
+    private final List<MaterialSwitch> switches = new ArrayList<>();
     private boolean isBulkUpdate = false;
     private boolean isUpdatingMasterSwitch = false;
 
@@ -53,7 +53,7 @@ public class NetworkFilterDrawer {
         TextView tvShowName = allShowRow.findViewById(R.id.network_name);
         MaterialSwitch msShowToggle = allShowRow.findViewById(R.id.network_switch);
 
-        tvShowName.setText("Tout afficher");
+        tvShowName.setText(R.string.show_all);
         msShowToggle.setChecked(saveManager.isAllNetworksVisible());
         msShowToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isUpdatingMasterSwitch) return;

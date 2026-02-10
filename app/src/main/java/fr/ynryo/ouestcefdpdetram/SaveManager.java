@@ -3,7 +3,7 @@ package fr.ynryo.ouestcefdpdetram;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class SaveManager {
@@ -25,7 +25,7 @@ public class SaveManager {
         return prefs.getBoolean(key, true);
     }
 
-    public void saveAllNetworksVisibility(ArrayList<String> networkRefs, boolean isVisible) {
+    public void saveAllNetworksVisibility(List<String> networkRefs, boolean isVisible) {
         SharedPreferences.Editor editor = prefs.edit();
         for (String networkRef : networkRefs) {
             String key = KEY_PREFIX_NETWORK + networkRef;

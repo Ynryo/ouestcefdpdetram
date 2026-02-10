@@ -58,9 +58,9 @@ public class FetchingManager {
         void onError(String error);
     }
 
-    private ApiService getService(String base_url) {
+    private ApiService getService(String baseUrl) {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(base_url)
+                .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         return retrofit.create(ApiService.class);
@@ -97,7 +97,7 @@ public class FetchingManager {
                     if (response.isSuccessful() && response.body() != null) {
                         listener.onDetailsReceived(response.body());
                     } else {
-                        listener.onError("Code erreur: " + response.code());
+                        listener.onError(String.valueOf(response.code()));
                     }
                 }
 
@@ -118,7 +118,7 @@ public class FetchingManager {
                 if (response.isSuccessful() && response.body() != null) {
                     listener.onDetailsReceived(response.body());
                 } else {
-                    listener.onError("Code erreur: " + response.code());
+                    listener.onError(String.valueOf(response.code()));
                 }
             }
 
@@ -153,7 +153,7 @@ public class FetchingManager {
 
     public void fetchNetworks(OnNetworkListener listener) {
         try {
-            getService(BASE_URL_BUS_TRACKER).getNetworks().enqueue(new Callback<List<NetworkData>>() {
+            getService(BASE_URL_BUS_TRACKER).getNetworks().enqueue(new Callback<>() {
                 @Override
                 public void onResponse(@NonNull Call<List<NetworkData>> call, @NonNull Response<List<NetworkData>> response) {
                     if (response.isSuccessful() && response.body() != null) {
@@ -175,7 +175,7 @@ public class FetchingManager {
 
     public void fetchRegions(OnRegionsListener listener) {
         try {
-            getService(BASE_URL_BUS_TRACKER).getRegions().enqueue(new Callback<List<RegionData>>() {
+            getService(BASE_URL_BUS_TRACKER).getRegions().enqueue(new Callback<>() {
                 @Override
                 public void onResponse(@NonNull Call<List<RegionData>> call, @NonNull Response<List<RegionData>> response) {
                     if (response.isSuccessful() && response.body() != null) {

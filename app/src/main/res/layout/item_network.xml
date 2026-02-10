@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -13,10 +14,10 @@
         android:layout_height="wrap_content"
         android:layout_weight="0"
         android:paddingEnd="8dp"
-        android:text="Nom du réseau"
         android:textSize="16sp"
         android:textColor="?attr/colorOnBackground"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        tools:ignore="RtlSymmetry" />
 
     <TextView
         android:id="@+id/network_city"
@@ -32,6 +33,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingStart="8dp"
-        android:checked="true" />
+        android:checked="true"
+        tools:ignore="RtlSymmetry" />
 
 </LinearLayout>
