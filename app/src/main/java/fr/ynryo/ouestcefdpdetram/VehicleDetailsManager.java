@@ -87,7 +87,7 @@ public class VehicleDetailsManager {
                     @Override
                     public void onDetailsReceived(NetworkData nData) {
                         ImageView ivLogo = view.findViewById(R.id.ivNetworkLogo);
-                        ivLogo.setBackgroundColor(MaterialColors.getColor(ivLogo, com.google.android.material.R.attr.colorSurface));
+                        ivLogo.setBackgroundResource(R.color.surface_light);
                         ivLogo.setAdjustViewBounds(true);
                         ivLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
