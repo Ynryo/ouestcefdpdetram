@@ -36,11 +36,38 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:tint="?attr/colorOnSecondary" />
 
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/compass"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:contentDescription="@string/compass_desc"
+                    app:backgroundTint="@color/surface_dark"
+                    app:tint="@null" />
+
+                <ImageView
+                    android:id="@+id/compass_needle"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/compass_needle"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:elevation="8dp"
+                    android:translationZ="8dp" />
+            </FrameLayout>
+
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fab_center_location"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:contentDescription="@string/center_map_on_loc"

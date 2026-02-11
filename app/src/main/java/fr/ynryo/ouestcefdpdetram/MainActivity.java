@@ -49,7 +49,7 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener {
     private GoogleMap mMap;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FetchingManager fetcher;
     private RouteArtist routeArtist;
     private NetworkFilterDrawer filterDrawer;
+    private CompassManager compassManager;
 
     private View cachedMarkerView;
     private final Runnable vehicleUpdateRunnable = new Runnable() {
@@ -78,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fetcher = new FetchingManager(this);
         routeArtist = new RouteArtist(this);
         filterDrawer = new NetworkFilterDrawer(this);
+        compassManager = new CompassManager(this);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -120,14 +122,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setOnCameraIdleListener(this);
         mMap.setOnMarkerClickListener(this);
+        mMap.setOnCameraMoveListener(this);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
-        // On tente de centrer la map immédiatement.
-        // Si on n'a pas encore les permissions, centerMapOnUserLocation ira sur Paris par défaut.
         centerMapOnUserLocation();
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         } else {
@@ -167,6 +167,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onCameraIdle() {
         fetchMarkers();
+    }
+
+    @Override
+    public void onCameraMove() {
+        compassManager.updateAzimut(mMap.getCameraPosition().bearing);
     }
 
     @Override
