@@ -21,7 +21,7 @@ public class CompassManager {
 
     public void updateAzimuth(float azimuth) {
         if (needleLayer != null) {
-            needleLayer.setRotation(360 - azimuth);
+            needleLayer.setRotation(-azimuth);
         }
     }
 

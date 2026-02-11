@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnMarkerClickListener(this);
         mMap.setOnCameraMoveListener(this);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
