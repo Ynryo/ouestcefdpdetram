@@ -10,17 +10,16 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 public class CompassManager {
     private final MainActivity context;
     private final ImageView needleLayer;
-    private final FloatingActionButton fabCompass;
 
     public CompassManager(MainActivity context) {
         this.context = context;
         this.needleLayer = context.findViewById(R.id.compass_needle);
 
-        this.fabCompass = context.findViewById(R.id.compass);
+        FloatingActionButton fabCompass = context.findViewById(R.id.compass);
         fabCompass.setOnClickListener(view -> mapToNorth());
     }
 
-    public void updateAzimut(float azimuth) {
+    public void updateAzimuth(float azimuth) {
         if (needleLayer != null) {
             needleLayer.setRotation(360 - azimuth);
         }

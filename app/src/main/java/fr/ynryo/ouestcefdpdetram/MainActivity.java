@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onCameraMove() {
-        compassManager.updateAzimut(mMap.getCameraPosition().bearing);
+        compassManager.updateAzimuth(mMap.getCameraPosition().bearing);
     }
 
     @Override
