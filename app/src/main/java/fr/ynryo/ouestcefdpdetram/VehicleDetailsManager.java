@@ -56,6 +56,14 @@ public class VehicleDetailsManager {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
         View view = LayoutInflater.from(context).inflate(R.layout.vehicule_details, null);
         bottomSheetDialog.setContentView(view);
+        //temp le tps de trouver une solus
+        bottomSheetDialog.setOnShowListener(dialog -> {
+            BottomSheetDialog d = (BottomSheetDialog) dialog;
+            View bottomSheet = d.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                bottomSheet.setBackgroundResource(android.R.color.transparent);
+            }
+        });
 
         TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
         if (markerData.getId().startsWith("SNCF")) {
@@ -115,6 +123,7 @@ public class VehicleDetailsManager {
     }
 
     private void showVehicleDetails(VehicleData details, View view) {
+        context.getFollowManager().setFollowButton(view.findViewById(R.id.followButton));
         LinearLayout stopsContainer = view.findViewById(R.id.stopsContainer);
         stopsContainer.removeAllViews();
 

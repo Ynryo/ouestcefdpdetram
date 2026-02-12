@@ -50,8 +50,8 @@
                     android:layout_height="wrap_content"
                     android:contentDescription="@string/compass_desc"
                     app:backgroundTint="@color/surface_dark"
-                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                     app:fabCustomSize="40dp"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                     app:tint="@null" />
 
                 <ImageView
@@ -59,10 +59,10 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_gravity="center"
-                    android:src="@drawable/compass_needle"
                     android:clickable="false"
-                    android:focusable="false"
                     android:elevation="8dp"
+                    android:focusable="false"
+                    android:src="@drawable/compass_needle"
                     android:translationZ="8dp" />
             </FrameLayout>
 

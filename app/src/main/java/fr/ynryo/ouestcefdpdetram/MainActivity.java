@@ -49,7 +49,7 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveStartedListener {
     private GoogleMap mMap;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private RouteArtist routeArtist;
     private NetworkFilterDrawer filterDrawer;
     private CompassManager compassManager;
+    private FollowManager followManager;
 
     private View cachedMarkerView;
     private final Runnable vehicleUpdateRunnable = new Runnable() {
@@ -80,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         routeArtist = new RouteArtist(this);
         filterDrawer = new NetworkFilterDrawer(this);
         compassManager = new CompassManager(this);
+        followManager = new FollowManager(this);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -123,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnCameraIdleListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setOnCameraMoveListener(this);
+        mMap.setOnCameraMoveStartedListener(this);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
         mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
@@ -154,6 +157,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         MarkerData data = (MarkerData) marker.getTag();
         if (data != null) {
             new VehicleDetailsManager(this).init(data);
+            if (followManager.getFollowedMarkerId() == null) {
+                followManager.setFollowedMarkerId(data.getId());
+            }
 
             //draw route
             if (data.getId().contains("SNCF")) {
@@ -173,6 +179,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onCameraMove() {
         compassManager.updateAzimuth(mMap.getCameraPosition().bearing);
+    }
+
+    @Override
+    public void onCameraMoveStarted(int reason) {
+        if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
+            followManager.disableFollow();
+        }
     }
 
     @Override
@@ -202,6 +215,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    public void centerOnMarker(String markerId) {
+        Marker marker = activeMarkers.get(markerId);
+        if (marker != null && mMap != null) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+        }
+    }
+
     public void fetchMarkers() {
         fetcher.fetchMarkers(new FetchingManager.OnMarkersListener() {
             @Override
@@ -228,6 +248,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         while (iterator.hasNext()) { //pour chaque marker fetched
             Map.Entry<String, Marker> entry = iterator.next();
             if(!fetchedMarkerIds.contains(entry.getKey())) { //si le marker n'est pas dans la liste des markers fetched
+                if (entry.getKey().equals(followManager.getFollowedMarkerId())) {
+                    followManager.setFollowedMarkerId(null);
+                }
                 entry.getValue().remove();
                 iterator.remove();
             }
@@ -236,6 +259,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         for (MarkerData fetchedMarkerData : markersFetched) { //pour chaque marker
             if (!filterDrawer.isNetworkVisible(fetchedMarkerData.getNetworkRef())) { //si le network n'est pas autorisé d'affichage
                 if (activeMarkers.containsKey(fetchedMarkerData.getId())) { //si il était affiché, c'est ciao
+                    if (fetchedMarkerData.getId().equals(followManager.getFollowedMarkerId())) {
+                        followManager.setFollowedMarkerId(null);
+                    }
                     activeMarkers.get(fetchedMarkerData.getId()).remove();
                     activeMarkers.remove(fetchedMarkerData.getId());
                 }
@@ -248,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (activeMarkers.containsKey(fetchedMarkerData.getId())) {
                 Marker existingMarker = activeMarkers.get(fetchedMarkerData.getId());
                 if (existingMarker != null) {
-                    animateMarker(existingMarker, position);
+                    animateMarker(existingMarker, position, followManager.isFollowing(fetchedMarkerData.getId()));
                     existingMarker.setIcon(createCustomMarker(fetchedMarkerData, mapRotation));
                     existingMarker.setTag(fetchedMarkerData);
                 }
@@ -265,7 +291,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void animateMarker(final Marker marker, final LatLng toPosition) {
+    public void animateMarker(final Marker marker, final LatLng toPosition, boolean shouldFollow) {
         final LatLng startPosition = marker.getPosition();
         final long duration = 2000;
 
@@ -279,7 +305,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             double lng = v * toPosition.longitude + (1 - v) * startPosition.longitude;
             double lat = v * toPosition.latitude + (1 - v) * startPosition.latitude;
 
-            marker.setPosition(new LatLng(lat, lng));
+            LatLng newPos = new LatLng(lat, lng);
+            marker.setPosition(newPos);
+            
+            if (shouldFollow && mMap != null) {
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(newPos));
+            }
         });
         valueAnimator.start();
     }
@@ -334,4 +365,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public GoogleMap getMap() { return mMap; }
 
     public FetchingManager getFetcher() { return fetcher; }
+
+    public FollowManager getFollowManager() {
+        return followManager;
+    }
 }
