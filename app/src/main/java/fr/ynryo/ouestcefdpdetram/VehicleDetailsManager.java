@@ -123,7 +123,7 @@ public class VehicleDetailsManager {
     }
 
     private void showVehicleDetails(VehicleData details, View view) {
-        context.getFollowManager().setFollowButton(view.findViewById(R.id.followButton));
+        context.getFollowManager().setFollowButton(view.findViewById(R.id.followButton), details.getId());
         LinearLayout stopsContainer = view.findViewById(R.id.stopsContainer);
         stopsContainer.removeAllViews();
 
@@ -142,7 +142,7 @@ public class VehicleDetailsManager {
         } else {
             TextView tvDefault = new TextView(context);
             tvDefault.setText(R.string.no_data);
-            tvDefault.setTextColor(Color.BLACK);
+            tvDefault.setTextColor(MaterialColors.getColor(tvDefault, com.google.android.material.R.attr.colorOnSurface));
             tvDefault.setPadding(0, 0, 0, 16);
             stopsContainer.addView(tvDefault);
         }

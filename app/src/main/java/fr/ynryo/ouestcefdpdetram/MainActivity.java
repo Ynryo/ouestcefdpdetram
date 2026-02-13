@@ -34,6 +34,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -153,13 +154,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
-        //TODO: bring marker to front
         MarkerData data = (MarkerData) marker.getTag();
         if (data != null) {
+            Log.w("marker data ", data.toString());
             new VehicleDetailsManager(this).init(data);
-            if (followManager.getFollowedMarkerId() == null) {
-                followManager.setFollowedMarkerId(data.getId());
-            }
 
             //draw route
             if (data.getId().contains("SNCF")) {
@@ -218,7 +216,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void centerOnMarker(String markerId) {
         Marker marker = activeMarkers.get(markerId);
         if (marker != null && mMap != null) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                    new CameraPosition.Builder()
+                            .target(marker.getPosition())
+                            .tilt(60)
+                            .zoom(15f)
+                            .build()
+            ));
         }
     }
 
