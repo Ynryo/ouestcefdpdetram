@@ -23,7 +23,6 @@ public class RouteArtist {
     }
 
     public void drawVehicleRoute(MarkerData mData) {
-
         context.getFetcher().fetchRouteLine(mData.getVehicleNumber(), new FetchingManager.OnRouteLineListener() {
             @Override
             public void onDetailsReceived(RouteData rData) {
@@ -36,13 +35,13 @@ public class RouteArtist {
 
                     boolean pointsAdded = false;
 
+                    clear();
                     for (RouteFeature feature : rData.getRouteFeatures()) {
                         RouteGeometry geometry = feature.getRouteGeometry();
 
                         if (geometry != null && "LineString".equals(geometry.getType())) {
                             try {
                                 List<List<Double>> allPoints;
-                                clear();
                                 if (geometry.getCoordinates() instanceof List) {
                                     allPoints = (List<List<Double>>) geometry.getCoordinates();
                                     for (List<Double> point : allPoints) {

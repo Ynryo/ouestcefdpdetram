@@ -18,7 +18,7 @@ public class FollowManager {
     public void toggleFollow(String followedMarkerId) {
         if (followedMarkerId == null) return;
         if (isFollowing) {
-            disableFollow();
+            disableFollow(false);
         } else {
             enableFollow(followedMarkerId);
         }
@@ -33,6 +33,27 @@ public class FollowManager {
         }
     }
 
+    public void disableFollow(boolean isGesture) {
+        if (isFollowing) {
+            isFollowing = false;
+            if (followButton != null) {
+                followButton.setAlpha(1f);
+            }
+
+            if (!isGesture && context.getMap() != null) {
+                context.getMap().animateCamera(CameraUpdateFactory.newCameraPosition(
+                        new CameraPosition.Builder()
+                                .target(context.getMap().getCameraPosition().target)
+                                .tilt(0)
+                                .zoom(13f)
+                                .build()
+                ));
+            }
+
+            followedMarkerId = null;
+        }
+    }
+
     public void setFollowedMarkerId(String markerId) {
         this.followedMarkerId = markerId;
     }
@@ -44,13 +65,6 @@ public class FollowManager {
     public void centerOnFollowed() {
         if (followedMarkerId == null || context.getMap() == null) return;
         context.centerOnMarker(followedMarkerId);
-    }
-    
-    public void disableFollow() {
-        if (isFollowing) {
-            isFollowing = false;
-            followedMarkerId = null;
-        }
     }
     
     public String getFollowedMarkerId() {

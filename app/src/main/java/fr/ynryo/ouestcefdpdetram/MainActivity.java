@@ -44,6 +44,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
@@ -51,21 +52,31 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveStartedListener {
-    private GoogleMap mMap;
-    private final Handler handler = new Handler(Looper.getMainLooper());
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private static final float DEFAULT_ZOOM = 13f;
-    private static final LatLng PARIS = new LatLng(48.8566, 2.3522);
-    private FusedLocationProviderClient fusedLocationClient;
-    private final Map<String, Marker> activeMarkers = new HashMap<>();
     private FetchingManager fetcher;
     private RouteArtist routeArtist;
     private NetworkFilterDrawer filterDrawer;
     private CompassManager compassManager;
     private FollowManager followManager;
 
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private static final float DEFAULT_ZOOM = 13f;
+    private static final LatLng PARIS = new LatLng(48.8566, 2.3522);
+
+    private final Map<String, BitmapDescriptor> markerIconCache = new HashMap<>();
+    private final Map<String, Marker> activeMarkers = new HashMap<>();
     private final Map<String, ValueAnimator> activeAnimators = new HashMap<>();
+    private final Handler handler = new Handler(Looper.getMainLooper());
+
+    private boolean isMapReady = false;
+    private boolean isDataReady = false;
+    private List<RegionData> pendingRegions;
+    private List<NetworkData> pendingNetworks;
+
+    private boolean isFetching = false;
+    private GoogleMap mMap;
+    private FusedLocationProviderClient fusedLocationClient;
     private View cachedMarkerView;
+
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
         public void run() {
@@ -84,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         filterDrawer = new NetworkFilterDrawer(this);
         compassManager = new CompassManager(this);
         followManager = new FollowManager(this);
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -93,26 +103,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         cachedMarkerView = LayoutInflater.from(this).inflate(R.layout.custom_marker, null);
-        fetcher.fetchRegions(new FetchingManager.OnRegionsListener() { //demande la liste des régions
+
+        fetcher.fetchRegions(new FetchingManager.OnRegionsListener() {
             @Override
             public void onRegionsReceived(List<RegionData> regions) {
-                fetcher.fetchNetworks(new FetchingManager.OnNetworkListener() { //demande la liste des networks
+                fetcher.fetchNetworks(new FetchingManager.OnNetworkListener() {
                     @Override
                     public void onDetailsReceived(List<NetworkData> data) {
-                        filterDrawer.populateNetworks(regions, data);
-                        fetchMarkers();
+                        pendingRegions = regions;
+                        pendingNetworks = data;
+                        isDataReady = true;
+                        onEverythingReady();
                     }
 
                     @Override
                     public void onError(String error) {
-                        Log.e("MainActivity", "Erreur lors de la récupération des réseaux" + error);
+                        Log.e("MainActivity", "Erreur réseaux: " + error);
                     }
                 });
             }
 
             @Override
             public void onError(String error) {
-                Log.e("MainActivity", "Erreur lors de la récupération des régions" + error);
+                Log.e("MainActivity", "Erreur régions: " + error);
             }
         });
 
@@ -120,10 +133,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         findViewById(R.id.fab_center_location).setOnClickListener(view -> centerMapOnUserLocation());
     }
 
+    private void onEverythingReady() {
+        if (!isMapReady || !isDataReady) return;
+
+        filterDrawer.populateNetworks(pendingRegions, pendingNetworks);
+        centerMapOnUserLocation();
+        fetchMarkers();
+        handler.post(vehicleUpdateRunnable);
+    }
+
     @SuppressLint("PotentialBehaviorOverride")
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         mMap.setOnCameraIdleListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setOnCameraMoveListener(this);
@@ -131,20 +154,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
         mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
-        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
-        centerMapOnUserLocation();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         } else {
             mMap.setMyLocationEnabled(true);
         }
+
+        isMapReady = true;
+        onEverythingReady();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        handler.post(vehicleUpdateRunnable);
+        if (isMapReady && isDataReady) {
+            handler.post(vehicleUpdateRunnable);
+        }
     }
 
     @Override
@@ -157,10 +183,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onMarkerClick(@NonNull Marker marker) {
         MarkerData data = (MarkerData) marker.getTag();
         if (data != null) {
-            Log.w("marker data ", data.toString());
             new VehicleDetailsManager(this).init(data);
 
-            //draw route
             if (data.getId().contains("SNCF")) {
                 routeArtist.drawVehicleRoute(data);
             } else {
@@ -190,15 +214,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                mMap.setMyLocationEnabled(true);
-                centerMapOnUserLocation(); // Maintenant qu'on a la permission, on essaye de se localiser
-            }
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+            centerMapOnUserLocation();
         }
     }
 
     private void centerMapOnUserLocation() {
+        if (mMap == null) return;
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(PARIS, DEFAULT_ZOOM));
             return;
@@ -228,16 +251,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void fetchMarkers() {
+        if (isFetching) return;
+        isFetching = true;
+
         fetcher.fetchMarkers(new FetchingManager.OnMarkersListener() {
             @Override
             public void onMarkersReceived(List<MarkerData> markers) {
+                isFetching = false;
                 showMarkers(markers);
+                if (markerIconCache.size() > 200) {
+                    markerIconCache.clear();
+                }
             }
 
             @Override
             public void onError(String error) {
-            Log.e("MainActivity", "Erreur lors de la récupération des données markers");
-        }
+                isFetching = false;
+                Log.e("MainActivity", "Erreur markers: " + error);
+            }
         });
     }
 
@@ -263,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         for (MarkerData fetchedMarkerData : markersFetched) { //pour chaque marker
             if (!filterDrawer.isNetworkVisible(fetchedMarkerData.getNetworkRef())) { //si le network n'est pas autorisé d'affichage
-                if (activeMarkers.containsKey(fetchedMarkerData.getId())) { //si il était affiché, c'est ciao
+                if (activeMarkers.containsKey(fetchedMarkerData.getId())) { //s'il était affiché, c'est ciao
                     if (fetchedMarkerData.getId().equals(followManager.getFollowedMarkerId())) {
                         followManager.setFollowedMarkerId(null);
                     }
@@ -280,7 +311,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Marker existingMarker = activeMarkers.get(fetchedMarkerData.getId());
                 if (existingMarker != null) {
                     animateMarker(existingMarker, position, followManager.isFollowing(fetchedMarkerData.getId()));
-                    existingMarker.setIcon(createCustomMarker(fetchedMarkerData, mapRotation));
+
+                    //màj qui si nécéssaire
+                    MarkerData oldData = (MarkerData) existingMarker.getTag();
+                    if (oldData == null ||
+                            !Objects.equals(oldData.getFillColor(), fetchedMarkerData.getFillColor()) ||
+                            !Objects.equals(oldData.getLineNumber(), fetchedMarkerData.getLineNumber()) ||
+                            Math.abs(oldData.getPosition().getBearing() - fetchedMarkerData.getPosition().getBearing()) > 5) {
+
+                        existingMarker.setIcon(createCustomMarker(fetchedMarkerData, mapRotation));
+                    }
+
                     existingMarker.setTag(fetchedMarkerData);
                 }
             } else {
@@ -327,6 +368,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public BitmapDescriptor createCustomMarker(MarkerData markerData, float mapRotation) {
+        String cacheKey = markerData.getFillColor() + "_" + markerData.getLineNumber() + "_" + (int) (markerData.getPosition().getBearing() - mapRotation);
+
+        if (markerIconCache.containsKey(cacheKey)) {
+            return markerIconCache.get(cacheKey);
+        }
+
         ImageView markerCircle = cachedMarkerView.findViewById(R.id.marker_circle);
         TextView lineNumberView = cachedMarkerView.findViewById(R.id.line_number);
 
@@ -370,14 +417,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Canvas canvas = new Canvas(bitmap);
         cachedMarkerView.draw(canvas);
 
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
+        BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
+        markerIconCache.put(cacheKey, descriptor);
+
+        return descriptor;
     }
 
     public GoogleMap getMap() { return mMap; }
 
     public FetchingManager getFetcher() { return fetcher; }
 
-    public FollowManager getFollowManager() {
-        return followManager;
-    }
+    public FollowManager getFollowManager() { return followManager; }
 }

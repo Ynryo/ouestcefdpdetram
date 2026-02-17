@@ -44,6 +44,7 @@ public class VehicleDetailsManager {
     private final int COLOR_GREEN = Color.rgb(15, 150, 40);
     private final int COLOR_ORANGE = Color.rgb(224, 159, 7);
     private final int COLOR_DARK_ORANGE = Color.rgb(224, 112, 7);
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private final MainActivity context;
 
     public VehicleDetailsManager(MainActivity context) {
@@ -103,6 +104,7 @@ public class VehicleDetailsManager {
                                 .as(PictureDrawable.class)
                                 .load(nData.getLogoHref().toString())
                                 .diskCacheStrategy(DiskCacheStrategy.DATA)
+                                .override(100, 100)
                                 .into(ivLogo);
                     }
 
@@ -164,7 +166,7 @@ public class VehicleDetailsManager {
 
         TextView tvPlatform = getPlatform(stop);
         llLeft.addView(tvPlatform);
-        if (tvPlatform.getText() != "") {
+        if (!tvPlatform.getText().toString().isEmpty()) {
             llLeft.addView(getSpacer());
         }
         llLeft.addView(getStopName(stop));
@@ -309,10 +311,11 @@ public class VehicleDetailsManager {
             if (rawTime == null) {
                 tvTime.setText("??:??");
                 tvTime.setTextColor(Color.RED);
+                return tvTime;
             }
 
             ZonedDateTime zdt = ZonedDateTime.parse(rawTime);
-            String formatted = zdt.format(DateTimeFormatter.ofPattern("HH:mm"));
+            String formatted = zdt.format(TIME_FORMATTER);
             tvTime.setText(formatted);
             tvTime.setTextColor(isExpected ? COLOR_GREEN : MaterialColors.getColor(tvTime, com.google.android.material.R.attr.colorOnSurface));
         } catch (Exception e) {
@@ -320,6 +323,7 @@ public class VehicleDetailsManager {
         }
         return tvTime;
     }
+
 
     @NonNull
     private View getSpacer() {

@@ -23,9 +23,26 @@ public class FetchingManager {
     private static final String BASE_URL_BUS_TRACKER = "https://bus-tracker.fr/api/";
     private static final String BASE_URL_CARTO_TCHOO = "https://api.tchoo.net/api/";
     private final MainActivity context;
+    private static ApiService busTrackerService;
+    private static ApiService cartoTchooService;
 
     public FetchingManager(MainActivity context) {
         this.context = context;
+        if (busTrackerService == null) {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(BASE_URL_BUS_TRACKER)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            busTrackerService = retrofit.create(ApiService.class);
+        }
+
+        if (cartoTchooService == null) {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(BASE_URL_CARTO_TCHOO)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            cartoTchooService = retrofit.create(ApiService.class);
+        }
     }
 
     public interface OnMarkersListener {
@@ -59,11 +76,7 @@ public class FetchingManager {
     }
 
     private ApiService getService(String baseUrl) {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(baseUrl)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        return retrofit.create(ApiService.class);
+        return baseUrl.equals(BASE_URL_BUS_TRACKER) ? busTrackerService : cartoTchooService;
     }
 
     public void fetchMarkers(OnMarkersListener listener) {
