@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private CompassManager compassManager;
     private FollowManager followManager;
 
+    private final Map<String, ValueAnimator> activeAnimators = new HashMap<>();
     private View cachedMarkerView;
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
@@ -297,12 +298,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void animateMarker(final Marker marker, final LatLng toPosition, boolean shouldFollow) {
         final LatLng startPosition = marker.getPosition();
-        final long duration = 2000;
+        String markerId = marker.getTag() != null ? ((MarkerData) marker.getTag()).getId() : "";
+
+        ValueAnimator existing = activeAnimators.get(markerId);
+        if (existing != null && existing.isRunning()) {
+            existing.cancel();
+        }
 
         ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
-        valueAnimator.setDuration(duration);
-        valueAnimator.setInterpolator(new LinearInterpolator()); // Vitesse constante
-
+        valueAnimator.setDuration(2000);
+        valueAnimator.setInterpolator(new LinearInterpolator());
         valueAnimator.addUpdateListener(animation -> {
             float v = animation.getAnimatedFraction();
 
@@ -311,11 +316,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             LatLng newPos = new LatLng(lat, lng);
             marker.setPosition(newPos);
-            
+
             if (shouldFollow && mMap != null) {
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newPos));
             }
         });
+
+        activeAnimators.put(markerId, valueAnimator);
         valueAnimator.start();
     }
 
