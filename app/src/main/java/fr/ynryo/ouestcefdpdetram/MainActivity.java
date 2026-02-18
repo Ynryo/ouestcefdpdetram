@@ -148,6 +148,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(PARIS, DEFAULT_ZOOM));
         mMap.setOnCameraIdleListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setOnCameraMoveListener(this);
@@ -225,19 +226,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void centerMapOnUserLocation() {
         if (mMap == null) return;
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(PARIS, DEFAULT_ZOOM));
+
+        //no position go paris
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d("MainActivity", "Pas de permission - reste à Paris");
             return;
         }
 
-        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
-            if (location != null) {
-                LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 14.0f));
-            } else {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(PARIS, DEFAULT_ZOOM));
-            }
-        });
+        try {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+                if (location != null) {
+                    Log.d("MainActivity", "Position trouvée: " + location.getLatitude() + ", " + location.getLongitude());
+                    LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 14.0f));
+                } else {
+                    Log.d("MainActivity", "getLastLocation() retourne null - reste à Paris"); //reste sur paris
+                }
+            }).addOnFailureListener(e -> {
+                Log.e("MainActivity", "Erreur getLastLocation: " + e.getMessage()); //reste sur paris
+            });
+        } catch (Exception e) {
+            Log.e("MainActivity", "Exception centerMapOnUserLocation: " + e.getMessage());
+        }
     }
 
     public void centerOnMarker(String markerId) {
