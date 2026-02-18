@@ -73,7 +73,7 @@ public class NetworkFilterDrawer {
             context.getFetcher().fetchMarkers(new FetchingManager.OnMarkersListener() {
                 @Override
                 public void onMarkersReceived(List<MarkerData> markers) {
-                    context.showMarkers(markers);
+                    context.getMarkerArtist().showMarkers(markers);
                 }
 
                 @Override
@@ -132,7 +132,7 @@ public class NetworkFilterDrawer {
                 context.getFetcher().fetchMarkers(new FetchingManager.OnMarkersListener() {
                     @Override
                     public void onMarkersReceived(List<MarkerData> markers) {
-                        context.showMarkers(markers);
+                        context.getMarkerArtist().showMarkers(markers);
                     }
 
                     @Override
