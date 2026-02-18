@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
     private View cachedMarkerView;
+    private float oldMapRotation = 0;
 
     private final Runnable vehicleUpdateRunnable = new Runnable() {
         @Override
@@ -176,6 +177,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onPause() {
         super.onPause();
+        followManager.disableFollow(false);
         handler.removeCallbacks(vehicleUpdateRunnable);
     }
 
@@ -197,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onCameraIdle() {
         fetchMarkers();
+        updateMarkerRotations();
     }
 
     @Override
@@ -387,6 +390,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         activeAnimators.put(markerId, valueAnimator);
         valueAnimator.start();
+    }
+
+    private void updateMarkerRotations() {
+        if (mMap == null) return;
+
+        float mapRotation = mMap.getCameraPosition().bearing;
+        if (mapRotation == oldMapRotation) return;
+        oldMapRotation = mapRotation;
+
+        for (Map.Entry<String, Marker> entry : activeMarkers.entrySet()) {
+            Marker marker = entry.getValue();
+            MarkerData data = (MarkerData) marker.getTag();
+            if (data != null) {
+                marker.setIcon(createCustomMarker(data, mapRotation));
+            }
+        }
     }
 
     public BitmapDescriptor createCustomMarker(MarkerData markerData, float mapRotation) {
