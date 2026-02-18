@@ -240,11 +240,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void centerOnMarker(String markerId) {
         Marker marker = activeMarkers.get(markerId);
         if (marker != null && mMap != null) {
+            MarkerData data = (MarkerData) marker.getTag();
+            float bearing = data != null ? data.getPosition().getBearing() : 0f;
+
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                     new CameraPosition.Builder()
                             .target(marker.getPosition())
-                            .tilt(60)
-                            .zoom(15f)
+                            .bearing(bearing)
+                            .tilt(60f)
+                            .zoom(17f)
                             .build()
             ));
         }
@@ -272,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    void showMarkers(List<MarkerData> markersFetched) {
+    public void showMarkers(List<MarkerData> markersFetched) {
         if (mMap == null || markersFetched == null) return;
 
         Set<String> fetchedMarkerIds = new HashSet<>();
@@ -346,6 +350,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             existing.cancel();
         }
 
+        MarkerData data = (MarkerData) marker.getTag();
+        final float startBearing = shouldFollow && mMap != null ? mMap.getCameraPosition().bearing : 0f;
+        final float endBearing = data != null ? data.getPosition().getBearing() : 0f;
+
+        float diff = endBearing - startBearing;
+        if (diff > 180) diff -= 360;
+        if (diff < -180) diff += 360;
+        final float bearingDiff = diff;
+
         ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
         valueAnimator.setDuration(2000);
         valueAnimator.setInterpolator(new LinearInterpolator());
@@ -354,12 +367,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             double lng = v * toPosition.longitude + (1 - v) * startPosition.longitude;
             double lat = v * toPosition.latitude + (1 - v) * startPosition.latitude;
-
             LatLng newPos = new LatLng(lat, lng);
             marker.setPosition(newPos);
 
             if (shouldFollow && mMap != null) {
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(newPos));
+                float interpolatedBearing = (startBearing + bearingDiff * v) % 360;
+                if (interpolatedBearing < 0) interpolatedBearing += 360;
+
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(newPos)
+                        .zoom(17f)
+                        .tilt(60f)
+                        .bearing(interpolatedBearing)
+                        .build();
+
+                mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             }
         });
 
@@ -423,9 +445,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return descriptor;
     }
 
-    public GoogleMap getMap() { return mMap; }
+    public GoogleMap getMap() {
+        return mMap;
+    }
 
-    public FetchingManager getFetcher() { return fetcher; }
+    public FetchingManager getFetcher() {
+        return fetcher;
+    }
 
-    public FollowManager getFollowManager() { return followManager; }
+    public FollowManager getFollowManager() {
+        return followManager;
+    }
 }
