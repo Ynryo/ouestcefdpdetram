@@ -44,6 +44,7 @@ public class FollowManager {
                 context.getMap().animateCamera(CameraUpdateFactory.newCameraPosition(
                         new CameraPosition.Builder()
                                 .target(context.getMap().getCameraPosition().target)
+                                .bearing(0)
                                 .tilt(0)
                                 .zoom(13f)
                                 .build()
