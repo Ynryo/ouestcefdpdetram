@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.color.MaterialColors;
 
@@ -63,6 +64,13 @@ public class VehicleDetailsManager {
             View bottomSheet = d.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (bottomSheet != null) {
                 bottomSheet.setBackgroundResource(android.R.color.transparent);
+                // On récupère le conteneur interne du BottomSheet
+                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+                int screenHeight = context.getResources().getDisplayMetrics().heightPixels;
+                int peekHeight = (int) (screenHeight * 0.5);
+                behavior.setPeekHeight(peekHeight);
+
+                behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
 
