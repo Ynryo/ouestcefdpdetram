@@ -31,6 +31,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.color.MaterialColors;
 
 import java.lang.ref.WeakReference;
+import java.net.URI;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -103,6 +104,8 @@ public class VehicleDetailsManager {
                 context.getFetcher().fetchNetworkData(details.getNetworkId(), new FetchingManager.OnNetworkDataListener() {
                     @Override
                     public void onDetailsReceived(NetworkData nData) {
+                        URI imgURI = nData.getLogoHref();
+                        if (imgURI == null) return;
                         ImageView ivLogo = view.findViewById(R.id.ivNetworkLogo);
                         ivLogo.setBackgroundResource(R.color.surface_light);
                         ivLogo.setAdjustViewBounds(true);
@@ -110,7 +113,7 @@ public class VehicleDetailsManager {
 
                         Glide.with(context)
                                 .as(PictureDrawable.class)
-                                .load(nData.getLogoHref().toString())
+                                .load(imgURI.toString())
                                 .diskCacheStrategy(DiskCacheStrategy.DATA)
                                 .override(100, 100)
                                 .into(ivLogo);
