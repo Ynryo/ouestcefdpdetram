@@ -4,6 +4,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -12,7 +13,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.materialswitch.MaterialSwitch;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +23,7 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
 
 public class NetworkFilterDrawer {
+    public static final String TAG = "NetworkFilterDrawer";
     private final MainActivity context;
     private final SaveManager saveManager;
     private final Map<String, Boolean> filters = new HashMap<>(); //ref reseau <> isShowed ?
@@ -31,12 +32,12 @@ public class NetworkFilterDrawer {
     private boolean isUpdatingMasterSwitch = false;
 
     public NetworkFilterDrawer(MainActivity context) {
-        WeakReference<MainActivity> contextRef = new WeakReference<>(context);
-        this.context = contextRef.get();
+        this.context = context;
         this.saveManager = new SaveManager(context);
     }
 
     public void open() {
+        if (context == null) return;
         DrawerLayout drawerLayout = context.findViewById(R.id.drawer_layout);
         if (drawerLayout != null) {
             drawerLayout.openDrawer(GravityCompat.START);
@@ -44,7 +45,11 @@ public class NetworkFilterDrawer {
     }
 
     public void populateNetworks(List<RegionData> regions, List<NetworkData> networks) {
+        if (context == null) return;
+        
         LinearLayout networksContainer = context.findViewById(R.id.networks_container);
+        if (networksContainer == null) return;
+        
         networksContainer.removeAllViews();
         filters.clear();
         switches.clear();
