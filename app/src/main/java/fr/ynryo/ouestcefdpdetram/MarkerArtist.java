@@ -100,7 +100,7 @@ public class MarkerArtist {
                             !Objects.equals(oldData.getLineNumber(), fetchedMarkerData.getLineNumber()) ||
                             Math.abs(oldData.getPosition().getBearing() - fetchedMarkerData.getPosition().getBearing()) > 5) {
 
-                        existingMarker.setIcon(createCustomMarker(fetchedMarkerData, mapRotation));
+                        existingMarker.setIcon(createCustomMarker(fetchedMarkerData, mapRotation, followManager.isFollowing(fetchedMarkerData.getId())));
                     }
 
                     existingMarker.setTag(fetchedMarkerData);
@@ -108,7 +108,7 @@ public class MarkerArtist {
             } else {
                 Marker newMarker = mMap.addMarker(new MarkerOptions()
                         .position(position)
-                        .icon(createCustomMarker(fetchedMarkerData, mapRotation))
+                        .icon(createCustomMarker(fetchedMarkerData, mapRotation, followManager.isFollowing(fetchedMarkerData.getId())))
                         .anchor(0.5f, 0.3f));
                 if (newMarker != null) {
                     newMarker.setTag(fetchedMarkerData);
@@ -118,7 +118,7 @@ public class MarkerArtist {
         }
     }
 
-    public BitmapDescriptor createCustomMarker(MarkerData markerData, float mapRotation) {
+    public BitmapDescriptor createCustomMarker(MarkerData markerData, float mapRotation, boolean shouldFollow) {
         String cacheKey = markerData.getFillColor() + "_" + markerData.getLineNumber() + "_" + (int) (markerData.getPosition().getBearing() - mapRotation);
 
         if (markerIconCache.containsKey(cacheKey)) {
@@ -159,7 +159,7 @@ public class MarkerArtist {
         gd.setCornerRadius(10);
         lineNumberView.setBackground(gd);
 
-        markerCircle.setRotation(bearing - mapRotation);
+        markerCircle.setRotation(shouldFollow ? 0 : bearing - mapRotation);
 
         cachedMarkerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         cachedMarkerView.layout(0, 0, cachedMarkerView.getMeasuredWidth(), cachedMarkerView.getMeasuredHeight());
@@ -185,7 +185,7 @@ public class MarkerArtist {
             Marker marker = entry.getValue();
             MarkerData data = (MarkerData) marker.getTag();
             if (data != null) {
-                marker.setIcon(createCustomMarker(data, mapRotation));
+                marker.setIcon(createCustomMarker(data, mapRotation, followManager.isFollowing(data.getId())));
             }
         }
     }
@@ -199,14 +199,23 @@ public class MarkerArtist {
             existing.cancel();
         }
 
-        MarkerData data = (MarkerData) marker.getTag();
-        final float startBearing = shouldFollow && mMap != null ? mMap.getCameraPosition().bearing : 0f;
-        final float endBearing = data != null ? data.getPosition().getBearing() : 0f;
+        if (shouldFollow && mMap != null) {
+            MarkerData data = (MarkerData) marker.getTag();
+            float bearing = data != null ? data.getPosition().getBearing() : 0f;
 
-        float diff = endBearing - startBearing;
-        if (diff > 180) diff -= 360;
-        if (diff < -180) diff += 360;
-        final float bearingDiff = diff;
+            mMap.animateCamera(
+                    CameraUpdateFactory.newCameraPosition(
+                            new CameraPosition.Builder()
+                                    .target(toPosition)
+                                    .bearing(bearing)
+                                    .tilt(60f)
+                                    .zoom(17f)
+                                    .build()
+                    ),
+                    2000,
+                    null
+            );
+        }
 
         ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
         valueAnimator.setDuration(2000);
@@ -218,26 +227,11 @@ public class MarkerArtist {
             double lat = v * toPosition.latitude + (1 - v) * startPosition.latitude;
             LatLng newPos = new LatLng(lat, lng);
             marker.setPosition(newPos);
-
-            if (shouldFollow && mMap != null) {
-                float interpolatedBearing = (startBearing + bearingDiff * v) % 360;
-                if (interpolatedBearing < 0) interpolatedBearing += 360;
-
-                CameraPosition cameraPosition = new CameraPosition.Builder()
-                        .target(newPos)
-                        .zoom(17f)
-                        .tilt(60f)
-                        .bearing(interpolatedBearing)
-                        .build();
-
-                mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-            }
         });
 
         activeAnimators.put(markerId, valueAnimator);
         valueAnimator.start();
     }
-
     public void setCachedMarkerView(View cachedMarkerView) {
         this.cachedMarkerView = cachedMarkerView;
     }
