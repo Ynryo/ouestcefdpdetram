@@ -35,7 +35,7 @@ public class RouteArtist {
 
                     boolean pointsAdded = false;
 
-                    clear();
+                    remove();
                     for (RouteFeature feature : rData.getRouteFeatures()) {
                         RouteGeometry geometry = feature.getRouteGeometry();
 
@@ -50,7 +50,7 @@ public class RouteArtist {
                                     }
                                 }
                             } catch (ClassCastException e) {
-                                clear();
+                                remove();
                                 Log.e("RouteArtist", "Format de coordonnées invalide pour LineString");
                             }
                         }
@@ -63,13 +63,13 @@ public class RouteArtist {
 
             @Override
             public void onError(String error) {
-                clear();
+                remove();
                 Log.e("RouteArtist", "Erreur lors de la récuperation du tracé\n" + error);
             }
         });
     }
 
-    public void clear() {
+    public void remove() {
         if (currentRoutePolyline != null) {
             currentRoutePolyline.remove();
         }
