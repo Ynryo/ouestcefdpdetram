@@ -11,6 +11,7 @@ import android.graphics.drawable.PictureDrawable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.DynamicDrawableSpan;
 import android.text.style.ImageSpan;
 import android.util.Log;
 import android.view.Gravity;
@@ -43,20 +44,26 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleStop;
 
 public class VehicleDetailsManager {
-    private final int COLOR_GREEN = Color.rgb(15, 150, 40);
-    private final int COLOR_ORANGE = Color.rgb(224, 159, 7);
-    private final int COLOR_DARK_ORANGE = Color.rgb(224, 112, 7);
+    private static final int COLOR_GREEN = Color.rgb(15, 150, 40);
+    private static final int COLOR_ORANGE = Color.rgb(224, 159, 7);
+    private static final int COLOR_DARK_ORANGE = Color.rgb(224, 112, 7);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private final MainActivity context;
+    private BottomSheetDialog bottomSheetDialog;
+    private String vehicleId;
 
     public VehicleDetailsManager(MainActivity context) {
         WeakReference<MainActivity> contextRef = new WeakReference<>(context);
         this.context = contextRef.get();
     }
 
-    public void init(MarkerData markerData) {
+    public void open(MarkerData markerData) {
         if (this.context == null) return;
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(context);
+        
+        close();
+
+        bottomSheetDialog = new BottomSheetDialog(context);
+        vehicleId = markerData.getId();
         View view = LayoutInflater.from(context).inflate(R.layout.vehicule_details, null);
         bottomSheetDialog.setContentView(view);
         //temp le tps de trouver une solus
@@ -133,6 +140,13 @@ public class VehicleDetailsManager {
                 tvDest.setText(R.string.network_error);
             }
         });
+    }
+
+    public void close() {
+        if (bottomSheetDialog != null && bottomSheetDialog.isShowing()) {
+            bottomSheetDialog.dismiss();
+            bottomSheetDialog = null;
+        }
     }
 
     private void showVehicleDetails(VehicleData details, View view) {
@@ -246,7 +260,7 @@ public class VehicleDetailsManager {
                 );
                 int size = (int) (tvStopName.getTextSize() * 1.2f);
                 drawable.setBounds(0, 0, size, size);
-                ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);
+                ImageSpan imageSpan = new ImageSpan(drawable, DynamicDrawableSpan.ALIGN_BOTTOM);
                 builder.setSpan(imageSpan, builder.length() - 1, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
@@ -341,5 +355,9 @@ public class VehicleDetailsManager {
         View spacer = new View(context);
         spacer.setLayoutParams(new LinearLayout.LayoutParams(16, 0));
         return spacer;
+    }
+
+    public String getCurrentVehicleId() {
+        return vehicleId;
     }
 }

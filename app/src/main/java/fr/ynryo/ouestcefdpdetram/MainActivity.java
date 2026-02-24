@@ -33,7 +33,6 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveStartedListener {
     private FetchingManager fetcher;
     private MarkerArtist markerArtist;
-    private RouteArtist routeArtist;
     private NetworkFilterDrawer networkFilterDrawer;
     private CompassManager compassManager;
     private FollowManager followManager;
@@ -67,7 +66,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         fetcher = new FetchingManager(this);
-        routeArtist = new RouteArtist(this);
         networkFilterDrawer = new NetworkFilterDrawer(this);
         compassManager = new CompassManager(this);
         followManager = new FollowManager(this);
@@ -161,16 +159,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onMarkerClick(@NonNull Marker marker) {
-        MarkerData data = (MarkerData) marker.getTag();
-        if (data != null) {
-            new VehicleDetailsManager(this).init(data);
-
-            if (data.getId().contains("SNCF")) {
-                routeArtist.drawVehicleRoute(data);
-            } else {
-                routeArtist.clear();
-            }
-        }
+        markerArtist.onMarkerClick(marker);
         return true;
     }
 
@@ -244,7 +233,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             .tilt(60f)
                             .zoom(17f)
                             .build()
-            ));
+            ), 1000, null);
         }
     }
 

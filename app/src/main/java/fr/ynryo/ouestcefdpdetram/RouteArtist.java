@@ -16,6 +16,7 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.route.RouteGeometry;
 
 public class RouteArtist {
     private final MainActivity context;
+    private String currentMarkerId;
     private Polyline currentRoutePolyline;
 
     public RouteArtist(MainActivity context) {
@@ -56,6 +57,7 @@ public class RouteArtist {
                         }
                     }
                     if (pointsAdded) {
+                        currentMarkerId = mData.getId();
                         currentRoutePolyline = context.getMap().addPolyline(options);
                     }
                 }
@@ -73,5 +75,13 @@ public class RouteArtist {
         if (currentRoutePolyline != null) {
             currentRoutePolyline.remove();
         }
+    }
+
+    public boolean isDrew(String markerId) {
+        return currentMarkerId != null && currentMarkerId.equals(markerId);
+    }
+
+    public String getCurrentMarkerId() {
+        return currentMarkerId;
     }
 }

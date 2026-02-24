@@ -12,6 +12,7 @@ import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
@@ -41,6 +42,8 @@ public class MarkerArtist {
     private GoogleMap mMap;
     private final FollowManager followManager;
     private final NetworkFilterDrawer networkFilterDrawer;
+    private final RouteArtist routeArtist;
+    private final VehicleDetailsManager vehicleDetailsManager;
     private final Map<String, BitmapDescriptor> markerIconCache = new HashMap<>();
     private final Map<String, Marker> activeMarkers = new HashMap<>();
     private final Map<String, ValueAnimator> activeAnimators = new HashMap<>();
@@ -51,6 +54,8 @@ public class MarkerArtist {
         this.context = context;
         this.followManager = followManager;
         this.networkFilterDrawer = networkFilterDrawer;
+        this.routeArtist = new RouteArtist(context);
+        this.vehicleDetailsManager = new VehicleDetailsManager(context);
     }
 
     public void showMarkers(List<MarkerData> markersFetched) {
@@ -65,9 +70,9 @@ public class MarkerArtist {
         while (iterator.hasNext()) { //pour chaque marker fetched
             Map.Entry<String, Marker> entry = iterator.next();
             if(!fetchedMarkerIds.contains(entry.getKey())) { //si le marker n'est pas dans la liste des markers fetched
-                if (entry.getKey().equals(followManager.getFollowedMarkerId())) {
-                    followManager.setFollowedMarkerId(null);
-                }
+                if (entry.getKey().equals(followManager.getFollowedMarkerId())) followManager.disableFollow(false);
+                if (entry.getKey().equals(routeArtist.getCurrentMarkerId())) routeArtist.remove();
+                if (entry.getKey().equals(vehicleDetailsManager.getCurrentVehicleId())) vehicleDetailsManager.close();
                 entry.getValue().remove();
                 iterator.remove();
             }
@@ -76,9 +81,9 @@ public class MarkerArtist {
         for (MarkerData fetchedMarkerData : markersFetched) { //pour chaque marker
             if (!networkFilterDrawer.isNetworkVisible(fetchedMarkerData.getNetworkRef())) { //si le network n'est pas autorisé d'affichage
                 if (activeMarkers.containsKey(fetchedMarkerData.getId())) { //s'il était affiché, c'est ciao
-                    if (fetchedMarkerData.getId().equals(followManager.getFollowedMarkerId())) {
-                        followManager.setFollowedMarkerId(null);
-                    }
+                    if (fetchedMarkerData.getId().equals(followManager.getFollowedMarkerId())) followManager.disableFollow(false);
+                    if (fetchedMarkerData.getId().equals(routeArtist.getCurrentMarkerId())) routeArtist.remove();
+                    if (fetchedMarkerData.getId().equals(vehicleDetailsManager.getCurrentVehicleId())) vehicleDetailsManager.close();
                     activeMarkers.get(fetchedMarkerData.getId()).remove();
                     activeMarkers.remove(fetchedMarkerData.getId());
                 }
@@ -190,6 +195,19 @@ public class MarkerArtist {
         }
     }
 
+    public void onMarkerClick(@NonNull Marker marker) {
+        MarkerData data = (MarkerData) marker.getTag();
+        if (data != null) {
+            vehicleDetailsManager.open(data);
+
+            if (data.getId().contains("SNCF")) {
+                routeArtist.drawVehicleRoute(data);
+            } else {
+                routeArtist.remove();
+            }
+        }
+    }
+
     public void animateMarker(final Marker marker, final LatLng toPosition, boolean shouldFollow) {
         final LatLng startPosition = marker.getPosition();
         String markerId = marker.getTag() != null ? ((MarkerData) marker.getTag()).getId() : "";
@@ -232,6 +250,7 @@ public class MarkerArtist {
         activeAnimators.put(markerId, valueAnimator);
         valueAnimator.start();
     }
+
     public void setCachedMarkerView(View cachedMarkerView) {
         this.cachedMarkerView = cachedMarkerView;
     }
@@ -246,5 +265,9 @@ public class MarkerArtist {
 
     public Map<String, BitmapDescriptor> getMarkerIconCache() {
         return markerIconCache;
+    }
+
+    public VehicleDetailsManager getVehicleDetailsManager() {
+        return vehicleDetailsManager;
     }
 }
