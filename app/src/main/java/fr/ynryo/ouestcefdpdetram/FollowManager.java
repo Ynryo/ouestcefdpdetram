@@ -17,9 +17,10 @@ public class FollowManager {
 
     public void toggleFollow(String followedMarkerId) {
         if (followedMarkerId == null) return;
-        if (isFollowing) {
+        if (isFollowing(followedMarkerId)) {
             disableFollow(false);
         } else {
+            disableFollow(true);
             enableFollow(followedMarkerId);
         }
     }
@@ -75,7 +76,7 @@ public class FollowManager {
     public void setFollowButton(FloatingActionButton followButton, String followedMarkerId) {
         this.followButton = followButton;
         if (this.followButton == null) return;
-        if (isFollowing) this.followButton.setAlpha(0.6f);
+        if (isFollowing(followedMarkerId)) this.followButton.setAlpha(0.6f);
         this.followButton.setOnClickListener(view -> toggleFollow(followedMarkerId));
     }
 }
