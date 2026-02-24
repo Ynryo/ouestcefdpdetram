@@ -23,8 +23,8 @@
         android:id="@+id/region_arrow"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:src="@drawable/logout_24px"
-        android:rotation="270"
+        android:src="@drawable/keyboard_arrow_up_24px"
+        android:rotation="180"
         android:contentDescription="Déplier"
         app:tint="?attr/colorOnPrimary" />
 </LinearLayout>
