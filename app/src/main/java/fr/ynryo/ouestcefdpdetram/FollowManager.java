@@ -49,7 +49,7 @@ public class FollowManager {
                                 .tilt(0)
                                 .zoom(13f)
                                 .build()
-                ));
+                ), 1000, null);
             }
 
             followedMarkerId = null;

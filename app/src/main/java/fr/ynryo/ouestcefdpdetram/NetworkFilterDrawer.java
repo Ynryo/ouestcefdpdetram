@@ -90,64 +90,121 @@ public class NetworkFilterDrawer {
         networksContainer.addView(allShowRow);
 
 
+        // Grouper les réseaux par région
+        Map<Integer, List<NetworkData>> networksByRegion = new HashMap<>();
+        Map<Integer, RegionData> regionMap = new HashMap<>();
+
+        // Créer une map des régions par ID
+        regions.add(new RegionData(0, "National"));
+        for (RegionData region : regions) {
+            Log.d(TAG, "Region: " + region.getName() + " with ID: " + region.getId());
+            regionMap.put(region.getId(), region);
+        }
+
+        // Grouper les réseaux par région
         for (NetworkData network : networks) {
-            String networkRef = network.getRef();
-            boolean isVisible = saveManager.loadNetworkFilter(networkRef);
-            filters.put(networkRef, isVisible);
+            int regionId = network.getRegionId();
+//            if (regionId == 0) continue;
+            if (!networksByRegion.containsKey(regionId)) {
+                Log.d("NetworkFilterDrawer", "Ajouté à la map: " + network.getName() + " pour la région: " + regionMap.get(regionId).getName() + " avec l'ID: " + regionId);
+                networksByRegion.put(regionId, new ArrayList<>());
+            }
+            networksByRegion.get(regionId).add(network);
+        }
 
-            View row = LayoutInflater.from(context).inflate(R.layout.item_network, networksContainer, false);
-            TextView tvName = row.findViewById(R.id.network_name);
-            TextView tvCity = row.findViewById(R.id.network_city);
-            MaterialSwitch visibilitySwitch = row.findViewById(R.id.network_switch);
+        // Ajouter chaque région et ses réseaux
+        for (RegionData region : regions) {
+            List<NetworkData> regionNetworks = networksByRegion.get(region.getId());
+            if (regionNetworks == null || regionNetworks.isEmpty()) {
+                continue; // Pas de réseaux dans cette région
+            }
 
-            tvName.setText(network.getName());
-            tvCity.setText(network.getAuthority());
-            tvCity.setSingleLine(true);
-            tvCity.setEllipsize(TextUtils.TruncateAt.MARQUEE);
-            tvCity.setMarqueeRepeatLimit(-1);
-            tvCity.setHorizontallyScrolling(true);
-            tvCity.setSelected(true);
+            // Header de région (pliable)
+            View regionHeader = LayoutInflater.from(context).inflate(R.layout.item_region_header, networksContainer, false);
+            TextView tvRegionTitle = regionHeader.findViewById(R.id.region_title);
+            ImageView ivArrow = regionHeader.findViewById(R.id.region_arrow);
 
-            visibilitySwitch.setChecked(isVisible);
-            visibilitySwitch.setTag(networkRef);
-            switches.add(visibilitySwitch);
+            tvRegionTitle.setText(region.getName());
 
-            visibilitySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                if (isBulkUpdate) return;
+            // Container pour les réseaux de cette région
+            LinearLayout regionNetworksContainer = new LinearLayout(context);
+            regionNetworksContainer.setOrientation(LinearLayout.VERTICAL);
+            regionNetworksContainer.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
 
-                filters.put(networkRef, isChecked);
-                saveManager.saveNetworkFilter(networkRef, isChecked);
-
-                isUpdatingMasterSwitch = true;
-
-                if (!isChecked) {
-                    msShowToggle.setChecked(false);
-                } else {
-                    boolean areAllChecked = true;
-                    for (MaterialSwitch s : switches) {
-                        if (!s.isChecked()) {
-                            areAllChecked = false;
-                            break;
-                        }
-                    }
-                    msShowToggle.setChecked(areAllChecked);
-                }
-                isUpdatingMasterSwitch = false;
-
-                context.getFetcher().fetchMarkers(new FetchingManager.OnMarkersListener() {
-                    @Override
-                    public void onMarkersReceived(List<MarkerData> markers) {
-                        context.getMarkerArtist().showMarkers(markers);
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        Log.e("MainActivity", "Erreur lors de la récupération des données markers" + error);
-                    }
-                });
+            final boolean[] isExpanded = {false};
+            regionNetworksContainer.setVisibility(View.GONE);
+            regionHeader.setOnClickListener(v -> {
+                isExpanded[0] = !isExpanded[0];
+                regionNetworksContainer.setVisibility(isExpanded[0] ? View.VISIBLE : View.GONE);
+                ivArrow.setRotation(isExpanded[0] ? 0 : 180);
             });
 
-            networksContainer.addView(row);
+            networksContainer.addView(regionHeader);
+            networksContainer.addView(regionNetworksContainer);
+
+            // Ajouter les réseaux de cette région
+            for (NetworkData network : regionNetworks) {
+                String networkRef = network.getRef();
+                boolean isVisible = saveManager.loadNetworkFilter(networkRef);
+                filters.put(networkRef, isVisible);
+
+                View row = LayoutInflater.from(context).inflate(R.layout.item_network, regionNetworksContainer, false);
+                TextView tvName = row.findViewById(R.id.network_name);
+                TextView tvCity = row.findViewById(R.id.network_city);
+                MaterialSwitch visibilitySwitch = row.findViewById(R.id.network_switch);
+
+                tvName.setText(network.getName());
+                tvCity.setText(network.getAuthority());
+                tvCity.setSingleLine(true);
+                tvCity.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+                tvCity.setMarqueeRepeatLimit(-1);
+                tvCity.setHorizontallyScrolling(true);
+                tvCity.setSelected(true);
+
+                visibilitySwitch.setChecked(isVisible);
+                visibilitySwitch.setTag(networkRef);
+                switches.add(visibilitySwitch);
+
+                visibilitySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    if (isBulkUpdate) return;
+
+                    filters.put(networkRef, isChecked);
+                    saveManager.saveNetworkFilter(networkRef, isChecked);
+
+                    isUpdatingMasterSwitch = true;
+
+                    if (!isChecked) {
+                        msShowToggle.setChecked(false);
+                    } else {
+                        boolean areAllChecked = true;
+                        for (MaterialSwitch s : switches) {
+                            if (!s.isChecked()) {
+                                areAllChecked = false;
+                                break;
+                            }
+                        }
+                        msShowToggle.setChecked(areAllChecked);
+                    }
+                    isUpdatingMasterSwitch = false;
+
+                    context.getFetcher().fetchMarkers(new FetchingManager.OnMarkersListener() {
+                        @Override
+                        public void onMarkersReceived(List<MarkerData> markers) {
+                            context.getMarkerArtist().showMarkers(markers);
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Log.e("NetworkFilterDrawer", "Erreur markers: " + error);
+                        }
+                    });
+                });
+
+                regionNetworksContainer.addView(row);
+            }
         }
     }
 
