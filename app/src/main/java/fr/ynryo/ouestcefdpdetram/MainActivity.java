@@ -2,12 +2,14 @@ package fr.ynryo.ouestcefdpdetram;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +31,7 @@ import java.util.List;
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.version.AppVersion;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveStartedListener {
     private FetchingManager fetcher;
@@ -78,6 +81,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         markerArtist.setCachedMarkerView(LayoutInflater.from(this).inflate(R.layout.custom_marker, null));
+
+        fetcher.fetchLatestVersion(new FetchingManager.OnVersionListener() {
+            @Override
+            public void onVersionReceived(AppVersion version) {
+                try {
+                    PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                    int latestVersionCode = version.getVersionCode();
+                    Log.i("MainActivity", version.toString());
+                    long localVersionCode = pInfo.getLongVersionCode();
+                    Log.d("MainActivity", "Version locale: " + localVersionCode + ", version réseau: " + latestVersionCode);
+                    if (latestVersionCode > localVersionCode) {
+                        Toast.makeText(MainActivity.this, "Une nouvelle version est disponible", Toast.LENGTH_LONG).show();
+                    }
+                } catch (PackageManager.NameNotFoundException e) {
+                    Log.e("VersionChecker", e.toString());
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("MainActivity", "Erreur de l'API: " + error);
+            }
+        });
 
         fetcher.fetchRegions(new FetchingManager.OnRegionsListener() {
             @Override
@@ -207,7 +233,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                             new CameraPosition.Builder()
                                     .target(userLocation)
-                                    .zoom(14f)
+                                    .zoom(15f)
                                     .tilt(0)
                                     .build()
                     ), 1000, null);

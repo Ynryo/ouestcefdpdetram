@@ -7,6 +7,7 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.route.RouteData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.version.AppVersion;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
@@ -41,4 +42,7 @@ public interface ApiService {
     Call<RouteData> getRouteLine(
             @Query("numero") int vehicleRoute
     );
+
+    @GET("latest")
+    Call<AppVersion> getLatestVersion();
 }

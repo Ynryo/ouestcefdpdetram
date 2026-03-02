@@ -13,6 +13,7 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.route.RouteData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
+import fr.ynryo.ouestcefdpdetram.apiResponses.version.AppVersion;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -22,9 +23,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class FetchingManager {
     private static final String BASE_URL_BUS_TRACKER = "https://bus-tracker.fr/api/";
     private static final String BASE_URL_CARTO_TCHOO = "https://api.tchoo.net/api/";
+    private static final String BASE_URL_DL_YNRYO = "https://dl.ynryo.fr/api/ouestcefdpdetram/";
     private final MainActivity context;
     private static ApiService busTrackerService;
     private static ApiService cartoTchooService;
+    private static ApiService dlYnryoService;
 
     public FetchingManager(MainActivity context) {
         this.context = context;
@@ -42,6 +45,14 @@ public class FetchingManager {
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
             cartoTchooService = retrofit.create(ApiService.class);
+        }
+
+        if (dlYnryoService == null) {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(BASE_URL_DL_YNRYO)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            dlYnryoService = retrofit.create(ApiService.class);
         }
     }
 
@@ -75,8 +86,25 @@ public class FetchingManager {
         void onError(String error);
     }
 
+    public interface OnVersionListener {
+        void onVersionReceived(AppVersion version);
+        void onError(String error);
+    }
+
     private ApiService getService(String baseUrl) {
-        return baseUrl.equals(BASE_URL_BUS_TRACKER) ? busTrackerService : cartoTchooService;
+        switch (baseUrl) {
+            case BASE_URL_BUS_TRACKER:
+                return busTrackerService;
+
+            case BASE_URL_CARTO_TCHOO:
+                return cartoTchooService;
+
+            case BASE_URL_DL_YNRYO:
+                return dlYnryoService;
+
+            default:
+                return null;
+        }
     }
 
     public void fetchMarkers(OnMarkersListener listener) {
@@ -200,6 +228,28 @@ public class FetchingManager {
 
                 @Override
                 public void onFailure(@NonNull Call<List<RegionData>> call, @NonNull Throwable t) {
+                    listener.onError(t.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            listener.onError(e.getMessage());
+        }
+    }
+
+    public void fetchLatestVersion(OnVersionListener listener) {
+        try {
+            getService(BASE_URL_DL_YNRYO).getLatestVersion().enqueue(new Callback<>() {
+                @Override
+                public void onResponse(@NonNull Call<AppVersion> call, @NonNull Response<AppVersion> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        listener.onVersionReceived(response.body());
+                    } else {
+                        listener.onError("Code erreur: " + response.code());
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<AppVersion> call, @NonNull Throwable t) {
                     listener.onError(t.getMessage());
                 }
             });
