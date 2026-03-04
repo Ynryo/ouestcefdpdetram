@@ -13,7 +13,7 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.route.RouteData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.version.AppVersion;
+import fr.ynryo.ouestcefdpdetram.apiResponses.version.VersionResponse;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -87,7 +87,7 @@ public class FetchingManager {
     }
 
     public interface OnVersionListener {
-        void onVersionReceived(AppVersion version);
+        void onVersionReceived(VersionResponse version);
         void onError(String error);
     }
 
@@ -240,7 +240,7 @@ public class FetchingManager {
         try {
             getService(BASE_URL_DL_YNRYO).getLatestVersion().enqueue(new Callback<>() {
                 @Override
-                public void onResponse(@NonNull Call<AppVersion> call, @NonNull Response<AppVersion> response) {
+                public void onResponse(@NonNull Call<VersionResponse> call, @NonNull Response<VersionResponse> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         listener.onVersionReceived(response.body());
                     } else {
@@ -249,7 +249,7 @@ public class FetchingManager {
                 }
 
                 @Override
-                public void onFailure(@NonNull Call<AppVersion> call, @NonNull Throwable t) {
+                public void onFailure(@NonNull Call<VersionResponse> call, @NonNull Throwable t) {
                     listener.onError(t.getMessage());
                 }
             });

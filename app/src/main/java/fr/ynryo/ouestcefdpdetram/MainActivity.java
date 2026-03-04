@@ -31,7 +31,7 @@ import java.util.List;
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.version.AppVersion;
+import fr.ynryo.ouestcefdpdetram.apiResponses.version.VersionResponse;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveStartedListener {
     private FetchingManager fetcher;
@@ -84,11 +84,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         fetcher.fetchLatestVersion(new FetchingManager.OnVersionListener() {
             @Override
-            public void onVersionReceived(AppVersion version) {
+            public void onVersionReceived(VersionResponse version) {
                 try {
                     PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-                    int latestVersionCode = version.getVersionCode();
-                    Log.i("MainActivity", version.toString());
+                    int latestVersionCode = version.getVersion().getVersionCode();
                     long localVersionCode = pInfo.getLongVersionCode();
                     Log.d("MainActivity", "Version locale: " + localVersionCode + ", version réseau: " + latestVersionCode);
                     if (latestVersionCode > localVersionCode) {
