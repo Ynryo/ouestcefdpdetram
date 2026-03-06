@@ -1,3 +1,4 @@
+import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
@@ -9,19 +10,23 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        manifestPlaceholders += mapOf()
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(FileInputStream(localPropertiesFile))
+        }
+
+        manifestPlaceholders += mapOf(
+            "GOOGLE_MAPS_API_KEY" to (localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: "")
+        )
+
         applicationId = "fr.ynryo.ouestcefdpdetram"
         minSdk = 30
         targetSdk = 36
-        versionName = "1.2.1"
-        versionCode = 121
+        versionName = "1.2.2"
+        versionCode = 122
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        var properties = Properties()
-        properties.load(project.rootProject.file("local.properties").inputStream())
-        manifestPlaceholders.putAll(mapOf("MAPS_API_KEY" to properties.getProperty("MAPS_API_KEY")))
-
     }
 
     buildTypes {
@@ -46,7 +51,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
