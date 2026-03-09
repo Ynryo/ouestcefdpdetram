@@ -4,26 +4,25 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.PictureDrawable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
-import android.text.style.DynamicDrawableSpan;
 import android.text.style.ImageSpan;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -36,6 +35,7 @@ import java.net.URI;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
@@ -44,10 +44,13 @@ import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleStop;
 
 public class VehicleDetailsManager {
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final String SNCF_PREFIX = "SNCF";
+    private static final String TAG = "VehicleDetailsManager";
     private static final int COLOR_GREEN = Color.rgb(15, 150, 40);
     private static final int COLOR_ORANGE = Color.rgb(224, 159, 7);
     private static final int COLOR_DARK_ORANGE = Color.rgb(224, 112, 7);
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final int DELAY_THRESHOLD_MINUTES = 5;
     private final MainActivity context;
     private BottomSheetDialog bottomSheetDialog;
     private String vehicleId;
@@ -59,87 +62,20 @@ public class VehicleDetailsManager {
 
     public void open(MarkerData markerData) {
         if (this.context == null) return;
-        
+
         close();
 
         bottomSheetDialog = new BottomSheetDialog(context);
         vehicleId = markerData.getId();
+
         View view = LayoutInflater.from(context).inflate(R.layout.vehicule_details, null);
         bottomSheetDialog.setContentView(view);
-        //temp le tps de trouver une solus
-        bottomSheetDialog.setOnShowListener(dialog -> {
-            BottomSheetDialog d = (BottomSheetDialog) dialog;
-            View bottomSheet = d.findViewById(com.google.android.material.R.id.design_bottom_sheet);
-            if (bottomSheet != null) {
-                bottomSheet.setBackgroundResource(android.R.color.transparent);
-                // On récupère le conteneur interne du BottomSheet
-                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
-                int screenHeight = context.getResources().getDisplayMetrics().heightPixels;
-                int peekHeight = (int) (screenHeight * 0.5);
-                behavior.setPeekHeight(peekHeight);
+        setupBottomSheetAppearance(view);
+        setupLineHeader(view, markerData);
+        setupLoader(view, markerData);
 
-                behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            }
-        });
-
-        TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
-        if (markerData.getId().startsWith("SNCF")) {
-            tvLigne.setText(markerData.getVehicleNumber() != null ? markerData.getVehicleNumber() : "ND");
-        } else {
-            tvLigne.setText(markerData.getLineNumber() != null ? markerData.getLineNumber() : "ND");
-        }
-        int fillColor = Color.parseColor(markerData.getFillColor() != null ? markerData.getFillColor() : "#424242");
-        int textColor = Color.parseColor(markerData.getColor() != null ? markerData.getColor() : "#FFFFFF");
-        tvLigne.setBackgroundColor(fillColor);
-        tvLigne.setTextColor(textColor);
-
-        ProgressBar loader = view.findViewById(R.id.loader);
-        loader.setVisibility(View.VISIBLE);
-        loader.setIndeterminateTintList(ColorStateList.valueOf(fillColor));
-
-        view.findViewById(R.id.scrollStops).setVisibility(View.INVISIBLE);
         bottomSheetDialog.show();
-
-        context.getFetcher().fetchVehicleStopsInfo(markerData, new FetchingManager.OnVehicleDetailsListener() {
-            @Override
-            public void onDetailsReceived(VehicleData details) {
-                view.findViewById(R.id.loader).setVisibility(View.GONE);
-                showVehicleDetails(details, view);
-
-                if (details.getNetworkId() == 0) return;
-
-                context.getFetcher().fetchNetworkData(details.getNetworkId(), new FetchingManager.OnNetworkDataListener() {
-                    @Override
-                    public void onDetailsReceived(NetworkData nData) {
-                        URI imgURI = nData.getLogoHref();
-                        if (imgURI == null) return;
-                        ImageView ivLogo = view.findViewById(R.id.ivNetworkLogo);
-                        ivLogo.setBackgroundResource(R.color.surface_light);
-                        ivLogo.setAdjustViewBounds(true);
-                        ivLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-
-                        Glide.with(context)
-                                .as(PictureDrawable.class)
-                                .load(imgURI.toString())
-                                .diskCacheStrategy(DiskCacheStrategy.DATA)
-                                .override(100, 100)
-                                .into(ivLogo);
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        Log.w("VehicleDetailsManager", "Erreur lors de la récuperation du logo");
-                    }
-                });
-            }
-
-            @Override
-            public void onError(String error) {
-                view.findViewById(R.id.loader).setVisibility(View.GONE);
-                TextView tvDest = view.findViewById(R.id.tvDestination);
-                tvDest.setText(R.string.network_error);
-            }
-        });
+        fetchVehicleData(markerData, view);
     }
 
     public void close() {
@@ -149,11 +85,127 @@ public class VehicleDetailsManager {
         }
     }
 
+    // ==================== SETUP ====================
+    private void setupBottomSheetAppearance(View view) {
+        bottomSheetDialog.setOnShowListener(dialog -> {
+            BottomSheetDialog d = (BottomSheetDialog) dialog;
+            View bottomSheet = d.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+
+            if (bottomSheet != null) {
+                bottomSheet.setBackgroundResource(android.R.color.transparent);
+                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+
+                int peekHeight = calculatePeekHeight();
+                behavior.setPeekHeight(peekHeight);
+                behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+    }
+
+    private int calculatePeekHeight() {
+        int screenHeight = context.getResources().getDisplayMetrics().heightPixels;
+        return (int) (screenHeight * 0.5);
+    }
+
+    private void setupLineHeader(View view, MarkerData markerData) {
+        TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
+
+        String lineNumber = getLineNumber(markerData);
+        tvLigne.setText(lineNumber);
+
+        int fillColor = Color.parseColor(markerData.getFillColor() != null ? markerData.getFillColor() : "#424242");
+        int textColor = Color.parseColor(markerData.getColor() != null ? markerData.getColor() : "#FFFFFF");
+
+        tvLigne.setBackgroundColor(fillColor);
+        tvLigne.setTextColor(textColor);
+    }
+
+    private String getLineNumber(MarkerData markerData) {
+        if (markerData.getId().startsWith(SNCF_PREFIX)) {
+            return markerData.getVehicleNumber() != null ? markerData.getVehicleNumber() : "ND";
+        }
+        return markerData.getLineNumber() != null ? markerData.getLineNumber() : "ND";
+    }
+
+    private void setupLoader(View view, MarkerData markerData) {
+        ProgressBar loader = view.findViewById(R.id.loader);
+        int fillColor = Color.parseColor(markerData.getFillColor() != null ? markerData.getFillColor() : "#424242");
+
+        loader.setVisibility(View.VISIBLE);
+        loader.setIndeterminateTintList(ColorStateList.valueOf(fillColor));
+
+        view.findViewById(R.id.llStopsContent).setVisibility(View.INVISIBLE);
+    }
+
+    // ==================== DATA FETCHING ====================
+    private void fetchVehicleData(MarkerData markerData, View view) {
+        context.getFetcher().fetchVehicleStopsInfo(markerData, new FetchingManager.OnVehicleDetailsListener() {
+            @Override
+            public void onDetailsReceived(VehicleData details) {
+                hideLoader(view);
+                showVehicleDetails(details, view);
+                fetchNetworkLogo(details, view);
+            }
+
+            @Override
+            public void onError(String error) {
+                hideLoader(view);
+                showError(view);
+            }
+        });
+    }
+
+    private void fetchNetworkLogo(VehicleData details, View view) {
+        if (details.getNetworkId() == 0) return;
+
+        context.getFetcher().fetchNetworkData(details.getNetworkId(), new FetchingManager.OnNetworkDataListener() {
+            @Override
+            public void onDetailsReceived(NetworkData nData) {
+                URI imgURI = nData.getLogoHref();
+                if (imgURI != null) {
+                    loadNetworkLogo(view, imgURI);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.w(TAG, "Erreur lors de la récuperation du logo");
+            }
+        });
+    }
+
+    private void loadNetworkLogo(View view, URI imgURI) {
+        ImageView ivLogo = view.findViewById(R.id.ivNetworkLogo);
+        ivLogo.setBackgroundResource(R.color.surface_light);
+        ivLogo.setAdjustViewBounds(true);
+        ivLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+        Glide.with(context)
+                .as(PictureDrawable.class)
+                .load(imgURI.toString())
+                .diskCacheStrategy(DiskCacheStrategy.DATA)
+                .override(100, 100)
+                .into(ivLogo);
+    }
+
+    private void hideLoader(View view) {
+        view.findViewById(R.id.loader).setVisibility(View.GONE);
+    }
+
+    private void showError(View view) {
+        TextView tvDest = view.findViewById(R.id.tvDestination);
+        tvDest.setText(R.string.network_error);
+    }
+
+    // ==================== DISPLAY ====================
     private void showVehicleDetails(VehicleData details, View view) {
         context.getFollowManager().setFollowButton(view.findViewById(R.id.followButton), details.getId());
-        LinearLayout stopsContainer = view.findViewById(R.id.stopsContainer);
-        stopsContainer.removeAllViews();
 
+        setupDestinationText(view, details);
+        setupStopsList(view, details);
+    }
+
+    private void setupDestinationText(View view, VehicleData details) {
         TextView tvDestination = view.findViewById(R.id.tvDestination);
         tvDestination.setText(details.getDestination());
         tvDestination.setSingleLine(true);
@@ -161,203 +213,233 @@ public class VehicleDetailsManager {
         tvDestination.setMarqueeRepeatLimit(-1);
         tvDestination.setHorizontallyScrolling(true);
         tvDestination.setSelected(true);
-
-        if (details.getCalls() != null) {
-            for (VehicleStop stop : details.getCalls()) {
-                stopsContainer.addView(createRow(stop));
-            }
-        } else {
-            TextView tvDefault = new TextView(context);
-            tvDefault.setText(R.string.no_data);
-            tvDefault.setTextColor(MaterialColors.getColor(tvDefault, com.google.android.material.R.attr.colorOnSurface));
-            tvDefault.setPadding(0, 0, 0, 16);
-            stopsContainer.addView(tvDefault);
-        }
-        view.findViewById(R.id.scrollStops).setVisibility(View.VISIBLE);
     }
 
-    private LinearLayout createRow(VehicleStop stop) {
-        //stop row
-        LinearLayout stopRow = new LinearLayout(context);
-        stopRow.setOrientation(LinearLayout.HORIZONTAL);
-        stopRow.setPadding(0, 16, 0, 16);
-        stopRow.setGravity(Gravity.CENTER_VERTICAL);
+    private void setupStopsList(View view, VehicleData details) {
+        RecyclerView rvStops = view.findViewById(R.id.rvStops);
+        rvStops.setLayoutManager(new LinearLayoutManager(context));
 
-        //left part
-        LinearLayout llLeft = new LinearLayout(context);
-        llLeft.setOrientation(LinearLayout.HORIZONTAL);
-        llLeft.setGravity(Gravity.CENTER_VERTICAL);
-        llLeft.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        List<VehicleStop> stops = details.getCalls() != null ? details.getCalls() : new ArrayList<>();
+        rvStops.setAdapter(new StopsAdapter(stops));
 
-        TextView tvPlatform = getPlatform(stop);
-        llLeft.addView(tvPlatform);
-        if (!tvPlatform.getText().toString().isEmpty()) {
-            llLeft.addView(getSpacer());
-        }
-        llLeft.addView(getStopName(stop));
-
-        //right part
-        LinearLayout llRight = new LinearLayout(context);
-        llRight.setOrientation(LinearLayout.HORIZONTAL);
-        llRight.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
-        llRight.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0f));
-
-        llRight.addView(getTime(stop));
-        llRight.addView(getDelay(stop));
-
-        //assembling
-        stopRow.addView(llLeft);
-        stopRow.addView(llRight);
-        return stopRow;
-    }
-
-    @NonNull
-    private TextView getPlatform(VehicleStop stop) {
-        TextView tvPlatformName = new TextView(context);
-        String platformName = stop.getPlatformName();
-        if (platformName == null) {
-            return tvPlatformName;
-        }
-        tvPlatformName.setText(platformName);
-        tvPlatformName.setTextColor(Color.BLACK);
-        tvPlatformName.setPadding(0, 0, 8, 0);
-
-        GradientDrawable gdPlatformName = new GradientDrawable();
-        gdPlatformName.setShape(GradientDrawable.RECTANGLE);
-        gdPlatformName.setPadding(8, 4, 8, 4);
-        gdPlatformName.setStroke(2, Color.BLACK);
-        gdPlatformName.setCornerRadius(10);
-        tvPlatformName.setBackground(gdPlatformName);
-
-        return tvPlatformName;
-    }
-
-    @NonNull
-    private TextView getStopName(VehicleStop stop) {
-        TextView tvStopName = new TextView(context);
-        tvStopName.setTextColor(MaterialColors.getColor(tvStopName, com.google.android.material.R.attr.colorOnSurface));
-        tvStopName.setText(stop.getStopName());
-
-        SpannableStringBuilder builder = new SpannableStringBuilder();
-        builder.append(stop.getStopName());
-
-        List<String> flags = stop.getFlags();
-        int iconRes = 0;
-        if (flags != null && flags.contains("NO_PICKUP")) {
-            iconRes = R.drawable.logout_24px;
-        } else if (flags != null && flags.contains("NO_DROP_OFF")) {
-            iconRes = R.drawable.login_24px;
-        }
-
-        if (iconRes != 0) {
-            builder.append("  ");
-            Drawable drawable = ContextCompat.getDrawable(context, iconRes);
-            if (drawable != null) {
-                drawable.mutate();
-                drawable.setColorFilter(new PorterDuffColorFilter(
-                        MaterialColors.getColor(tvStopName, com.google.android.material.R.attr.colorOnSurface),
-                        PorterDuff.Mode.SRC_IN)
-                );
-                int size = (int) (tvStopName.getTextSize() * 1.2f);
-                drawable.setBounds(0, 0, size, size);
-                ImageSpan imageSpan = new ImageSpan(drawable, DynamicDrawableSpan.ALIGN_BOTTOM);
-                builder.setSpan(imageSpan, builder.length() - 1, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-        }
-        tvStopName.setText(builder);
-
-        tvStopName.setSingleLine(true);
-        tvStopName.setEllipsize(TextUtils.TruncateAt.MARQUEE);
-        tvStopName.setMarqueeRepeatLimit(-1);
-        tvStopName.setHorizontallyScrolling(true);
-        tvStopName.setSelected(true);
-        return tvStopName;
-    }
-
-    @NonNull
-    private TextView getDelay(VehicleStop stop) {
-        TextView tvDelay = new TextView(context);
-        if (stop.getExpectedTime() != null && stop.getAimedTime() != null) {
-            try {
-                ZonedDateTime expected = ZonedDateTime.parse(stop.getExpectedTime());
-                ZonedDateTime aimed = ZonedDateTime.parse(stop.getAimedTime());
-
-                long diff = ChronoUnit.MINUTES.between(aimed, expected);
-
-                if (diff == 0) {
-                    return tvDelay;
-                }
-
-                if (diff > 0) {
-                    String delayText = "Retard de " + diff + " min";
-                    tvDelay.setText(delayText);
-                    if (diff <= 5) {
-                        tvDelay.setTextColor(COLOR_DARK_ORANGE);
-                    } else {
-                        tvDelay.setTextColor(Color.RED);
-                    }
-                } else {
-                    String delayText = "Avance de " + Math.abs(diff) + " min";
-                    tvDelay.setText(delayText);
-                    tvDelay.setTextColor(COLOR_ORANGE);
-                }
-                tvDelay.setPadding(8, 0, 0, 0);
-            } catch (Exception e) {
-                Log.e("VehicleDetailsManager", "Erreur calcul retard", e);
-            }
-        }
-        return tvDelay;
-    }
-
-    @NonNull
-    private LinearLayout getTime(VehicleStop stop) {
-        LinearLayout llTime = new LinearLayout(context);
-        llTime.setOrientation(LinearLayout.HORIZONTAL);
-        llTime.setGravity(Gravity.CENTER_VERTICAL);
-
-        boolean isExpectedTime = stop.getExpectedTime() != null;
-        ImageView ivExpectedTimeIcon = new ImageView(context);
-        if (isExpectedTime) {
-            ivExpectedTimeIcon.setImageResource(R.drawable.sensors_24px);
-            ivExpectedTimeIcon.setPadding(0, 0, 8, 0);
-            ivExpectedTimeIcon.setColorFilter(COLOR_GREEN);
-        }
-
-        llTime.addView(ivExpectedTimeIcon);
-        llTime.addView(formatStopTime(stop, isExpectedTime));
-        return llTime;
-    }
-
-    private TextView formatStopTime(VehicleStop stop, boolean isExpected) {
-        TextView tvTime = new TextView(context);
-        tvTime.setTypeface(null, Typeface.BOLD);
-        try {
-            String rawTime = isExpected ? stop.getExpectedTime() : stop.getAimedTime();
-            if (rawTime == null) {
-                tvTime.setText("??:??");
-                tvTime.setTextColor(Color.RED);
-                return tvTime;
-            }
-
-            ZonedDateTime zdt = ZonedDateTime.parse(rawTime);
-            String formatted = zdt.format(TIME_FORMATTER);
-            tvTime.setText(formatted);
-            tvTime.setTextColor(isExpected ? COLOR_GREEN : MaterialColors.getColor(tvTime, com.google.android.material.R.attr.colorOnSurface));
-        } catch (Exception e) {
-            tvTime.setText("??:??");
-        }
-        return tvTime;
-    }
-
-
-    @NonNull
-    private View getSpacer() {
-        View spacer = new View(context);
-        spacer.setLayoutParams(new LinearLayout.LayoutParams(16, 0));
-        return spacer;
+        view.findViewById(R.id.llStopsContent).setVisibility(View.VISIBLE);
     }
 
     public String getCurrentVehicleId() {
         return vehicleId;
+    }
+
+    // ==================== ADAPTER ====================
+    private class StopsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+        private static final int TYPE_STOP = 0;
+        private static final int TYPE_EMPTY = 1;
+
+        private final List<VehicleStop> stops;
+
+        StopsAdapter(List<VehicleStop> stops) {
+            this.stops = stops;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            return stops.isEmpty() ? TYPE_EMPTY : TYPE_STOP;
+        }
+
+        @NonNull
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            if (viewType == TYPE_EMPTY) {
+                return createEmptyViewHolder(parent);
+            }
+            return createStopViewHolder(parent);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+            if (getItemViewType(position) == TYPE_EMPTY) {
+                bindEmptyViewHolder(holder);
+                return;
+            }
+
+            VehicleStop stop = stops.get(position);
+            bindStopViewHolder((StopViewHolder) holder, stop);
+        }
+
+        @Override
+        public int getItemCount() {
+            return stops.isEmpty() ? 1 : stops.size();
+        }
+
+        // ========== NO DATA ==========
+        private RecyclerView.ViewHolder createEmptyViewHolder(ViewGroup parent) {
+            TextView tvEmpty = new TextView(parent.getContext());
+            tvEmpty.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            ));
+            tvEmpty.setPadding(0, 32, 0, 32);
+            tvEmpty.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+            return new RecyclerView.ViewHolder(tvEmpty) {};
+        }
+
+        private void bindEmptyViewHolder(RecyclerView.ViewHolder holder) {
+            TextView tvEmpty = (TextView) holder.itemView;
+            tvEmpty.setText(R.string.no_data);
+            tvEmpty.setTextColor(MaterialColors.getColor(
+                    holder.itemView,
+                    com.google.android.material.R.attr.colorOnSurface
+            ));
+        }
+
+        // ========== STOP ITEM ==========
+        private RecyclerView.ViewHolder createStopViewHolder(ViewGroup parent) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_stop, parent, false);
+            return new StopViewHolder(view);
+        } //inflate item stop
+
+        private void bindStopViewHolder(StopViewHolder vh, VehicleStop stop) { //distribute data
+            bindPlatform(vh, stop);
+            bindStopName(vh, stop);
+            bindTime(vh, stop);
+            bindDelay(vh, stop);
+        }
+
+        private void bindPlatform(StopViewHolder vh, VehicleStop stop) {
+            String platformName = stop.getPlatformName();
+            if (platformName != null && !platformName.isEmpty()) {
+                vh.tvPlatform.setText(platformName);
+                vh.tvPlatform.setVisibility(View.VISIBLE);
+                vh.spacerPlatform.setVisibility(View.VISIBLE);
+
+                GradientDrawable gd = new GradientDrawable();
+                gd.setShape(GradientDrawable.RECTANGLE);
+                gd.setStroke(2, Color.BLACK);
+                gd.setCornerRadius(10);
+                vh.tvPlatform.setBackground(gd);
+            } else {
+                vh.tvPlatform.setVisibility(View.GONE);
+                vh.spacerPlatform.setVisibility(View.GONE);
+            }
+        }
+
+        private void bindStopName(StopViewHolder vh, VehicleStop stop) {
+            SpannableStringBuilder builder = new SpannableStringBuilder(stop.getStopName());
+
+            int iconRes = getStopIconResource(stop);
+            if (iconRes != 0) {
+                appendStopIcon(vh, builder, iconRes);
+            }
+
+            vh.tvStopName.setText(builder);
+            vh.tvStopName.setSelected(true);
+        }
+
+        private int getStopIconResource(VehicleStop stop) {
+            List<String> flags = stop.getFlags();
+            if (flags == null) return 0;
+
+            if (flags.contains("NO_PICKUP")) return R.drawable.logout_24px;
+            if (flags.contains("NO_DROP_OFF")) return R.drawable.login_24px;
+            return 0;
+        }
+
+        private void appendStopIcon(StopViewHolder vh, SpannableStringBuilder builder, int iconRes) {
+            builder.append("  ");
+            Drawable d = ContextCompat.getDrawable(context, iconRes);
+            if (d != null) {
+                d.mutate();
+                d.setColorFilter(new PorterDuffColorFilter(
+                        MaterialColors.getColor(vh.tvStopName, com.google.android.material.R.attr.colorOnSurface),
+                        PorterDuff.Mode.SRC_IN
+                ));
+                int size = (int) (vh.tvStopName.getTextSize() * 1.2f);
+                d.setBounds(0, 0, size, size);
+                builder.setSpan(
+                        new ImageSpan(d, ImageSpan.ALIGN_BOTTOM),
+                        builder.length() - 1,
+                        builder.length(),
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                );
+            }
+        }
+
+        private void bindTime(StopViewHolder vh, VehicleStop stop) {
+            boolean isExpected = stop.getExpectedTime() != null;
+
+            if (isExpected) {
+                vh.ivTimeIcon.setImageResource(R.drawable.sensors_24px);
+                vh.ivTimeIcon.setColorFilter(COLOR_GREEN);
+                vh.ivTimeIcon.setVisibility(View.VISIBLE);
+            } else {
+                vh.ivTimeIcon.setVisibility(View.GONE);
+            }
+
+            try {
+                String rawTime = isExpected ? stop.getExpectedTime() : stop.getAimedTime();
+                if (rawTime == null) {
+                    vh.tvTime.setText("??:??");
+                    vh.tvTime.setTextColor(Color.RED);
+                } else {
+                    ZonedDateTime zdt = ZonedDateTime.parse(rawTime);
+                    vh.tvTime.setText(zdt.format(TIME_FORMATTER));
+                    vh.tvTime.setTextColor(isExpected ? COLOR_GREEN : getDefaultTextColor(vh));
+                }
+            } catch (Exception e) {
+                vh.tvTime.setText("??:??");
+            }
+        }
+
+        private void bindDelay(StopViewHolder vh, VehicleStop stop) {
+            vh.tvDelay.setVisibility(View.GONE);
+
+            String expectedTimeStr = stop.getExpectedTime();
+            String aimedTimeStr = stop.getAimedTime();
+
+            if (expectedTimeStr == null || aimedTimeStr == null) return;
+
+            try {
+                ZonedDateTime expected = ZonedDateTime.parse(expectedTimeStr);
+                ZonedDateTime aimed = ZonedDateTime.parse(aimedTimeStr);
+                long diff = ChronoUnit.MINUTES.between(aimed, expected);
+
+                if (diff != 0) {
+                    vh.tvDelay.setVisibility(View.VISIBLE);
+                    setDelayText(vh, diff);
+                }
+            } catch (Exception ignored) {
+                //skip
+            }
+        }
+
+        private void setDelayText(StopViewHolder vh, long diff) {
+            if (diff > 0) {
+                vh.tvDelay.setText("Retard de " + diff + " min");
+                int color = diff <= DELAY_THRESHOLD_MINUTES ? COLOR_DARK_ORANGE : Color.RED;
+                vh.tvDelay.setTextColor(color);
+            } else {
+                vh.tvDelay.setText("Avance de " + Math.abs(diff) + " min");
+                vh.tvDelay.setTextColor(COLOR_ORANGE);
+            }
+        }
+
+        private int getDefaultTextColor(StopViewHolder vh) {
+            return MaterialColors.getColor(vh.tvTime, com.google.android.material.R.attr.colorOnSurface);
+        }
+    }
+
+    private static class StopViewHolder extends RecyclerView.ViewHolder {
+        final TextView tvPlatform, tvStopName, tvTime, tvDelay;
+        final View spacerPlatform;
+        final ImageView ivTimeIcon;
+
+        StopViewHolder(View itemView) {
+            super(itemView);
+            tvPlatform = itemView.findViewById(R.id.tvPlatform);
+            tvStopName = itemView.findViewById(R.id.tvStopName);
+            tvTime = itemView.findViewById(R.id.tvTime);
+            tvDelay = itemView.findViewById(R.id.tvDelay);
+            spacerPlatform = itemView.findViewById(R.id.spacerPlatform);
+            ivTimeIcon = itemView.findViewById(R.id.ivTimeIcon);
+        }
     }
 }
