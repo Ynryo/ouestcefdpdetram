@@ -2,12 +2,12 @@ package fr.ynryo.ouestcefdpdetram;
 
 import java.util.List;
 
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkersList;
-import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.route.RouteData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.version.VersionResponse;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkersList;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.train.TrainData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version.VersionResponse;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
@@ -27,6 +27,11 @@ public interface ApiService {
             @Path(value = "vehicleId", encoded = true) String vehicleId
     );
 
+    @GET("carto.php?action=train")
+    Call<TrainData> getVehicleDetails(
+            @Query("numero") int vehicleNumber
+    );
+
     @GET("regions")
     Call<List<RegionData>> getRegions();
 
@@ -39,7 +44,7 @@ public interface ApiService {
     );
 
     @GET("carto.php?action=train")
-    Call<RouteData> getRouteLine(
+    Call<VehicleData> getRouteLine(
             @Query("numero") int vehicleRoute
     );
 

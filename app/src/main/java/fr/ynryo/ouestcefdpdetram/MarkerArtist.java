@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
+import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 
 public class MarkerArtist {
     private View cachedMarkerView;
@@ -43,7 +43,7 @@ public class MarkerArtist {
     private final FollowManager followManager;
     private final NetworkFilterDrawer networkFilterDrawer;
     private final RouteArtist routeArtist;
-    private final VehicleDetailsManager vehicleDetailsManager;
+    private final MarkerStopsDetailActivity markerStopsDetailActivity;
     private final Map<String, BitmapDescriptor> markerIconCache = new HashMap<>();
     private final Map<String, Marker> activeMarkers = new HashMap<>();
     private final Map<String, ValueAnimator> activeAnimators = new HashMap<>();
@@ -55,15 +55,15 @@ public class MarkerArtist {
         this.followManager = followManager;
         this.networkFilterDrawer = networkFilterDrawer;
         this.routeArtist = new RouteArtist(context);
-        this.vehicleDetailsManager = new VehicleDetailsManager(context);
+        this.markerStopsDetailActivity = new MarkerStopsDetailActivity(context);
     }
 
-    public void showMarkers(List<MarkerData> markersFetched) {
-        if (mMap == null || markersFetched == null) return;
+    public void showMarkers(List<MarkerDataStandardized> markerDataStandardizedList) {
+        if (mMap == null || markerDataStandardizedList == null) return;
 
         Set<String> fetchedMarkerIds = new HashSet<>();
-        for (MarkerData fetchedMarkerData : markersFetched) { //on met tout les markers dans une liste
-            fetchedMarkerIds.add(fetchedMarkerData.getId());
+        for (MarkerDataStandardized fetchedMarkerDataStandardized : markerDataStandardizedList) { //on met tout les markers dans une liste
+            fetchedMarkerIds.add(fetchedMarkerDataStandardized.getId());
         }
 
         Iterator<Map.Entry<String, Marker>> iterator = activeMarkers.entrySet().iterator();
@@ -72,59 +72,59 @@ public class MarkerArtist {
             if(!fetchedMarkerIds.contains(entry.getKey())) { //si le marker n'est pas dans la liste des markers fetched
                 if (entry.getKey().equals(followManager.getFollowedMarkerId())) followManager.disableFollow(false);
                 if (entry.getKey().equals(routeArtist.getCurrentMarkerId())) routeArtist.remove();
-                if (entry.getKey().equals(vehicleDetailsManager.getCurrentVehicleId())) vehicleDetailsManager.close();
+                if (entry.getKey().equals(markerStopsDetailActivity.getCurrentVehicleId())) markerStopsDetailActivity.close();
                 entry.getValue().remove();
                 iterator.remove();
             }
         }
 
-        for (MarkerData fetchedMarkerData : markersFetched) { //pour chaque marker
-            if (!networkFilterDrawer.isNetworkVisible(fetchedMarkerData.getNetworkRef())) { //si le network n'est pas autorisé d'affichage
-                if (activeMarkers.containsKey(fetchedMarkerData.getId())) { //s'il était affiché, c'est ciao
-                    if (fetchedMarkerData.getId().equals(followManager.getFollowedMarkerId())) followManager.disableFollow(false);
-                    if (fetchedMarkerData.getId().equals(routeArtist.getCurrentMarkerId())) routeArtist.remove();
-                    if (fetchedMarkerData.getId().equals(vehicleDetailsManager.getCurrentVehicleId())) vehicleDetailsManager.close();
-                    activeMarkers.get(fetchedMarkerData.getId()).remove();
-                    activeMarkers.remove(fetchedMarkerData.getId());
+        for (MarkerDataStandardized fetchedMarkerDataStandardized : markerDataStandardizedList) { //pour chaque marker
+            if (!networkFilterDrawer.isNetworkVisible(fetchedMarkerDataStandardized.getNetworkRef())) { //si le network n'est pas autorisé d'affichage
+                if (activeMarkers.containsKey(fetchedMarkerDataStandardized.getId())) { //s'il était affiché, c'est ciao
+                    if (fetchedMarkerDataStandardized.getId().equals(followManager.getFollowedMarkerId())) followManager.disableFollow(false);
+                    if (fetchedMarkerDataStandardized.getId().equals(routeArtist.getCurrentMarkerId())) routeArtist.remove();
+                    if (fetchedMarkerDataStandardized.getId().equals(markerStopsDetailActivity.getCurrentVehicleId())) markerStopsDetailActivity.close();
+                    activeMarkers.get(fetchedMarkerDataStandardized.getId()).remove();
+                    activeMarkers.remove(fetchedMarkerDataStandardized.getId());
                 }
                 continue; //si il était pas là, chill
             }
 
             float mapRotation = mMap.getCameraPosition().bearing;
-            LatLng position = new LatLng(fetchedMarkerData.getPosition().getLatitude(), fetchedMarkerData.getPosition().getLongitude());
+            LatLng position = new LatLng(fetchedMarkerDataStandardized.getLatitude(), fetchedMarkerDataStandardized.getLongitude());
 
-            if (activeMarkers.containsKey(fetchedMarkerData.getId())) {
-                Marker existingMarker = activeMarkers.get(fetchedMarkerData.getId());
+            if (activeMarkers.containsKey(fetchedMarkerDataStandardized.getId())) {
+                Marker existingMarker = activeMarkers.get(fetchedMarkerDataStandardized.getId());
                 if (existingMarker != null) {
-                    animateMarker(existingMarker, position, followManager.isFollowing(fetchedMarkerData.getId()));
+                    animateMarker(existingMarker, position, followManager.isFollowing(fetchedMarkerDataStandardized.getId()));
 
                     //màj qui si nécéssaire
-                    MarkerData oldData = (MarkerData) existingMarker.getTag();
+                    MarkerDataStandardized oldData = (MarkerDataStandardized) existingMarker.getTag();
                     if (oldData == null ||
-                            !Objects.equals(oldData.getFillColor(), fetchedMarkerData.getFillColor()) ||
-                            !Objects.equals(oldData.getLineNumber(), fetchedMarkerData.getLineNumber()) ||
-                            Math.abs(oldData.getPosition().getBearing() - fetchedMarkerData.getPosition().getBearing()) > 5) {
+                            !Objects.equals(oldData.getFillColor(), fetchedMarkerDataStandardized.getFillColor()) ||
+                            !Objects.equals(oldData.getLineId(), fetchedMarkerDataStandardized.getLineId()) ||
+                            Math.abs(oldData.getBearing() - fetchedMarkerDataStandardized.getBearing()) > 5) {
 
-                        existingMarker.setIcon(createCustomMarker(fetchedMarkerData, mapRotation, followManager.isFollowing(fetchedMarkerData.getId())));
+                        existingMarker.setIcon(createCustomMarker(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(fetchedMarkerDataStandardized.getId())));
                     }
 
-                    existingMarker.setTag(fetchedMarkerData);
+                    existingMarker.setTag(fetchedMarkerDataStandardized);
                 }
             } else {
                 Marker newMarker = mMap.addMarker(new MarkerOptions()
                         .position(position)
-                        .icon(createCustomMarker(fetchedMarkerData, mapRotation, followManager.isFollowing(fetchedMarkerData.getId())))
+                        .icon(createCustomMarker(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(fetchedMarkerDataStandardized.getId())))
                         .anchor(0.5f, 0.3f));
                 if (newMarker != null) {
-                    newMarker.setTag(fetchedMarkerData);
-                    activeMarkers.put(fetchedMarkerData.getId(), newMarker);
+                    newMarker.setTag(fetchedMarkerDataStandardized);
+                    activeMarkers.put(fetchedMarkerDataStandardized.getId(), newMarker);
                 }
             }
         }
     }
 
-    public BitmapDescriptor createCustomMarker(MarkerData markerData, float mapRotation, boolean shouldFollow) {
-        String cacheKey = markerData.getFillColor() + "_" + markerData.getLineNumber() + "_" + (int) (markerData.getPosition().getBearing() - mapRotation);
+    public BitmapDescriptor createCustomMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
+        String cacheKey = markerDataStandardized.getFillColor() + "_" + markerDataStandardized.getLineId() + "_" + (int) (markerDataStandardized.getBearing() - mapRotation);
 
         if (markerIconCache.containsKey(cacheKey)) {
             return markerIconCache.get(cacheKey);
@@ -133,9 +133,9 @@ public class MarkerArtist {
         ImageView markerCircle = cachedMarkerView.findViewById(R.id.marker_circle);
         TextView lineNumberView = cachedMarkerView.findViewById(R.id.line_number);
 
-        int fillColor = Color.parseColor(markerData.getFillColor() != null ? markerData.getFillColor() : "#424242");
-        int textColor = Color.parseColor(markerData.getColor() != null ? markerData.getColor() : "#FFFFFF");
-        float bearing = markerData.getPosition().getBearing();
+        int fillColor = Color.parseColor(markerDataStandardized.getFillColor() != null ? markerDataStandardized.getFillColor() : "#424242");
+        int textColor = Color.parseColor(markerDataStandardized.getTextColor() != null ? markerDataStandardized.getTextColor() : "#FFFFFF");
+        float bearing = markerDataStandardized.getBearing();
 
         Drawable drawable = ContextCompat.getDrawable(context, R.drawable.marker_circle);
         if (drawable != null) {
@@ -151,11 +151,7 @@ public class MarkerArtist {
             markerCircle.setImageDrawable(layerDrawable);
         }
 
-        if (markerData.getId().startsWith("SNCF")) {
-            lineNumberView.setText(markerData.getVehicleNumber() != null ? markerData.getVehicleNumber() : "ND");
-        } else {
-            lineNumberView.setText(markerData.getLineNumber() != null ? markerData.getLineNumber() : "BD");
-        }
+        lineNumberView.setText(markerDataStandardized.getLineId() != null ? markerDataStandardized.getLineId() : "BD");
         lineNumberView.setTextColor(textColor);
 
         GradientDrawable gd = new GradientDrawable();
@@ -188,7 +184,7 @@ public class MarkerArtist {
 
         for (Map.Entry<String, Marker> entry : activeMarkers.entrySet()) {
             Marker marker = entry.getValue();
-            MarkerData data = (MarkerData) marker.getTag();
+            MarkerDataStandardized data = (MarkerDataStandardized) marker.getTag();
             if (data != null) {
                 marker.setIcon(createCustomMarker(data, mapRotation, followManager.isFollowing(data.getId())));
             }
@@ -196,12 +192,13 @@ public class MarkerArtist {
     }
 
     public void onMarkerClick(@NonNull Marker marker) {
-        MarkerData data = (MarkerData) marker.getTag();
-        if (data != null) {
-            vehicleDetailsManager.open(data);
+        MarkerDataStandardized mData = (MarkerDataStandardized) marker.getTag();
+        if (mData != null) {
+            boolean isTrain = mData.getId().contains("SNCF");
+            markerStopsDetailActivity.open(mData, isTrain);
 
-            if (data.getId().contains("SNCF")) {
-                routeArtist.drawVehicleRoute(data);
+            if (isTrain) {
+//                routeArtist.drawVehicleRoute(mData);
             } else {
                 routeArtist.remove();
             }
@@ -210,7 +207,7 @@ public class MarkerArtist {
 
     public void animateMarker(final Marker marker, final LatLng toPosition, boolean shouldFollow) {
         final LatLng startPosition = marker.getPosition();
-        String markerId = marker.getTag() != null ? ((MarkerData) marker.getTag()).getId() : "";
+        String markerId = marker.getTag() != null ? ((MarkerDataStandardized) marker.getTag()).getId() : "";
 
         ValueAnimator existing = activeAnimators.get(markerId);
         if (existing != null && existing.isRunning()) {
@@ -218,8 +215,8 @@ public class MarkerArtist {
         }
 
         if (shouldFollow && mMap != null) {
-            MarkerData data = (MarkerData) marker.getTag();
-            float bearing = data != null ? data.getPosition().getBearing() : 0f;
+            MarkerDataStandardized data = (MarkerDataStandardized) marker.getTag();
+            float bearing = data != null ? data.getBearing() : 0f;
 
             mMap.animateCamera(
                     CameraUpdateFactory.newCameraPosition(
@@ -267,7 +264,7 @@ public class MarkerArtist {
         return markerIconCache;
     }
 
-    public VehicleDetailsManager getVehicleDetailsManager() {
-        return vehicleDetailsManager;
+    public MarkerStopsDetailActivity getVehicleDetailsManager() {
+        return markerStopsDetailActivity;
     }
 }

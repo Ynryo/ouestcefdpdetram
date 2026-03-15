@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram.apiResponses.markers;
+package fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers;
 
 import androidx.annotation.NonNull;
 

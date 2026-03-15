@@ -28,10 +28,10 @@ import com.google.android.gms.maps.model.Marker;
 
 import java.util.List;
 
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.version.VersionResponse;
+import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version.VersionResponse;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveStartedListener {
     private FetchingManager fetcher;
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         fetcher.fetchLatestVersion(new FetchingManager.OnVersionListener() {
             @Override
-            public void onVersionReceived(VersionResponse version) {
+            public void onResponseVersionListener(VersionResponse version) {
                 try {
                     PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
                     int latestVersionCode = version.getVersion().getVersionCode();
@@ -99,17 +99,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
             @Override
-            public void onError(String error) {
+            public void onErrorVersionListener(String error) {
                 Log.e("MainActivity", "Erreur de l'API: " + error);
             }
         });
 
         fetcher.fetchRegions(new FetchingManager.OnRegionsListener() {
             @Override
-            public void onRegionsReceived(List<RegionData> regions) {
+            public void onResponseRegionsListener(List<RegionData> regions) {
                 fetcher.fetchNetworks(new FetchingManager.OnNetworkListener() {
                     @Override
-                    public void onDetailsReceived(List<NetworkData> data) {
+                    public void onResponseNetworkListener(List<NetworkData> data) {
                         pendingRegions = regions;
                         pendingNetworks = data;
                         isDataReady = true;
@@ -117,14 +117,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
 
                     @Override
-                    public void onError(String error) {
+                    public void onErrorNetworkListener(String error) {
                         Log.e("MainActivity", "Erreur réseaux: " + error);
                     }
                 });
             }
 
             @Override
-            public void onError(String error) {
+            public void onErrorRegionsListener(String error) {
                 Log.e("MainActivity", "Erreur régions: " + error);
             }
         });
@@ -248,8 +248,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void centerOnMarker(String markerId) {
         Marker marker = markerArtist.getActiveMarkers().get(markerId);
         if (marker != null && mMap != null) {
-            MarkerData data = (MarkerData) marker.getTag();
-            float bearing = data != null ? data.getPosition().getBearing() : 0f;
+            MarkerDataStandardized data = (MarkerDataStandardized) marker.getTag();
+            float bearing = data != null ? data.getBearing() : 0f;
 
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                     new CameraPosition.Builder()
@@ -268,16 +268,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         fetcher.fetchMarkers(new FetchingManager.OnMarkersListener() {
             @Override
-            public void onMarkersReceived(List<MarkerData> markers) {
+            public void onResponseMarkersListener(List<MarkerDataStandardized> markerDataStandardizedList) {
                 isFetching = false;
-                markerArtist.showMarkers(markers);
+                markerArtist.showMarkers(markerDataStandardizedList);
                 if (markerArtist.getMarkerIconCache().size() > 200) {
                     markerArtist.getMarkerIconCache().clear();
                 }
             }
 
             @Override
-            public void onError(String error) {
+            public void onErrorMarkersListener(String error) {
                 isFetching = false;
                 Log.e("MainActivity", "Erreur markers: " + error);
             }

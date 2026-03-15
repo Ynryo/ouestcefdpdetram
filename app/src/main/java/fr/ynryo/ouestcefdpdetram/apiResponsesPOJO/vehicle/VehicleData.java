@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram.apiResponses.vehicle;
+package fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle;
 
 import android.content.Context;
 
@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 
 import java.util.List;
 
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerPosition;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkerPosition;
 
 public class VehicleData {
     private String id;

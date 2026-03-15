@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram.apiResponses.network;
+package fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network;
 
 import androidx.annotation.NonNull;
 

@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram.apiResponses.version;
+package fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version;
 
 import androidx.annotation.NonNull;
 

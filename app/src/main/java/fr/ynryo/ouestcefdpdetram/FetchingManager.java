@@ -1,19 +1,23 @@
 package fr.ynryo.ouestcefdpdetram;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkersList;
-import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.route.RouteData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.version.VersionResponse;
+import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerType;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkerData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkersList;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version.VersionResponse;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -24,6 +28,7 @@ public class FetchingManager {
     private static final String BASE_URL_BUS_TRACKER = "https://bus-tracker.fr/api/";
     private static final String BASE_URL_CARTO_TCHOO = "https://api.tchoo.net/api/";
     private static final String BASE_URL_DL_YNRYO = "https://dl.ynryo.fr/api/ouestcefdpdetram/";
+
     private final MainActivity context;
     private static ApiService busTrackerService;
     private static ApiService cartoTchooService;
@@ -56,39 +61,44 @@ public class FetchingManager {
         }
     }
 
+    // ==================== LISTENERS ====================
     public interface OnMarkersListener {
-        void onMarkersReceived(List<MarkerData> markers);
-        void onError(String error);
+        /**
+         * Appelé quand le fetch est réussi
+         * @param markers List<MarkerDataStandardized> prêts à l'emploi
+         */
+        void onResponseMarkersListener(List<MarkerDataStandardized> markerDataStandardizedList);
+        void onErrorMarkersListener(String error);
     }
 
     public interface OnVehicleDetailsListener {
-        void onDetailsReceived(VehicleData details);
-        void onError(String error);
+        void onResponseVehicleDetailsListener(MarkerDataStandardized markerDataStandardized);
+        void onErrorVehicleDetailsListener(String error);
     }
 
     public interface OnNetworkDataListener {
-        void onDetailsReceived(NetworkData data);
-        void onError(String error);
+        void onResponseNetworkDataListener(NetworkData data);
+        void onErrorNetworkDataListener(String error);
     }
 
     public interface OnRouteLineListener {
-        void onDetailsReceived(RouteData data);
-        void onError(String error);
+        void onResponseRouteLineListener(VehicleData data);
+        void onErrorRouteLineListener(String error);
     }
 
     public interface OnNetworkListener {
-        void onDetailsReceived(List<NetworkData> data);
-        void onError(String error);
+        void onResponseNetworkListener(List<NetworkData> data);
+        void onErrorNetworkListener(String error);
     }
 
     public interface OnRegionsListener {
-        void onRegionsReceived(List<RegionData> regions);
-        void onError(String error);
+        void onResponseRegionsListener(List<RegionData> regions);
+        void onErrorRegionsListener(String error);
     }
 
     public interface OnVersionListener {
-        void onVersionReceived(VersionResponse version);
-        void onError(String error);
+        void onResponseVersionListener(VersionResponse version);
+        void onErrorVersionListener(String error);
     }
 
     private ApiService getService(String baseUrl) {
@@ -107,6 +117,14 @@ public class FetchingManager {
         }
     }
 
+    // ==================== FETCH MARKERS (PRINCIPAL) ====================
+
+    /**
+     * Fetch les marqueurs visibles dans les bounds de la caméra.
+     * Convertit automatiquement MarkerData → MarkerDataStandardized
+     *
+     * @param listener Reçoit List<MarkerDataStandardized>
+     */
     public void fetchMarkers(OnMarkersListener listener) {
         if (context.getMap() == null) return;
 
@@ -118,143 +136,183 @@ public class FetchingManager {
             @Override
             public void onResponse(@NonNull Call<MarkersList> call, @NonNull Response<MarkersList> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    listener.onMarkersReceived(response.body().getItems());
+                    // Convertir MarkerData en MarkerDataStandardized
+                    List<MarkerDataStandardized> standardizedMarkers = convertMarkerDataList(
+                            response.body().getItems()
+                    );
+                    listener.onResponseMarkersListener(standardizedMarkers);
+                } else {
+                    listener.onErrorMarkersListener("Erreur réponse: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<MarkersList> call, @NonNull Throwable t) {
-                listener.onError(t.getMessage());
+                listener.onErrorMarkersListener(t.getMessage());
             }
         });
     }
 
-    public void fetchVehicleStopsInfo(MarkerData marker, OnVehicleDetailsListener listener) {
+    // ==================== FETCH VEHICLE DETAILS ====================
+    public void fetchVehicleStopsInfo(MarkerDataStandardized markerDataStandardized, OnVehicleDetailsListener listener) {
         try {
-            String encodedId = URLEncoder.encode(marker.getId(), "UTF-8");
+            String encodedId = URLEncoder.encode(markerDataStandardized.getId(), "UTF-8");
             getService(BASE_URL_BUS_TRACKER).getVehicleDetails(encodedId).enqueue(new Callback<>() {
                 @Override
                 public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        listener.onDetailsReceived(response.body());
+                        VehicleData vehicleData = response.body();
+                        markerDataStandardized.setVehicleDetails(vehicleData);
+                        listener.onResponseVehicleDetailsListener(markerDataStandardized);
                     } else {
-                        listener.onError(String.valueOf(response.code()));
+                        listener.onErrorVehicleDetailsListener(String.valueOf(response.code()));
                     }
                 }
 
                 @Override
                 public void onFailure(@NonNull Call<VehicleData> call, @NonNull Throwable t) {
-                    listener.onError(t.getMessage());
+                    listener.onErrorVehicleDetailsListener(t.getMessage());
                 }
             });
         } catch (Exception e) {
-            listener.onError(e.getMessage());
+            listener.onErrorVehicleDetailsListener(e.getMessage());
         }
     }
 
+    // ==================== FETCH NETWORK DATA ====================
     public void fetchNetworkData(int networkId, OnNetworkDataListener listener) {
-        getService(BASE_URL_BUS_TRACKER).getNetworkData(networkId).enqueue(new Callback<>() {
+        getService(BASE_URL_BUS_TRACKER).getNetworkData(networkId).enqueue(new Callback<NetworkData>() {
             @Override
             public void onResponse(@NonNull Call<NetworkData> call, @NonNull Response<NetworkData> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    listener.onDetailsReceived(response.body());
+                    listener.onResponseNetworkDataListener(response.body());
                 } else {
-                    listener.onError(String.valueOf(response.code()));
+                    listener.onErrorNetworkDataListener("Erreur réponse: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<NetworkData> call, @NonNull Throwable t) {
-                listener.onError(t.getMessage());
+                listener.onErrorNetworkDataListener(t.getMessage());
             }
         });
     }
 
+    // ==================== FETCH ROUTE LINE ====================
     public void fetchRouteLine(String routeId, OnRouteLineListener listener) {
         try {
-            getService(BASE_URL_CARTO_TCHOO).getRouteLine(Integer.parseInt(routeId)).enqueue(new Callback<>() {
+            getService(BASE_URL_CARTO_TCHOO).getRouteLine(Integer.parseInt(routeId)).enqueue(new Callback<VehicleData>() {
                 @Override
-                public void onResponse(@NonNull Call<RouteData> call, @NonNull Response<RouteData> response) {
+                public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        listener.onDetailsReceived(response.body());
+                        listener.onResponseRouteLineListener(response.body());
                     } else {
-                        listener.onError("Code erreur: " + response.code());
+                        listener.onErrorRouteLineListener("Code erreur: " + response.code());
                     }
                 }
 
                 @Override
-                public void onFailure(@NonNull Call<RouteData> call, @NonNull Throwable t) {
-                    listener.onError(t.getMessage());
+                public void onFailure(@NonNull Call<VehicleData> call, @NonNull Throwable t) {
+                    listener.onErrorRouteLineListener(t.getMessage());
                 }
             });
         } catch (Exception e) {
-            listener.onError(e.getMessage());
+            listener.onErrorRouteLineListener(e.getMessage());
         }
     }
 
+    // ==================== FETCH NETWORKS ====================
     public void fetchNetworks(OnNetworkListener listener) {
         try {
-            getService(BASE_URL_BUS_TRACKER).getNetworks().enqueue(new Callback<>() {
+            getService(BASE_URL_BUS_TRACKER).getNetworks().enqueue(new Callback<List<NetworkData>>() {
                 @Override
                 public void onResponse(@NonNull Call<List<NetworkData>> call, @NonNull Response<List<NetworkData>> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        listener.onDetailsReceived(response.body());
+                        listener.onResponseNetworkListener(response.body());
                     } else {
-                        listener.onError("Code erreur: " + response.code());
+                        listener.onErrorNetworkListener("Code erreur: " + response.code());
                     }
                 }
 
                 @Override
                 public void onFailure(@NonNull Call<List<NetworkData>> call, @NonNull Throwable t) {
-                    listener.onError(t.getMessage());
+                    listener.onErrorNetworkListener(t.getMessage());
                 }
             });
         } catch (Exception e) {
-            listener.onError(e.getMessage());
+            listener.onErrorNetworkListener(e.getMessage());
         }
     }
 
+    // ==================== FETCH REGIONS ====================
     public void fetchRegions(OnRegionsListener listener) {
         try {
-            getService(BASE_URL_BUS_TRACKER).getRegions().enqueue(new Callback<>() {
+            getService(BASE_URL_BUS_TRACKER).getRegions().enqueue(new Callback<List<RegionData>>() {
                 @Override
                 public void onResponse(@NonNull Call<List<RegionData>> call, @NonNull Response<List<RegionData>> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        listener.onRegionsReceived(response.body());
+                        listener.onResponseRegionsListener(response.body());
                     } else {
-                        listener.onError("Erreur régions: " + response.code());
+                        listener.onErrorRegionsListener("Erreur régions: " + response.code());
                     }
                 }
 
                 @Override
                 public void onFailure(@NonNull Call<List<RegionData>> call, @NonNull Throwable t) {
-                    listener.onError(t.getMessage());
+                    listener.onErrorRegionsListener(t.getMessage());
                 }
             });
         } catch (Exception e) {
-            listener.onError(e.getMessage());
+            listener.onErrorRegionsListener(e.getMessage());
         }
     }
 
+    // ==================== FETCH VERSION ====================
     public void fetchLatestVersion(OnVersionListener listener) {
         try {
-            getService(BASE_URL_DL_YNRYO).getLatestVersion().enqueue(new Callback<>() {
+            getService(BASE_URL_DL_YNRYO).getLatestVersion().enqueue(new Callback<VersionResponse>() {
                 @Override
                 public void onResponse(@NonNull Call<VersionResponse> call, @NonNull Response<VersionResponse> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        listener.onVersionReceived(response.body());
+                        listener.onResponseVersionListener(response.body());
                     } else {
-                        listener.onError("Code erreur: " + response.code());
+                        listener.onErrorVersionListener("Code erreur: " + response.code());
                     }
                 }
 
                 @Override
                 public void onFailure(@NonNull Call<VersionResponse> call, @NonNull Throwable t) {
-                    listener.onError(t.getMessage());
+                    listener.onErrorVersionListener(t.getMessage());
                 }
             });
         } catch (Exception e) {
-            listener.onError(e.getMessage());
+            listener.onErrorVersionListener(e.getMessage());
         }
+    }
+
+    // ==================== HELPER METHODS (CONVERSION) ====================
+    private List<MarkerDataStandardized> convertMarkerDataList(List<MarkerData> markerDataList) {
+        List<MarkerDataStandardized> result = new ArrayList<>();
+
+        if (markerDataList == null || markerDataList.isEmpty()) {
+            return result;
+        }
+
+        for (MarkerData markerData : markerDataList) {
+            try {
+                // Déterminer le type automatiquement
+                MarkerType type = MarkerType.fromMarkerId(markerData.getId());
+
+                // Créer le marqueur standardisé
+                MarkerDataStandardized standardized = MarkerDataStandardized.from(markerData, type);
+
+                result.add(standardized);
+            } catch (Exception e) {
+                // Si la conversion échoue pour un marqueur, on skip et on continue
+                Log.e("FetchingManager", "Erreur conversion MarkerData -> MarkerDataStandardized: " + e.getMessage());
+            }
+        }
+
+        return result;
     }
 }

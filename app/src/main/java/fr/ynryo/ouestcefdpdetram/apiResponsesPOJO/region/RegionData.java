@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram.apiResponses.region;
+package fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region;
 
 import androidx.annotation.NonNull;
 

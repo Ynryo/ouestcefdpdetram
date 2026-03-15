@@ -18,9 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.region.RegionData;
+import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
 
 public class NetworkFilterDrawer {
     public static final String TAG = "NetworkFilterDrawer";
@@ -77,12 +77,12 @@ public class NetworkFilterDrawer {
 
             context.getFetcher().fetchMarkers(new FetchingManager.OnMarkersListener() {
                 @Override
-                public void onMarkersReceived(List<MarkerData> markers) {
-                    context.getMarkerArtist().showMarkers(markers);
+                public void onResponseMarkersListener(List<MarkerDataStandardized> markerDataStandardizedList) {
+                    context.getMarkerArtist().showMarkers(markerDataStandardizedList);
                 }
 
                 @Override
-                public void onError(String error) {
+                public void onErrorMarkersListener(String error) {
                     Log.e("MainActivity", "Erreur lors de la récupération des données markers" + error);
                 }
             });
@@ -192,12 +192,12 @@ public class NetworkFilterDrawer {
 
                     context.getFetcher().fetchMarkers(new FetchingManager.OnMarkersListener() {
                         @Override
-                        public void onMarkersReceived(List<MarkerData> markers) {
-                            context.getMarkerArtist().showMarkers(markers);
+                        public void onResponseMarkersListener(List<MarkerDataStandardized> markerDataStandardizedList) {
+                            context.getMarkerArtist().showMarkers(markerDataStandardizedList);
                         }
 
                         @Override
-                        public void onError(String error) {
+                        public void onErrorMarkersListener(String error) {
                             Log.e("NetworkFilterDrawer", "Erreur markers: " + error);
                         }
                     });

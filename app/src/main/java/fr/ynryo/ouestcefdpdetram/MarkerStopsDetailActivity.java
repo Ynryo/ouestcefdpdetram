@@ -34,48 +34,45 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.ynryo.ouestcefdpdetram.apiResponses.markers.MarkerData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.network.NetworkData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleData;
-import fr.ynryo.ouestcefdpdetram.apiResponses.vehicle.VehicleStop;
+import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStop;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleStop;
 
-public class VehicleDetailsManager {
+public class MarkerStopsDetailActivity {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-    private static final String SNCF_PREFIX = "SNCF";
-    private static final String TAG = "VehicleDetailsManager";
+    private static final String TAG = "MarkerStopsDetailActivity";
     private static final int COLOR_GREEN = Color.rgb(15, 150, 40);
-    private static final int COLOR_ORANGE = Color.rgb(224, 159, 7);
-    private static final int COLOR_DARK_ORANGE = Color.rgb(224, 112, 7);
-    private static final int DELAY_THRESHOLD_MINUTES = 5;
     private final MainActivity context;
     private BottomSheetDialog bottomSheetDialog;
     private String vehicleId;
+    private boolean isTrain;
 
-    public VehicleDetailsManager(MainActivity context) {
+    public MarkerStopsDetailActivity(MainActivity context) {
         WeakReference<MainActivity> contextRef = new WeakReference<>(context);
         this.context = contextRef.get();
     }
 
-    public void open(MarkerData markerData) {
+    public void open(MarkerDataStandardized markerDataStandardized, boolean isTrain) {
         if (this.context == null) return;
+        this.isTrain = isTrain;
 
         close();
 
         bottomSheetDialog = new BottomSheetDialog(context);
-        vehicleId = markerData.getId();
+        vehicleId = markerDataStandardized.getId();
 
         View view = LayoutInflater.from(context).inflate(R.layout.vehicule_details, null);
         bottomSheetDialog.setContentView(view);
         setupBottomSheetAppearance(view);
-        setupLineHeader(view, markerData);
-        setupLoader(view, markerData);
+        setupLineHeader(view, markerDataStandardized);
+        setupLoader(view, markerDataStandardized);
 
         bottomSheetDialog.show();
-        fetchVehicleData(markerData, view);
+        fetchVehicleData(markerDataStandardized, view);
     }
 
     public void close() {
@@ -107,29 +104,22 @@ public class VehicleDetailsManager {
         return (int) (screenHeight * 0.5);
     }
 
-    private void setupLineHeader(View view, MarkerData markerData) {
+    private void setupLineHeader(View view, MarkerDataStandardized markerDataStandardized) {
         TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
 
-        String lineNumber = getLineNumber(markerData);
+        String lineNumber = markerDataStandardized.getLineId();
         tvLigne.setText(lineNumber);
 
-        int fillColor = Color.parseColor(markerData.getFillColor() != null ? markerData.getFillColor() : "#424242");
-        int textColor = Color.parseColor(markerData.getColor() != null ? markerData.getColor() : "#FFFFFF");
+        int fillColor = Color.parseColor(markerDataStandardized.getFillColor() != null ? markerDataStandardized.getFillColor() : "#424242");
+        int textColor = Color.parseColor(markerDataStandardized.getTextColor() != null ? markerDataStandardized.getTextColor() : "#FFFFFF");
 
         tvLigne.setBackgroundColor(fillColor);
         tvLigne.setTextColor(textColor);
     }
 
-    private String getLineNumber(MarkerData markerData) {
-        if (markerData.getId().startsWith(SNCF_PREFIX)) {
-            return markerData.getVehicleNumber() != null ? markerData.getVehicleNumber() : "ND";
-        }
-        return markerData.getLineNumber() != null ? markerData.getLineNumber() : "ND";
-    }
-
-    private void setupLoader(View view, MarkerData markerData) {
+    private void setupLoader(View view, MarkerDataStandardized markerDataStandardized) {
         ProgressBar loader = view.findViewById(R.id.loader);
-        int fillColor = Color.parseColor(markerData.getFillColor() != null ? markerData.getFillColor() : "#424242");
+        int fillColor = Color.parseColor(markerDataStandardized.getFillColor() != null ? markerDataStandardized.getFillColor() : "#424242");
 
         loader.setVisibility(View.VISIBLE);
         loader.setIndeterminateTintList(ColorStateList.valueOf(fillColor));
@@ -138,29 +128,29 @@ public class VehicleDetailsManager {
     }
 
     // ==================== DATA FETCHING ====================
-    private void fetchVehicleData(MarkerData markerData, View view) {
-        context.getFetcher().fetchVehicleStopsInfo(markerData, new FetchingManager.OnVehicleDetailsListener() {
+    private void fetchVehicleData(MarkerDataStandardized markerDataStandardized, View view) {
+        context.getFetcher().fetchVehicleStopsInfo(markerDataStandardized, new FetchingManager.OnVehicleDetailsListener() {
             @Override
-            public void onDetailsReceived(VehicleData details) {
+            public void onResponseVehicleDetailsListener(MarkerDataStandardized markerDataStandardized) {
                 hideLoader(view);
-                showVehicleDetails(details, view);
-                fetchNetworkLogo(details, view);
+                showVehicleDetails(markerDataStandardized, view);
+                fetchNetworkLogo(markerDataStandardized, view);
             }
 
             @Override
-            public void onError(String error) {
+            public void onErrorVehicleDetailsListener(String error) {
                 hideLoader(view);
                 showError(view);
             }
         });
     }
 
-    private void fetchNetworkLogo(VehicleData details, View view) {
-        if (details.getNetworkId() == 0) return;
+    private void fetchNetworkLogo(MarkerDataStandardized markerDataStandardized, View view) {
+        if (markerDataStandardized.getNetworkId() == 0) return;
 
-        context.getFetcher().fetchNetworkData(details.getNetworkId(), new FetchingManager.OnNetworkDataListener() {
+        context.getFetcher().fetchNetworkData(markerDataStandardized.getNetworkId(), new FetchingManager.OnNetworkDataListener() {
             @Override
-            public void onDetailsReceived(NetworkData nData) {
+            public void onResponseNetworkDataListener(NetworkData nData) {
                 URI imgURI = nData.getLogoHref();
                 if (imgURI != null) {
                     loadNetworkLogo(view, imgURI);
@@ -168,7 +158,7 @@ public class VehicleDetailsManager {
             }
 
             @Override
-            public void onError(String error) {
+            public void onErrorNetworkDataListener(String error) {
                 Log.w(TAG, "Erreur lors de la récuperation du logo");
             }
         });
@@ -198,16 +188,16 @@ public class VehicleDetailsManager {
     }
 
     // ==================== DISPLAY ====================
-    private void showVehicleDetails(VehicleData details, View view) {
-        context.getFollowManager().setFollowButton(view.findViewById(R.id.followButton), details.getId());
+    private void showVehicleDetails(MarkerDataStandardized markerDataStandardized, View view) {
+        context.getFollowManager().setFollowButton(view.findViewById(R.id.followButton), markerDataStandardized.getId());
 
-        setupDestinationText(view, details);
-        setupStopsList(view, details);
+        setupDestinationText(view, markerDataStandardized);
+        setupStopsList(view, markerDataStandardized);
     }
 
-    private void setupDestinationText(View view, VehicleData details) {
+    private void setupDestinationText(View view, MarkerDataStandardized markerDataStandardized) {
         TextView tvDestination = view.findViewById(R.id.tvDestination);
-        tvDestination.setText(details.getDestination());
+        tvDestination.setText(markerDataStandardized.getDestination());
         tvDestination.setSingleLine(true);
         tvDestination.setEllipsize(TextUtils.TruncateAt.MARQUEE);
         tvDestination.setMarqueeRepeatLimit(-1);
@@ -215,11 +205,11 @@ public class VehicleDetailsManager {
         tvDestination.setSelected(true);
     }
 
-    private void setupStopsList(View view, VehicleData details) {
+    private void setupStopsList(View view, MarkerDataStandardized markerDataStandardized) {
         RecyclerView rvStops = view.findViewById(R.id.rvStops);
         rvStops.setLayoutManager(new LinearLayoutManager(context));
 
-        List<VehicleStop> stops = details.getCalls() != null ? details.getCalls() : new ArrayList<>();
+        List<MarkerDataStop> stops = markerDataStandardized.getStops() != null ? markerDataStandardized.getStops() : new ArrayList<>();
         rvStops.setAdapter(new StopsAdapter(stops));
 
         view.findViewById(R.id.llStopsContent).setVisibility(View.VISIBLE);
@@ -234,9 +224,9 @@ public class VehicleDetailsManager {
         private static final int TYPE_STOP = 0;
         private static final int TYPE_EMPTY = 1;
 
-        private final List<VehicleStop> stops;
+        private final List<MarkerDataStop> stops;
 
-        StopsAdapter(List<VehicleStop> stops) {
+        StopsAdapter(List<MarkerDataStop> stops) {
             this.stops = stops;
         }
 
@@ -261,7 +251,7 @@ public class VehicleDetailsManager {
                 return;
             }
 
-            VehicleStop stop = stops.get(position);
+            MarkerDataStop stop = stops.get(position);
             bindStopViewHolder((StopViewHolder) holder, stop);
         }
 
@@ -297,14 +287,14 @@ public class VehicleDetailsManager {
             return new StopViewHolder(view);
         } //inflate item stop
 
-        private void bindStopViewHolder(StopViewHolder vh, VehicleStop stop) { //distribute data
+        private void bindStopViewHolder(StopViewHolder vh, MarkerDataStop stop) { //distribute data
             bindPlatform(vh, stop);
             bindStopName(vh, stop);
-            bindTime(vh, stop);
+            bindDepartureTime(vh, stop);
             bindDelay(vh, stop);
         }
 
-        private void bindPlatform(StopViewHolder vh, VehicleStop stop) {
+        private void bindPlatform(StopViewHolder vh, MarkerDataStop stop) {
             String platformName = stop.getPlatformName();
             if (platformName != null && !platformName.isEmpty()) {
                 vh.tvPlatform.setText(platformName);
@@ -322,7 +312,7 @@ public class VehicleDetailsManager {
             }
         }
 
-        private void bindStopName(StopViewHolder vh, VehicleStop stop) {
+        private void bindStopName(StopViewHolder vh, MarkerDataStop stop) {
             SpannableStringBuilder builder = new SpannableStringBuilder(stop.getStopName());
 
             int iconRes = getStopIconResource(stop);
@@ -334,12 +324,9 @@ public class VehicleDetailsManager {
             vh.tvStopName.setSelected(true);
         }
 
-        private int getStopIconResource(VehicleStop stop) {
-            List<String> flags = stop.getFlags();
-            if (flags == null) return 0;
-
-            if (flags.contains("NO_PICKUP")) return R.drawable.logout_24px;
-            if (flags.contains("NO_DROP_OFF")) return R.drawable.login_24px;
+        private int getStopIconResource(MarkerDataStop stop) {
+            if (stop.canDropoff()) return R.drawable.logout_24px;
+            if (stop.canPickup()) return R.drawable.login_24px;
             return 0;
         }
 
@@ -363,7 +350,21 @@ public class VehicleDetailsManager {
             }
         }
 
-        private void bindTime(StopViewHolder vh, VehicleStop stop) {
+//        private void bindArrivalTime(StopViewHolder vh, TrainData stop) {
+//            if (!isTrain) return;
+//
+//            try {
+//              ZonedDateTime zdt = ZonedDateTime.parse(stop.getAimedTime());
+//                ZonedDateTime zdt = ZonedDateTime.parse()
+//                vh.tvArrivingTime.setText(zdt.format(TIME_FORMATTER));
+//                vh.tvArrivingTime.setTextColor(getDefaultTextColor(vh));
+//            } catch (Exception e) {
+//                vh.tvArrivingTime.setText("??:??");
+//            }
+//        }
+
+        private void bindAtStopTime(StopViewHolder vh, VehicleStop stop) {
+            if (!isTrain) return;
             boolean isExpected = stop.getExpectedTime() != null;
 
             if (isExpected) {
@@ -377,58 +378,61 @@ public class VehicleDetailsManager {
             try {
                 String rawTime = isExpected ? stop.getExpectedTime() : stop.getAimedTime();
                 if (rawTime == null) {
-                    vh.tvTime.setText("??:??");
-                    vh.tvTime.setTextColor(Color.RED);
+                    vh.tvAtStopTime.setText("??:??");
+                    vh.tvAtStopTime.setTextColor(Color.RED);
                 } else {
                     ZonedDateTime zdt = ZonedDateTime.parse(rawTime);
-                    vh.tvTime.setText(zdt.format(TIME_FORMATTER));
-                    vh.tvTime.setTextColor(isExpected ? COLOR_GREEN : getDefaultTextColor(vh));
+                    vh.tvAtStopTime.setText(zdt.format(TIME_FORMATTER));
+                    vh.tvAtStopTime.setTextColor(isExpected ? COLOR_GREEN : getDefaultTextColor(vh));
                 }
             } catch (Exception e) {
-                vh.tvTime.setText("??:??");
+                vh.tvAtStopTime.setText("??:??");
             }
         }
 
-        private void bindDelay(StopViewHolder vh, VehicleStop stop) {
-            vh.tvDelay.setVisibility(View.GONE);
-
-            String expectedTimeStr = stop.getExpectedTime();
-            String aimedTimeStr = stop.getAimedTime();
-
-            if (expectedTimeStr == null || aimedTimeStr == null) return;
+        private void bindDepartureTime(StopViewHolder vh, MarkerDataStop stop) {
+            if (stop.isOnLive()) {
+                vh.ivTimeIcon.setImageResource(R.drawable.sensors_24px);
+                vh.ivTimeIcon.setColorFilter(COLOR_GREEN);
+                vh.ivTimeIcon.setVisibility(View.VISIBLE);
+            } else {
+                vh.ivTimeIcon.setVisibility(View.GONE);
+            }
 
             try {
-                ZonedDateTime expected = ZonedDateTime.parse(expectedTimeStr);
-                ZonedDateTime aimed = ZonedDateTime.parse(aimedTimeStr);
-                long diff = ChronoUnit.MINUTES.between(aimed, expected);
+                ZonedDateTime zdt = ZonedDateTime.parse(stop.getDepartureTime());
+                vh.tvDepartureTime.setText(zdt.format(TIME_FORMATTER));
+                vh.tvDepartureTime.setTextColor(stop.isOnLive() ? COLOR_GREEN : getDefaultTextColor(vh));
+            } catch (Exception e) {
+                vh.tvDepartureTime.setText("??:??");
+            }
+        }
 
-                if (diff != 0) {
-                    vh.tvDelay.setVisibility(View.VISIBLE);
-                    setDelayText(vh, diff);
-                }
+        private void bindDelay(StopViewHolder vh, MarkerDataStop stop) {
+            vh.tvDelay.setVisibility(View.GONE);
+
+            if (stop.getDelay() == null || stop.getDelay() == 0) return;
+
+            try {
+                vh.tvDelay.setVisibility(View.VISIBLE);
+                setDelayText(vh, stop);
             } catch (Exception ignored) {
                 //skip
             }
         }
 
-        private void setDelayText(StopViewHolder vh, long diff) {
-            if (diff > 0) {
-                vh.tvDelay.setText("Retard de " + diff + " min");
-                int color = diff <= DELAY_THRESHOLD_MINUTES ? COLOR_DARK_ORANGE : Color.RED;
-                vh.tvDelay.setTextColor(color);
-            } else {
-                vh.tvDelay.setText("Avance de " + Math.abs(diff) + " min");
-                vh.tvDelay.setTextColor(COLOR_ORANGE);
-            }
+        private void setDelayText(StopViewHolder vh, MarkerDataStop markerDataStop) {
+            vh.tvDelay.setText(markerDataStop.getDelayText());
+            vh.tvDelay.setTextColor(markerDataStop.getDelayColor());
         }
 
         private int getDefaultTextColor(StopViewHolder vh) {
-            return MaterialColors.getColor(vh.tvTime, com.google.android.material.R.attr.colorOnSurface);
+            return MaterialColors.getColor(vh.tvDepartureTime, com.google.android.material.R.attr.colorOnSurface);
         }
     }
 
     private static class StopViewHolder extends RecyclerView.ViewHolder {
-        final TextView tvPlatform, tvStopName, tvTime, tvDelay;
+        final TextView tvPlatform, tvStopName, tvDepartureTime, tvAtStopTime, tvArrivingTime, tvDelay;
         final View spacerPlatform;
         final ImageView ivTimeIcon;
 
@@ -436,7 +440,9 @@ public class VehicleDetailsManager {
             super(itemView);
             tvPlatform = itemView.findViewById(R.id.tvPlatform);
             tvStopName = itemView.findViewById(R.id.tvStopName);
-            tvTime = itemView.findViewById(R.id.tvTime);
+            tvDepartureTime = itemView.findViewById(R.id.tvDepartureTime);
+            tvAtStopTime = itemView.findViewById(R.id.tvAtStopTime);
+            tvArrivingTime = itemView.findViewById(R.id.tvArrivingTime);
             tvDelay = itemView.findViewById(R.id.tvDelay);
             spacerPlatform = itemView.findViewById(R.id.spacerPlatform);
             ivTimeIcon = itemView.findViewById(R.id.ivTimeIcon);

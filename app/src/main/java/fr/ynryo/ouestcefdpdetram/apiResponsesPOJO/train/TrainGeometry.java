@@ -1,8 +1,8 @@
-package fr.ynryo.ouestcefdpdetram.apiResponses.route;
+package fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.train;
 
 import androidx.annotation.NonNull;
 
-public class RouteGeometry {
+public class TrainGeometry {
     private String type;
     private Object coordinates;
 
@@ -17,7 +17,7 @@ public class RouteGeometry {
     @NonNull
     @Override
     public String toString() {
-        return "RouteGeometry{" +
+        return "TrainGeometry{" +
                 "type='" + type + '\'' +
                 ", coordinates=" + coordinates +
                 '}';

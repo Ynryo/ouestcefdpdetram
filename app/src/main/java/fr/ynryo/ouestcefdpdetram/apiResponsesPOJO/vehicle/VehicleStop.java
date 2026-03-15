@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram.apiResponses.vehicle;
+package fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle;
 
 import androidx.annotation.NonNull;
 
