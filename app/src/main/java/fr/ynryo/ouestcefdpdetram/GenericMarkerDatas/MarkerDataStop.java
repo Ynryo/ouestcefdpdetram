@@ -3,21 +3,29 @@ package fr.ynryo.ouestcefdpdetram.GenericMarkerDatas;
 import android.graphics.Color;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 public class MarkerDataStop {
     private String stopRef;              // Identifiant unique de l'arrêt
     private String stopName;             // Nom de l'arrêt
-    private String platformName;         // Quai/Platform (ex: "A3", "Voie 2")
-    private String arrivingTime;         // Heure d'arrivée (format normalisé)
-    private String departureTime;        // Heure de départ (format normalisé)
-    private long atStopDurationMs;       // Durée d'arrêt en millisecondes
+    private String platformName;                // Quai/Platform (ex: "A3", "Voie 2")
+    private String arrivalTimeRaw;             // Heure d'arrivée (format brut - stockée pour flexibilité)
+    private String departureTimeRaw;            // Heure de départ (format brut)
+    private long atStopDurationMs;       // Durée d'arrêt en millisecondes TODO: REMOVE ce truc kk
     private Long delay;                  // Retard/décalage par rapport à l'horaire prévu
     private StopType stopType;           // Type d'arrêt (PICKUP, DROPOFF)
     private int stopOrder;               // Position dans la liste des arrêts (0, 1, 2, ...)
     private boolean isOnLive;           // Statut de l'appel (EXPECTED, ACTUAL, etc.)
+    private boolean isDestinationStop = false;
+    private boolean isDepartureStop = false;
+    private MarkerDataStandardized vehicle; // Véhicle parent
+
+    private final static String TAG = "MarkerDataStop";
 
     // ==================== CONSTRUCTEURS ====================
     public MarkerDataStop() {
@@ -28,9 +36,8 @@ public class MarkerDataStop {
     public MarkerDataStop(String stopRef, String stopName, String arrivingTime, String departureTime) {
         this.stopRef = stopRef;
         this.stopName = stopName;
-        this.arrivingTime = arrivingTime;
-        this.departureTime = departureTime;
-        this.atStopDurationMs = calculateAtStopDuration();
+        this.arrivalTimeRaw = arrivingTime;
+        this.departureTimeRaw = departureTime;
         this.stopType = StopType.BOTH;
     }
 
@@ -47,19 +54,26 @@ public class MarkerDataStop {
         return platformName;
     }
 
-    public String getArrivingTime() {
-        return arrivingTime;
+    @Nullable
+    public LocalTime getArrivalTime() {
+        return parseToLocalTime(arrivalTimeRaw);
     }
 
-    public String getDepartureTime() {
-        return departureTime;
+    @Nullable
+    public LocalTime getDepartureTime() {
+        return parseToLocalTime(departureTimeRaw);
     }
 
-    public long getAtStopDurationMs() {
-        if (atStopDurationMs == 0 && arrivingTime != null && departureTime != null) {
-            atStopDurationMs = calculateAtStopDuration();
+    @Nullable
+    public Long getAtStopTime() {
+        LocalTime arrival = getArrivalTime();
+        LocalTime departure = getDepartureTime();
+
+        if (arrival == null || departure == null) {
+            return null;
         }
-        return atStopDurationMs;
+
+        return ChronoUnit.MINUTES.between(arrival, departure);
     }
 
     public Long getDelay() {
@@ -72,6 +86,22 @@ public class MarkerDataStop {
 
     public int getStopOrder() {
         return stopOrder;
+    }
+
+    public MarkerDataStandardized getVehicle() {
+        return vehicle;
+    }
+
+    public boolean isOnLive() {
+        return isOnLive;
+    }
+
+    public boolean isDepartureStop() {
+        return isDepartureStop;
+    }
+
+    public boolean isDestinationStop() {
+        return isDestinationStop;
     }
 
     // ==================== SETTERS ====================
@@ -88,18 +118,12 @@ public class MarkerDataStop {
         this.platformName = platformName;
     }
 
-    public void setArrivingTime(String arrivingTime) {
-        this.arrivingTime = arrivingTime;
-        this.atStopDurationMs = calculateAtStopDuration();
+    public void setArrivalTime(String timeString) {
+        this.arrivalTimeRaw = timeString;
     }
 
-    public void setDepartureTime(String departureTime) {
-        this.departureTime = departureTime;
-        this.atStopDurationMs = calculateAtStopDuration();
-    }
-
-    public void setAtStopDurationMs(long durationMs) {
-        this.atStopDurationMs = durationMs;
+    public void setDepartureTime(String timeString) {
+        this.departureTimeRaw = timeString;
     }
 
     public void setDelay(Long delay) {
@@ -118,71 +142,65 @@ public class MarkerDataStop {
         this.isOnLive = onLive;
     }
 
+    public void setDestinationStop(boolean isDestinationStop) {
+        this.isDestinationStop = isDestinationStop;
+    }
+
+    public void setDepartureStop(boolean isDepartureStop) {
+        this.isDepartureStop = isDepartureStop;
+    }
+
+    public void setVehicle(MarkerDataStandardized markerDataStandardized) {
+        this.vehicle = markerDataStandardized;
+    }
+
     // ==================== MÉTHODES UTILITAIRES ====================
-    private long calculateAtStopDuration() {
-        if (arrivingTime == null || departureTime == null) {
-            return 0;
+    @Nullable
+    private static LocalTime parseToLocalTime(@Nullable String timeString) {
+        if (timeString == null || timeString.isEmpty()) {
+            return null;
         }
 
         try {
-            long arrivalMs = parseTimeToMillis(arrivingTime);
-            long departMs = parseTimeToMillis(departureTime);
-
-            if (arrivalMs > 0 && departMs > 0) {
-                return Math.max(0, departMs - arrivalMs);
+            // Format simple HH:mm:ss
+            if (timeString.matches("\\d{2}:\\d{2}:\\d{2}")) {
+                return LocalTime.parse(timeString, DateTimeFormatter.ofPattern("HH:mm:ss"));
             }
+
+            // Format ISO 8601 avec timezone (Z, +, ou -)
+            if (timeString.contains("T")) {
+                // Parse comme ZonedDateTime puis extrait juste le LocalTime
+                ZonedDateTime zdt = ZonedDateTime.parse(timeString);
+                return zdt.toLocalTime();
+            }
+
         } catch (Exception e) {
-            // Silencieusement, on retourne 0 si le parsing échoue
+            // Silencieusement, retourne null si parsing échoue
+            return null;
         }
 
-        return 0;
+        return null;
     }
 
-    private long parseTimeToMillis(String timeString) {
-        if (timeString == null || timeString.isEmpty()) {
-            return 0;
+    @NonNull
+    private static String formatLocalTime(@Nullable LocalTime time) {
+        if (time == null) {
+            return "—";
         }
-
-        // Format simple HH:mm:ss (trains)
-        if (timeString.matches("\\d{2}:\\d{2}:\\d{2}")) {
-            try {
-                LocalTime time = LocalTime.parse(timeString, DateTimeFormatter.ofPattern("HH:mm:ss"));
-                return time.toSecondOfDay() * 1000L;
-            } catch (Exception e) {
-                return 0;
-            }
-        }
-
-        // Format ISO 8601 (bus) - 2024-03-14T14:30:00Z ou 2024-03-14T14:30:00+02:00
-        if (timeString.contains("T")) {
-            try {
-                // Extraire juste la partie HH:mm:ss
-                String timeOnly = timeString.split("T")[1].split("Z|\\+|-")[0];
-                LocalTime time = LocalTime.parse(timeOnly, DateTimeFormatter.ofPattern("HH:mm:ss"));
-                return time.toSecondOfDay() * 1000L;
-            } catch (Exception e) {
-                return 0;
-            }
-        }
-
-        return 0;
+        return time.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
-    public String getAtStopDurationFormatted() {
-        long durationMs = getAtStopDurationMs();
-        if (durationMs == 0) {
+    @NonNull
+    private static String formatDuration(@Nullable Long minutes) {
+        if (minutes == null || minutes < 0) {
             return "—";
         }
 
-        long seconds = durationMs / 1000;
-        long minutes = seconds / 60;
-        long remainingSeconds = seconds % 60;
-
-        if (minutes > 0) {
-            return String.format("%dm %ds", minutes, remainingSeconds);
-        } else {
-            return String.format("%ds", seconds);
+        if (minutes == 0) {
+            return "0m";
         }
+
+        return minutes + "m";
     }
 
     public String getDelayText() {
@@ -191,7 +209,7 @@ public class MarkerDataStop {
         }
 
         if (delay == 0) {
-            return "À l'heure ✓";
+            return "À l'heure";
         }
 
         if (delay > 0) {
@@ -221,11 +239,11 @@ public class MarkerDataStop {
         return Color.RED;
     }
 
-    public boolean canPickup() {
+    public boolean cantDropoff() {
         return stopType == StopType.NO_DROPOFF;
     }
 
-    public boolean canDropoff() {
+    public boolean cantPickup() {
         return stopType == StopType.NO_PICKUP;
     }
 
@@ -241,19 +259,24 @@ public class MarkerDataStop {
         return delay != null && delay == 0;
     }
 
-    public boolean isOnLive() {
-        return isOnLive;
-    }
-
     @NonNull
     @Override
     public String toString() {
         return "MarkerDataStop{" +
-                "stopName='" + stopName + '\'' +
-                ", arrivingTime='" + arrivingTime + '\'' +
-                ", departureTime='" + departureTime + '\'' +
+                "stopRef='" + stopRef + '\'' +
+                ", stopName='" + stopName + '\'' +
+                ", platformName='" + platformName + '\'' +
+                ", arrivalTimeRaw='" + arrivalTimeRaw + '\'' +
+                ", departureTimeRaw='" + departureTimeRaw + '\'' +
+                ", arrivalTime='" + getArrivalTime() + '\'' +
+                ", departureTime='" + getDepartureTime() + '\'' +
                 ", atStopDurationMs=" + atStopDurationMs +
+                ", delay=" + delay +
                 ", stopType=" + stopType +
+                ", stopOrder=" + stopOrder +
+                ", isOnLive=" + isOnLive +
+                ", isDestinationStop=" + isDestinationStop +
+                ", isDepartureStop=" + isDepartureStop +
                 '}';
     }
 }

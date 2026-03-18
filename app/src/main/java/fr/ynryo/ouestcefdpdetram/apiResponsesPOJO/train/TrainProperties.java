@@ -8,7 +8,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 public class TrainProperties {
-    private DateFormat formatter = new SimpleDateFormat("HH:mm");
+    private final DateFormat formatter = new SimpleDateFormat("HH:mm");
     private String uic;
     private String debut;
     private String fin;
@@ -21,6 +21,8 @@ public class TrainProperties {
     private String ligne;
     private String distance;
     private String offset;
+    private int min = 0;
+    private String origine;
 
     public String getUic() {
         return uic;
@@ -38,8 +40,8 @@ public class TrainProperties {
         return etape;
     }
 
-    public int getArret() {
-        return arret;
+    public boolean isStop() {
+        return arret == 1;
     }
 
     public String getCode() {
@@ -75,6 +77,18 @@ public class TrainProperties {
         return new Time(timeDiff);
     }
 
+    public int getDelay() {
+        return min;
+    }
+
+    public String getOrigine() {
+        return origine;
+    }
+
+    public boolean isRoute() {
+        return origine != null;
+    }
+
     @NonNull
     @Override
     public String toString() {
@@ -91,6 +105,7 @@ public class TrainProperties {
                 ", ligne='" + ligne + '\'' +
                 ", distance='" + distance + '\'' +
                 ", offset='" + offset + '\'' +
+                ", origine='" + origine + '\'' +
                 '}';
     }
 }

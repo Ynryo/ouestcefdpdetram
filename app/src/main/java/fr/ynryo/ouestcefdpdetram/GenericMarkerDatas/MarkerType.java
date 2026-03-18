@@ -1,8 +1,8 @@
 package fr.ynryo.ouestcefdpdetram.GenericMarkerDatas;
 
 public enum MarkerType {
-    CT_TRAIN("Train"),
-    BT_VEHICLE("Bus/Tram");
+    TRAIN("Train"),
+    BUS_TRAM("Bus/Tram");
 
     private final String displayName;
 
@@ -23,8 +23,8 @@ public enum MarkerType {
      */
     public static MarkerType fromMarkerId(String markerId) {
         if (markerId != null && markerId.contains("SNCF")) {
-            return CT_TRAIN;
+            return TRAIN;
         }
-        return BT_VEHICLE;
+        return BUS_TRAM;
     }
 }

@@ -194,10 +194,9 @@ public class MarkerArtist {
     public void onMarkerClick(@NonNull Marker marker) {
         MarkerDataStandardized mData = (MarkerDataStandardized) marker.getTag();
         if (mData != null) {
-            boolean isTrain = mData.getId().contains("SNCF");
-            markerStopsDetailActivity.open(mData, isTrain);
+            markerStopsDetailActivity.open(mData);
 
-            if (isTrain) {
+            if (mData.isTrain()) {
 //                routeArtist.drawVehicleRoute(mData);
             } else {
                 routeArtist.remove();

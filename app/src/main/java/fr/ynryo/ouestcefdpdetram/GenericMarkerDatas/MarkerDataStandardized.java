@@ -1,15 +1,20 @@
 package fr.ynryo.ouestcefdpdetram.GenericMarkerDatas;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.text.ParseException;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkerData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.train.TrainData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.train.TrainFeature;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleStop;
 
@@ -38,15 +43,17 @@ public class MarkerDataStandardized {
 
     // ==================== MÉTADONNÉES ====================
     private boolean isFollowed;                 // Est-ce que l'utilisateur suit ce véhicule?
-    private Date createdAt;                     // Quand ce marqueur a été créé
-    private Date lastUpdatedAt;                 // Quand la position a été mise à jour
+    private Instant createdAt;                     // Quand ce marqueur a été créé
+    private Instant lastUpdatedAt;                 // Quand la position a été mise à jour
     private boolean detailsLoaded;              // Les infos détaillées (stops) ont-elles été fetched?
+
+    private final static String TAG = "MarkerDataStandardized";
 
     // ==================== CONSTRUCTEURS ====================
     public MarkerDataStandardized() {
         this.stops = new ArrayList<>();
-        this.createdAt = new Date();
-        this.lastUpdatedAt = new Date();
+        this.createdAt = Instant.now();
+        this.lastUpdatedAt = Instant.now();
         this.isFollowed = false;
         this.detailsLoaded = false;
     }
@@ -64,8 +71,8 @@ public class MarkerDataStandardized {
         marker.latitude = markerData.getPosition().getLatitude();
         marker.longitude = markerData.getPosition().getLongitude();
         marker.bearing = markerData.getPosition().getBearing();
-        marker.createdAt = new Date();
-        marker.lastUpdatedAt = new Date();
+        marker.createdAt = Instant.now();
+        marker.lastUpdatedAt = Instant.now();
         marker.detailsLoaded = false;
 
         return marker;
@@ -77,15 +84,15 @@ public class MarkerDataStandardized {
             @NonNull MarkerType type) {
 
         MarkerDataStandardized marker = from(markerData, type);
-        marker.setVehicleDetails(vehicleData);
+        marker.setVehicleDetailsVehicleData(vehicleData);
         return marker;
     }
 
-    public void setVehicleDetails(@NonNull VehicleData vehicleData) {
+    // a la priorité sur les datas
+    public void setVehicleDetailsVehicleData(@NonNull VehicleData vehicleData) {
         this.destination = vehicleData.getDestination();
         this.networkId = vehicleData.getNetworkId();
 
-        // Convertir les VehicleStop en MarkerDataStop
         if (vehicleData.getCalls() != null && !vehicleData.getCalls().isEmpty()) {
             this.stops = new ArrayList<>();
             for (int i = 0; i < vehicleData.getCalls().size(); i++) {
@@ -96,7 +103,6 @@ public class MarkerDataStandardized {
                 stop.setStopName(vehicleStop.getStopName());
                 stop.setPlatformName(vehicleStop.getPlatformName());
                 stop.setOnLive(vehicleStop.getExpectedTime() != null);
-//                stop.setArrivingTime(vehicleStop.getAimedTime() != null ? vehicleStop.getAimedTime() : vehicleStop.getExpectedTime());
                 if (stop.isOnLive()) {
                     ZonedDateTime expected = ZonedDateTime.parse(vehicleStop.getExpectedTime());
                     ZonedDateTime aimed = ZonedDateTime.parse(vehicleStop.getAimedTime());
@@ -105,6 +111,7 @@ public class MarkerDataStandardized {
                 }
                 stop.setDepartureTime(vehicleStop.getExpectedTime() != null ? vehicleStop.getExpectedTime() : vehicleStop.getAimedTime());
                 stop.setStopOrder(vehicleStop.getStopOrder());
+                stop.setVehicle(this);
 
                 if (vehicleStop.getFlags().contains("NO_PICKUP")) {
                     stop.setStopType(StopType.NO_PICKUP);
@@ -119,7 +126,43 @@ public class MarkerDataStandardized {
         }
 
         this.detailsLoaded = true;
-        this.lastUpdatedAt = new Date();
+        this.lastUpdatedAt = Instant.now();
+    }
+
+    // n'a pas la priorité, complete juste
+    public void setVehicleDetailsTrainData(@NonNull TrainData trainData) throws ParseException {
+        List<TrainFeature> trainFeatureList = trainData.getRouteFeatures();
+        if (trainFeatureList != null && !trainFeatureList.isEmpty()) {
+            this.destination = trainData.getDestination();
+            this.stops = new ArrayList<>();
+            for (int i = 0; i < trainFeatureList.size(); i++) {
+                TrainFeature trainFeature = trainFeatureList.get(i);
+                if (!trainFeature.getProperties().isStop()) continue;
+
+                MarkerDataStop stop = new MarkerDataStop();
+                try {
+                    if (trainFeature.getProperties().isRoute()) continue;
+                    stop.setStopOrder(trainFeature.getProperties().getEtape());
+                    stop.setStopRef(trainFeature.getProperties().getUic());
+                    stop.setStopName(trainFeature.getProperties().getLocalite());
+//                stop.setPlatformName(trainFeature.getPlatformName()); // TODO: à ajouter avec l'api carto tchoo guestplatform
+                    stop.setOnLive(true);
+                    stop.setDelay((long) trainFeature.getProperties().getDelay());
+                    stop.setArrivalTime(trainFeature.getProperties().getDebut().toString());
+                    stop.setDepartureTime(trainFeature.getProperties().getFin().toString());
+                    stop.setDestinationStop(trainData.isDestinationStop(trainFeature.getProperties().getLocalite()));
+                    stop.setDepartureStop(trainData.isDepartureStop(trainFeature.getProperties().getLocalite()));
+                    stop.setVehicle(this);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                Log.i(TAG, stop.toString());
+                this.stops.add(stop);
+            }
+        }
+
+        this.detailsLoaded = true;
+        this.lastUpdatedAt = Instant.now();
     }
 
     // ==================== GETTERS ====================
@@ -175,11 +218,11 @@ public class MarkerDataStandardized {
         return isFollowed;
     }
 
-    public Date getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public Date getLastUpdatedAt() {
+    public Instant getLastUpdatedAt() {
         return lastUpdatedAt;
     }
 
@@ -222,17 +265,17 @@ public class MarkerDataStandardized {
 
     public void setLatitude(double latitude) {
         this.latitude = latitude;
-        this.lastUpdatedAt = new Date();
+        this.lastUpdatedAt = Instant.now();
     }
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
-        this.lastUpdatedAt = new Date();
+        this.lastUpdatedAt = Instant.now();
     }
 
     public void setBearing(float bearing) {
         this.bearing = bearing;
-        this.lastUpdatedAt = new Date();
+        this.lastUpdatedAt = Instant.now();
     }
 
     public void setDestination(String destination) {
@@ -248,11 +291,11 @@ public class MarkerDataStandardized {
         isFollowed = followed;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
-    public void setLastUpdatedAt(Date lastUpdatedAt) {
+    public void setLastUpdatedAt(Instant lastUpdatedAt) {
         this.lastUpdatedAt = lastUpdatedAt;
     }
 
@@ -262,11 +305,11 @@ public class MarkerDataStandardized {
 
     // ==================== MÉTHODES UTILITAIRES ====================
     public boolean isTrain() {
-        return markerType == MarkerType.CT_TRAIN;
+        return markerType == MarkerType.TRAIN;
     }
 
     public boolean isVehicle() {
-        return markerType == MarkerType.BT_VEHICLE;
+        return markerType == MarkerType.BUS_TRAM;
     }
 
     @Nullable
@@ -285,7 +328,7 @@ public class MarkerDataStandardized {
         this.latitude = newLatitude;
         this.longitude = newLongitude;
         this.bearing = newBearing;
-        this.lastUpdatedAt = new Date();
+        this.lastUpdatedAt = Instant.now();
     }
 
     @NonNull
@@ -296,11 +339,18 @@ public class MarkerDataStandardized {
                 ", id='" + id + '\'' +
                 ", lineId='" + lineId + '\'' +
                 ", networkRef='" + networkRef + '\'' +
-                ", destination='" + destination + '\'' +
-                ", position=(" + latitude + "," + longitude + ")" +
+                ", networkId=" + networkId +
+                ", fillColor='" + fillColor + '\'' +
+                ", textColor='" + textColor + '\'' +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
                 ", bearing=" + bearing +
-                ", stopsCount=" + getRemainingStopsCount() +
+                ", markerDataRoute=" + markerDataRoute +
+                ", destination='" + destination + '\'' +
+                ", stops=" + stops +
                 ", isFollowed=" + isFollowed +
+                ", createdAt=" + createdAt +
+                ", lastUpdatedAt=" + lastUpdatedAt +
                 ", detailsLoaded=" + detailsLoaded +
                 '}';
     }

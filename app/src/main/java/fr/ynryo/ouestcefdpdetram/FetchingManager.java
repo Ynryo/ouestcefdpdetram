@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.net.URLEncoder;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,8 @@ import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkersList;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.train.TrainData;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.train.TrainFeature;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version.VersionResponse;
 import retrofit2.Call;
@@ -28,6 +31,7 @@ public class FetchingManager {
     private static final String BASE_URL_BUS_TRACKER = "https://bus-tracker.fr/api/";
     private static final String BASE_URL_CARTO_TCHOO = "https://api.tchoo.net/api/";
     private static final String BASE_URL_DL_YNRYO = "https://dl.ynryo.fr/api/ouestcefdpdetram/";
+    private static final String TAG = "FetchingManager";
 
     private final MainActivity context;
     private static ApiService busTrackerService;
@@ -63,10 +67,6 @@ public class FetchingManager {
 
     // ==================== LISTENERS ====================
     public interface OnMarkersListener {
-        /**
-         * Appelé quand le fetch est réussi
-         * @param markers List<MarkerDataStandardized> prêts à l'emploi
-         */
         void onResponseMarkersListener(List<MarkerDataStandardized> markerDataStandardizedList);
         void onErrorMarkersListener(String error);
     }
@@ -118,13 +118,6 @@ public class FetchingManager {
     }
 
     // ==================== FETCH MARKERS (PRINCIPAL) ====================
-
-    /**
-     * Fetch les marqueurs visibles dans les bounds de la caméra.
-     * Convertit automatiquement MarkerData → MarkerDataStandardized
-     *
-     * @param listener Reçoit List<MarkerDataStandardized>
-     */
     public void fetchMarkers(OnMarkersListener listener) {
         if (context.getMap() == null) return;
 
@@ -156,24 +149,52 @@ public class FetchingManager {
     // ==================== FETCH VEHICLE DETAILS ====================
     public void fetchVehicleStopsInfo(MarkerDataStandardized markerDataStandardized, OnVehicleDetailsListener listener) {
         try {
-            String encodedId = URLEncoder.encode(markerDataStandardized.getId(), "UTF-8");
-            getService(BASE_URL_BUS_TRACKER).getVehicleDetails(encodedId).enqueue(new Callback<>() {
-                @Override
-                public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        VehicleData vehicleData = response.body();
-                        markerDataStandardized.setVehicleDetails(vehicleData);
-                        listener.onResponseVehicleDetailsListener(markerDataStandardized);
-                    } else {
-                        listener.onErrorVehicleDetailsListener(String.valueOf(response.code()));
+            if (markerDataStandardized.isVehicle()) {
+                String encodedId = URLEncoder.encode(markerDataStandardized.getId(), "UTF-8");
+                getService(BASE_URL_BUS_TRACKER).getVehicleDetails(encodedId).enqueue(new Callback<>() {
+                    @Override
+                    public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            VehicleData vehicleData = response.body();
+                            markerDataStandardized.setVehicleDetailsVehicleData(vehicleData);
+                            listener.onResponseVehicleDetailsListener(markerDataStandardized);
+                        } else {
+                            listener.onErrorVehicleDetailsListener(String.valueOf(response.code()));
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(@NonNull Call<VehicleData> call, @NonNull Throwable t) {
-                    listener.onErrorVehicleDetailsListener(t.getMessage());
-                }
-            });
+                    @Override
+                    public void onFailure(@NonNull Call<VehicleData> call, @NonNull Throwable t) {
+                        listener.onErrorVehicleDetailsListener(t.getMessage());
+                    }
+                });
+            } else if (markerDataStandardized.isTrain()) {
+                getService(BASE_URL_CARTO_TCHOO).getVehicleDetails(Integer.parseInt(markerDataStandardized.getLineId())).enqueue(new Callback<>() {
+                    @Override
+                    public void onResponse(Call<TrainData> call, Response<TrainData> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            TrainData trainData = response.body();
+                            for(TrainFeature trainFeature : trainData.getRouteFeatures()) {
+                                Log.i(TAG, trainFeature.getProperties().toString());
+                            }
+                            try {
+                                markerDataStandardized.setVehicleDetailsTrainData(trainData);
+                            } catch (ParseException e) {
+                                throw new RuntimeException(e);
+                            }
+                            listener.onResponseVehicleDetailsListener(markerDataStandardized);
+                        } else {
+                            listener.onErrorVehicleDetailsListener(String.valueOf(response.code()));
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<TrainData> call, Throwable t) {
+                        listener.onErrorVehicleDetailsListener(t.getMessage());
+                    }
+                });
+            }
+
         } catch (Exception e) {
             listener.onErrorVehicleDetailsListener(e.getMessage());
         }

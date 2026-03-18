@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -32,7 +33,7 @@ import com.google.android.material.color.MaterialColors;
 
 import java.lang.ref.WeakReference;
 import java.net.URI;
-import java.time.ZonedDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,6 @@ import java.util.List;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStop;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
-import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleStop;
 
 public class MarkerStopsDetailActivity {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -49,17 +49,14 @@ public class MarkerStopsDetailActivity {
     private final MainActivity context;
     private BottomSheetDialog bottomSheetDialog;
     private String vehicleId;
-    private boolean isTrain;
 
     public MarkerStopsDetailActivity(MainActivity context) {
         WeakReference<MainActivity> contextRef = new WeakReference<>(context);
         this.context = contextRef.get();
     }
 
-    public void open(MarkerDataStandardized markerDataStandardized, boolean isTrain) {
+    public void open(MarkerDataStandardized markerDataStandardized) {
         if (this.context == null) return;
-        this.isTrain = isTrain;
-
         close();
 
         bottomSheetDialog = new BottomSheetDialog(context);
@@ -290,6 +287,9 @@ public class MarkerStopsDetailActivity {
         private void bindStopViewHolder(StopViewHolder vh, MarkerDataStop stop) { //distribute data
             bindPlatform(vh, stop);
             bindStopName(vh, stop);
+            bindOnLive(vh, stop);
+            bindArrivalTime(vh, stop);
+            bindAtStopTime(vh, stop);
             bindDepartureTime(vh, stop);
             bindDelay(vh, stop);
         }
@@ -299,11 +299,12 @@ public class MarkerStopsDetailActivity {
             if (platformName != null && !platformName.isEmpty()) {
                 vh.tvPlatform.setText(platformName);
                 vh.tvPlatform.setVisibility(View.VISIBLE);
+                vh.tvPlatform.setTextColor(Color.WHITE);
                 vh.spacerPlatform.setVisibility(View.VISIBLE);
 
                 GradientDrawable gd = new GradientDrawable();
                 gd.setShape(GradientDrawable.RECTANGLE);
-                gd.setStroke(2, Color.BLACK);
+                gd.setStroke(2, Color.WHITE);
                 gd.setCornerRadius(10);
                 vh.tvPlatform.setBackground(gd);
             } else {
@@ -325,8 +326,8 @@ public class MarkerStopsDetailActivity {
         }
 
         private int getStopIconResource(MarkerDataStop stop) {
-            if (stop.canDropoff()) return R.drawable.logout_24px;
-            if (stop.canPickup()) return R.drawable.login_24px;
+            if (stop.cantPickup()) return R.drawable.logout_24px;
+            if (stop.cantDropoff()) return R.drawable.login_24px;
             return 0;
         }
 
@@ -350,61 +351,74 @@ public class MarkerStopsDetailActivity {
             }
         }
 
-//        private void bindArrivalTime(StopViewHolder vh, TrainData stop) {
-//            if (!isTrain) return;
-//
-//            try {
-//              ZonedDateTime zdt = ZonedDateTime.parse(stop.getAimedTime());
-//                ZonedDateTime zdt = ZonedDateTime.parse()
-//                vh.tvArrivingTime.setText(zdt.format(TIME_FORMATTER));
-//                vh.tvArrivingTime.setTextColor(getDefaultTextColor(vh));
-//            } catch (Exception e) {
-//                vh.tvArrivingTime.setText("??:??");
-//            }
-//        }
-
-        private void bindAtStopTime(StopViewHolder vh, VehicleStop stop) {
-            if (!isTrain) return;
-            boolean isExpected = stop.getExpectedTime() != null;
-
-            if (isExpected) {
-                vh.ivTimeIcon.setImageResource(R.drawable.sensors_24px);
-                vh.ivTimeIcon.setColorFilter(COLOR_GREEN);
-                vh.ivTimeIcon.setVisibility(View.VISIBLE);
-            } else {
-                vh.ivTimeIcon.setVisibility(View.GONE);
+        private void bindArrivalTime(StopViewHolder vh, MarkerDataStop stop) {
+            MarkerDataStandardized vehicle = stop.getVehicle();
+            if (!vehicle.isTrain() || stop.isDepartureStop()) {
+                vh.tvArrivingTime.setVisibility(View.GONE);
+                return;
             }
 
-            try {
-                String rawTime = isExpected ? stop.getExpectedTime() : stop.getAimedTime();
-                if (rawTime == null) {
-                    vh.tvAtStopTime.setText("??:??");
-                    vh.tvAtStopTime.setTextColor(Color.RED);
-                } else {
-                    ZonedDateTime zdt = ZonedDateTime.parse(rawTime);
-                    vh.tvAtStopTime.setText(zdt.format(TIME_FORMATTER));
-                    vh.tvAtStopTime.setTextColor(isExpected ? COLOR_GREEN : getDefaultTextColor(vh));
-                }
-            } catch (Exception e) {
-                vh.tvAtStopTime.setText("??:??");
+            LocalTime arrivalTime = stop.getArrivalTime();
+            if (arrivalTime != null) {
+                vh.tvArrivingTime.setVisibility(View.VISIBLE);
+                vh.tvArrivingTime.setText(arrivalTime.format(TIME_FORMATTER));
+                vh.tvArrivingTime.setTextColor(stop.isOnLive() ? COLOR_GREEN : getDefaultTextColor(vh));
+                vh.tvAtStopTime.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                ));
+            } else {
+                vh.tvArrivingTime.setVisibility(View.GONE);
+            }
+        }
+
+        private void bindAtStopTime(StopViewHolder vh, MarkerDataStop stop) {
+            MarkerDataStandardized vehicle = stop.getVehicle();
+            if (!vehicle.isTrain() || stop.isDestinationStop() || stop.isDepartureStop()) {
+                vh.tvAtStopTime.setVisibility(View.GONE);
+                return;
+            }
+            Long atStopMinutes = stop.getAtStopTime();
+            if (atStopMinutes != null && atStopMinutes >= 0) {
+                vh.tvAtStopTime.setVisibility(View.VISIBLE);
+                vh.tvAtStopTime.setText(atStopMinutes + "min d'arrêt");
+                vh.tvAtStopTime.setTextColor(Color.GRAY);
+                vh.tvAtStopTime.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                ));
+            } else {
+                vh.tvAtStopTime.setText("—");
             }
         }
 
         private void bindDepartureTime(StopViewHolder vh, MarkerDataStop stop) {
+            if (stop.isDestinationStop()) {
+                vh.tvDepartureTime.setVisibility(View.GONE);
+                return;
+            }
+
+            LocalTime departureTime = stop.getDepartureTime();
+            if (departureTime != null) {
+                vh.tvDepartureTime.setVisibility(View.VISIBLE);
+                vh.tvDepartureTime.setText(departureTime.format(TIME_FORMATTER));
+                vh.tvDepartureTime.setTextColor(stop.isOnLive() ? COLOR_GREEN : getDefaultTextColor(vh));
+            } else {
+                vh.tvDepartureTime.setText("??:??");
+            }
+        }
+
+        private void bindOnLive(StopViewHolder vh, MarkerDataStop stop) {
             if (stop.isOnLive()) {
                 vh.ivTimeIcon.setImageResource(R.drawable.sensors_24px);
                 vh.ivTimeIcon.setColorFilter(COLOR_GREEN);
                 vh.ivTimeIcon.setVisibility(View.VISIBLE);
+                vh.tvAtStopTime.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                ));
             } else {
                 vh.ivTimeIcon.setVisibility(View.GONE);
-            }
-
-            try {
-                ZonedDateTime zdt = ZonedDateTime.parse(stop.getDepartureTime());
-                vh.tvDepartureTime.setText(zdt.format(TIME_FORMATTER));
-                vh.tvDepartureTime.setTextColor(stop.isOnLive() ? COLOR_GREEN : getDefaultTextColor(vh));
-            } catch (Exception e) {
-                vh.tvDepartureTime.setText("??:??");
             }
         }
 
@@ -413,17 +427,9 @@ public class MarkerStopsDetailActivity {
 
             if (stop.getDelay() == null || stop.getDelay() == 0) return;
 
-            try {
-                vh.tvDelay.setVisibility(View.VISIBLE);
-                setDelayText(vh, stop);
-            } catch (Exception ignored) {
-                //skip
-            }
-        }
-
-        private void setDelayText(StopViewHolder vh, MarkerDataStop markerDataStop) {
-            vh.tvDelay.setText(markerDataStop.getDelayText());
-            vh.tvDelay.setTextColor(markerDataStop.getDelayColor());
+            vh.tvDelay.setVisibility(View.VISIBLE);
+            vh.tvDelay.setText(stop.getDelayText());
+            vh.tvDelay.setTextColor(stop.getDelayColor());
         }
 
         private int getDefaultTextColor(StopViewHolder vh) {
