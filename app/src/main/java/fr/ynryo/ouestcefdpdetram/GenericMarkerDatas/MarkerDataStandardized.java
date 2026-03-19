@@ -35,7 +35,8 @@ public class MarkerDataStandardized {
     private double latitude;                    // Latitude actuelle
     private double longitude;                   // Longitude actuelle
     private float bearing;                      // Azimut/direction du véhicule (0-360°)
-    private List<Object> markerDataRoute;       // Liste des points du tracé
+    private String pathRef;
+    private Object markerDataRoute;       // Liste des points du tracé
 
     // ==================== DONNÉES DE VOYAGE ====================
     private String destination;                 // Destination finale
@@ -48,6 +49,7 @@ public class MarkerDataStandardized {
     private boolean detailsLoaded;              // Les infos détaillées (stops) ont-elles été fetched?
 
     private final static String TAG = "MarkerDataStandardized";
+    private final static int NETWORK_ID_SNCF = 17;
 
     // ==================== CONSTRUCTEURS ====================
     public MarkerDataStandardized() {
@@ -88,6 +90,7 @@ public class MarkerDataStandardized {
     public void setVehicleDetailsVehicleData(@NonNull VehicleData vehicleData) {
         this.destination = vehicleData.getDestination();
         this.networkId = vehicleData.getNetworkId();
+        this.pathRef = vehicleData.getPathRef();
 
         if (vehicleData.getCalls() != null && !vehicleData.getCalls().isEmpty()) {
             this.stops = new ArrayList<>();
@@ -130,14 +133,19 @@ public class MarkerDataStandardized {
         List<TrainFeature> trainFeatureList = trainData.getRouteFeatures();
         if (trainFeatureList != null && !trainFeatureList.isEmpty()) {
             this.destination = trainData.getDestination();
+            this.networkId = NETWORK_ID_SNCF;
             this.stops = new ArrayList<>();
             for (int i = 0; i < trainFeatureList.size(); i++) {
                 TrainFeature trainFeature = trainFeatureList.get(i);
-                if (!trainFeature.getProperties().isStop()) continue;
+
+                if (trainFeature.getProperties().isRoute()) {
+                    this.markerDataRoute = trainFeature.getRouteGeometry().getCoordinates();
+                    continue;
+                }
+                if (!trainFeature.getProperties().isStop()) continue; // si c'est pas un arrêt c'est oust
 
                 MarkerDataStop stop = new MarkerDataStop();
                 try {
-                    if (trainFeature.getProperties().isRoute()) continue;
                     stop.setStopOrder(trainFeature.getProperties().getEtape());
                     stop.setStopRef(trainFeature.getProperties().getUic());
                     stop.setStopName(trainFeature.getProperties().getLocalite());
@@ -222,7 +230,11 @@ public class MarkerDataStandardized {
         return lastUpdatedAt;
     }
 
-    public List<Object> getMarkerDataRoute() {
+    public String getPathRef() {
+        return pathRef;
+    }
+
+    public Object getMarkerDataRoute() {
         return markerDataRoute;
     }
 
@@ -297,6 +309,10 @@ public class MarkerDataStandardized {
 
     public void setDetailsLoaded(boolean detailsLoaded) {
         this.detailsLoaded = detailsLoaded;
+    }
+
+    public void setMarkerDataRoute(Object markerDataRoute) {
+        this.markerDataRoute = markerDataRoute;
     }
 
     // ==================== MÉTHODES UTILITAIRES ====================

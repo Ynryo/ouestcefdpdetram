@@ -17,6 +17,7 @@ public class VehicleData {
     private MarkerPosition position;
     private int networkId;
     private String serviceDate;
+    private String pathRef;
     private String updatedAt;
     private Context context;
 
@@ -50,6 +51,10 @@ public class VehicleData {
 
     public String getServiceDate() {
         return serviceDate;
+    }
+
+    public String getPathRef() {
+        return pathRef;
     }
 
     public String getUpdatedAt() {

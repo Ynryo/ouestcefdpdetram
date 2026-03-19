@@ -195,12 +195,6 @@ public class MarkerArtist {
         MarkerDataStandardized mData = (MarkerDataStandardized) marker.getTag();
         if (mData != null) {
             markerStopsDetailActivity.open(mData);
-
-            if (mData.isTrain()) {
-//                routeArtist.drawVehicleRoute(mData);
-            } else {
-                routeArtist.remove();
-            }
         }
     }
 
@@ -253,6 +247,10 @@ public class MarkerArtist {
 
     public void setmMap(GoogleMap mMap) {
         this.mMap = mMap;
+    }
+
+    public RouteArtist getRouteArtist() {
+        return routeArtist;
     }
 
     public Map<String, Marker> getActiveMarkers() {

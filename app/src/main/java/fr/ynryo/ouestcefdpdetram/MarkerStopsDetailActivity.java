@@ -129,6 +129,11 @@ public class MarkerStopsDetailActivity {
             @Override
             public void onResponseVehicleDetailsListener(MarkerDataStandardized markerDataStandardized) {
                 hideLoader(view);
+
+                if (context.getMarkerArtist() != null) {
+                    context.getMarkerArtist().getRouteArtist().drawVehicleRoute(markerDataStandardized);
+                }
+
                 showVehicleDetails(markerDataStandardized, view);
                 fetchNetworkLogo(markerDataStandardized, view);
             }

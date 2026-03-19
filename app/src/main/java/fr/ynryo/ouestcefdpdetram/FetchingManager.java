@@ -13,6 +13,7 @@ import java.util.List;
 
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerType;
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.bus.BusGeometry;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkersList;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
@@ -82,7 +83,7 @@ public class FetchingManager {
     }
 
     public interface OnRouteLineListener {
-        void onResponseRouteLineListener(VehicleData data);
+        void onResponseRouteLineListener(MarkerDataStandardized data);
         void onErrorRouteLineListener(String error);
     }
 
@@ -171,7 +172,7 @@ public class FetchingManager {
             } else if (markerDataStandardized.isTrain()) {
                 getService(BASE_URL_CARTO_TCHOO).getVehicleDetails(Integer.parseInt(markerDataStandardized.getLineId())).enqueue(new Callback<>() {
                     @Override
-                    public void onResponse(Call<TrainData> call, Response<TrainData> response) {
+                    public void onResponse(@NonNull Call<TrainData> call, @NonNull Response<TrainData> response) {
                         if (response.isSuccessful() && response.body() != null) {
                             TrainData trainData = response.body();
                             for(TrainFeature trainFeature : trainData.getRouteFeatures()) {
@@ -189,7 +190,7 @@ public class FetchingManager {
                     }
 
                     @Override
-                    public void onFailure(Call<TrainData> call, Throwable t) {
+                    public void onFailure(@NonNull Call<TrainData> call, @NonNull Throwable t) {
                         listener.onErrorVehicleDetailsListener(t.getMessage());
                     }
                 });
@@ -220,20 +221,24 @@ public class FetchingManager {
     }
 
     // ==================== FETCH ROUTE LINE ====================
-    public void fetchRouteLine(String routeId, OnRouteLineListener listener) {
+    public void fetchBusLine(MarkerDataStandardized markerDataStandardized, OnRouteLineListener listener) {
         try {
-            getService(BASE_URL_CARTO_TCHOO).getRouteLine(Integer.parseInt(routeId)).enqueue(new Callback<VehicleData>() {
+            Log.d(TAG, markerDataStandardized.getPathRef());
+            String encodedPathRef = URLEncoder.encode(markerDataStandardized.getPathRef(), "UTF-8");
+            Log.d(TAG, encodedPathRef);
+            getService(BASE_URL_BUS_TRACKER).getBusLine(encodedPathRef).enqueue(new Callback<BusGeometry>() {
                 @Override
-                public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
+                public void onResponse(@NonNull Call<BusGeometry> call, @NonNull Response<BusGeometry> response) {
                     if (response.isSuccessful() && response.body() != null) {
-                        listener.onResponseRouteLineListener(response.body());
+                        markerDataStandardized.setMarkerDataRoute(response.body());
+                        listener.onResponseRouteLineListener(markerDataStandardized);
                     } else {
-                        listener.onErrorRouteLineListener("Code erreur: " + response.code());
+                        listener.onErrorRouteLineListener("Erreur: " + response);
                     }
                 }
 
                 @Override
-                public void onFailure(@NonNull Call<VehicleData> call, @NonNull Throwable t) {
+                public void onFailure(@NonNull Call<BusGeometry> call, @NonNull Throwable t) {
                     listener.onErrorRouteLineListener(t.getMessage());
                 }
             });
