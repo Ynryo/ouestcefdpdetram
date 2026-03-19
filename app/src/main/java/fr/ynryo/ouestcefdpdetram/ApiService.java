@@ -2,6 +2,7 @@ package fr.ynryo.ouestcefdpdetram;
 
 import java.util.List;
 
+import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.bus.BusGeometry;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkersList;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
@@ -16,20 +17,20 @@ import retrofit2.http.Query;
 public interface ApiService {
     @GET("vehicle-journeys/markers")
     Call<MarkersList> getVehicleMarkers(
-            @Query("swLat") double swLat,
-            @Query("swLon") double swLon,
-            @Query("neLat") double neLat,
-            @Query("neLon") double neLon
+        @Query("swLat") double swLat,
+        @Query("swLon") double swLon,
+        @Query("neLat") double neLat,
+        @Query("neLon") double neLon
     );
 
     @GET("vehicle-journeys/{vehicleId}")
     Call<VehicleData> getVehicleDetails(
-            @Path(value = "vehicleId", encoded = true) String vehicleId
+        @Path(value = "vehicleId", encoded = true) String vehicleId
     );
 
     @GET("carto.php?action=train")
     Call<TrainData> getVehicleDetails(
-            @Query("numero") int vehicleNumber
+        @Query("numero") int vehicleNumber
     );
 
     @GET("regions")
@@ -40,12 +41,12 @@ public interface ApiService {
 
     @GET("networks/{networkId}?withDetails=true")
     Call<NetworkData> getNetworkData(
-            @Path(value = "networkId") int networkId
+        @Path(value = "networkId") int networkId
     );
 
-    @GET("carto.php?action=train")
-    Call<VehicleData> getRouteLine(
-            @Query("numero") int vehicleRoute
+    @GET("paths/{pathRef}")
+    Call<BusGeometry> getBusLine(
+        @Path(value = "pathRef", encoded = true) String pathRef
     );
 
     @GET("version/latest")
