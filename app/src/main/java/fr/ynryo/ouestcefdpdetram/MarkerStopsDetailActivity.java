@@ -16,7 +16,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -287,7 +286,6 @@ public class MarkerStopsDetailActivity {
         private void bindStopViewHolder(StopViewHolder vh, MarkerDataStop stop) { //distribute data
             bindPlatform(vh, stop);
             bindStopName(vh, stop);
-            bindOnLive(vh, stop);
             bindArrivalTime(vh, stop);
             bindAtStopTime(vh, stop);
             bindDepartureTime(vh, stop);
@@ -363,10 +361,7 @@ public class MarkerStopsDetailActivity {
                 vh.tvArrivingTime.setVisibility(View.VISIBLE);
                 vh.tvArrivingTime.setText(arrivalTime.format(TIME_FORMATTER));
                 vh.tvArrivingTime.setTextColor(stop.isOnLive() ? COLOR_GREEN : getDefaultTextColor(vh));
-                vh.tvAtStopTime.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                ));
+                bindOnLive(vh.ivArrivingTimeIcon, stop);
             } else {
                 vh.tvArrivingTime.setVisibility(View.GONE);
             }
@@ -383,10 +378,6 @@ public class MarkerStopsDetailActivity {
                 vh.tvAtStopTime.setVisibility(View.VISIBLE);
                 vh.tvAtStopTime.setText(atStopMinutes + "min d'arrêt");
                 vh.tvAtStopTime.setTextColor(Color.GRAY);
-                vh.tvAtStopTime.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                ));
             } else {
                 vh.tvAtStopTime.setText("—");
             }
@@ -403,22 +394,23 @@ public class MarkerStopsDetailActivity {
                 vh.tvDepartureTime.setVisibility(View.VISIBLE);
                 vh.tvDepartureTime.setText(departureTime.format(TIME_FORMATTER));
                 vh.tvDepartureTime.setTextColor(stop.isOnLive() ? COLOR_GREEN : getDefaultTextColor(vh));
+                bindOnLive(vh.ivDepartureTimeIcon, stop);
             } else {
                 vh.tvDepartureTime.setText("??:??");
             }
         }
 
-        private void bindOnLive(StopViewHolder vh, MarkerDataStop stop) {
+        private void bindOnLive(ImageView ivTimeIcon, MarkerDataStop stop) {
             if (stop.isOnLive()) {
-                vh.ivTimeIcon.setImageResource(R.drawable.sensors_24px);
-                vh.ivTimeIcon.setColorFilter(COLOR_GREEN);
-                vh.ivTimeIcon.setVisibility(View.VISIBLE);
-                vh.tvAtStopTime.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                ));
+                ivTimeIcon.setImageResource(R.drawable.sensors_24px);
+                ivTimeIcon.setColorFilter(COLOR_GREEN);
+                ivTimeIcon.setVisibility(View.VISIBLE);
+//                vh.tvAtStopTime.setLayoutParams(new LinearLayout.LayoutParams(
+//                        LinearLayout.LayoutParams.WRAP_CONTENT,
+//                        LinearLayout.LayoutParams.WRAP_CONTENT
+//                ));
             } else {
-                vh.ivTimeIcon.setVisibility(View.GONE);
+                ivTimeIcon.setVisibility(View.GONE);
             }
         }
 
@@ -440,7 +432,7 @@ public class MarkerStopsDetailActivity {
     private static class StopViewHolder extends RecyclerView.ViewHolder {
         final TextView tvPlatform, tvStopName, tvDepartureTime, tvAtStopTime, tvArrivingTime, tvDelay;
         final View spacerPlatform;
-        final ImageView ivTimeIcon;
+        final ImageView ivArrivingTimeIcon, ivDepartureTimeIcon;
 
         StopViewHolder(View itemView) {
             super(itemView);
@@ -451,7 +443,8 @@ public class MarkerStopsDetailActivity {
             tvArrivingTime = itemView.findViewById(R.id.tvArrivingTime);
             tvDelay = itemView.findViewById(R.id.tvDelay);
             spacerPlatform = itemView.findViewById(R.id.spacerPlatform);
-            ivTimeIcon = itemView.findViewById(R.id.ivTimeIcon);
+            ivArrivingTimeIcon = itemView.findViewById(R.id.ivArrivingTimeIcon);
+            ivDepartureTimeIcon = itemView.findViewById(R.id.ivDepartureTimeIcon);
         }
     }
 }

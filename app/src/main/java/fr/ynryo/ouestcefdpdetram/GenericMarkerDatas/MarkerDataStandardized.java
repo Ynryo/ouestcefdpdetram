@@ -78,17 +78,13 @@ public class MarkerDataStandardized {
         return marker;
     }
 
-    public static MarkerDataStandardized from(
-            @NonNull MarkerData markerData,
-            @NonNull VehicleData vehicleData,
-            @NonNull MarkerType type) {
-
+    public static MarkerDataStandardized from(@NonNull MarkerData markerData, @NonNull VehicleData vehicleData, @NonNull MarkerType type) {
         MarkerDataStandardized marker = from(markerData, type);
         marker.setVehicleDetailsVehicleData(vehicleData);
         return marker;
     }
 
-    // a la priorité sur les datas
+    // à la priorité sur les datas
     public void setVehicleDetailsVehicleData(@NonNull VehicleData vehicleData) {
         this.destination = vehicleData.getDestination();
         this.networkId = vehicleData.getNetworkId();

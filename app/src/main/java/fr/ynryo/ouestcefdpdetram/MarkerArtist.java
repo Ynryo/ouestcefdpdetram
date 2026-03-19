@@ -36,8 +36,8 @@ import java.util.Set;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 
 public class MarkerArtist {
+    private static final String TAG = "MarkerArtist";
     private View cachedMarkerView;
-
     private final MainActivity context;
     private GoogleMap mMap;
     private final FollowManager followManager;

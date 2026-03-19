@@ -19,10 +19,10 @@ public enum MarkerType {
      * Si l'ID contient "SNCF", c'est un train.
      *
      * @param markerId L'ID du marqueur
-     * @return CT_TRAIN si l'ID contient "SNCF", sinon BT_VEHICLE
+     * @return TRAIN si l'ID commence par "SNCF", sinon c'est un BUS_TRAM
      */
     public static MarkerType fromMarkerId(String markerId) {
-        if (markerId != null && markerId.contains("SNCF")) {
+        if (markerId != null && markerId.startsWith("SNCF")) {
             return TRAIN;
         }
         return BUS_TRAM;
