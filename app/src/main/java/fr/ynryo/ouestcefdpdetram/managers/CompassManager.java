@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram;
+package fr.ynryo.ouestcefdpdetram.managers;
 
 import android.widget.ImageView;
 
@@ -6,6 +6,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import fr.ynryo.ouestcefdpdetram.MainActivity;
+import fr.ynryo.ouestcefdpdetram.R;
 
 public class CompassManager {
     private final MainActivity context;

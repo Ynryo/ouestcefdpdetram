@@ -40,6 +40,7 @@ import java.util.List;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStop;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
+import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 
 public class MarkerStopsDetailActivity {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");

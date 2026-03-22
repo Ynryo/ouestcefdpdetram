@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram;
+package fr.ynryo.ouestcefdpdetram.managers;
 
 import android.content.Context;
 import android.content.SharedPreferences;

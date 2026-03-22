@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram;
+package fr.ynryo.ouestcefdpdetram.artists;
 
 import android.animation.ValueAnimator;
 import android.graphics.Bitmap;
@@ -34,14 +34,20 @@ import java.util.Objects;
 import java.util.Set;
 
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.MainActivity;
+import fr.ynryo.ouestcefdpdetram.MarkerStopsDetailActivity;
+import fr.ynryo.ouestcefdpdetram.NetworkFilterDrawerActivity;
+import fr.ynryo.ouestcefdpdetram.R;
+import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
+import fr.ynryo.ouestcefdpdetram.managers.FollowManager;
 
 public class MarkerArtist {
     private static final String TAG = "MarkerArtist";
     private View cachedMarkerView;
     private final MainActivity context;
-    private GoogleMap mMap;
+    private GoogleMap googleMap;
     private final FollowManager followManager;
-    private final NetworkFilterDrawer networkFilterDrawer;
+    private final NetworkFilterDrawerActivity networkFilterDrawerActivity;
     private final RouteArtist routeArtist;
     private final MarkerStopsDetailActivity markerStopsDetailActivity;
     private final Map<String, BitmapDescriptor> markerIconCache = new HashMap<>();
@@ -50,77 +56,105 @@ public class MarkerArtist {
 
     private float oldMapRotation = 0;
 
-    public MarkerArtist(MainActivity context, FollowManager followManager, NetworkFilterDrawer networkFilterDrawer) {
+    public MarkerArtist(MainActivity context, FollowManager followManager, NetworkFilterDrawerActivity networkFilterDrawerActivity) {
         this.context = context;
         this.followManager = followManager;
-        this.networkFilterDrawer = networkFilterDrawer;
+        this.networkFilterDrawerActivity = networkFilterDrawerActivity;
         this.routeArtist = new RouteArtist(context);
         this.markerStopsDetailActivity = new MarkerStopsDetailActivity(context);
     }
 
     public void showMarkers(List<MarkerDataStandardized> markerDataStandardizedList) {
-        if (mMap == null || markerDataStandardizedList == null) return;
+        if (googleMap == null || markerDataStandardizedList == null) return;
 
         Set<String> fetchedMarkerIds = new HashSet<>();
         for (MarkerDataStandardized fetchedMarkerDataStandardized : markerDataStandardizedList) { //on met tout les markers dans une liste
             fetchedMarkerIds.add(fetchedMarkerDataStandardized.getId());
         }
 
+        //on nettoie les marker qui sont plus dans le fetch
         Iterator<Map.Entry<String, Marker>> iterator = activeMarkers.entrySet().iterator();
         while (iterator.hasNext()) { //pour chaque marker fetched
             Map.Entry<String, Marker> entry = iterator.next();
-            if(!fetchedMarkerIds.contains(entry.getKey())) { //si le marker n'est pas dans la liste des markers fetched
-                if (entry.getKey().equals(followManager.getFollowedMarkerId())) followManager.disableFollow(false);
-                if (entry.getKey().equals(routeArtist.getCurrentMarkerId())) routeArtist.remove();
-                if (entry.getKey().equals(markerStopsDetailActivity.getCurrentVehicleId())) markerStopsDetailActivity.close();
-                entry.getValue().remove();
-                iterator.remove();
+            String id = entry.getKey();
+            Marker marker = entry.getValue();
+
+            if (!fetchedMarkerIds.contains(id)) {
+                //plus dans le fetch donc ça degage de l'affichage
+                //mais on att d'être sur qu'il est vrmt mort avant de suppr le polyline et le follow
+                marker.remove(); //remove map
+                iterator.remove(); //remove list of active markers
+                activeAnimators.remove(id); //remove animator
+
+                checkVehicleAliveAndCleanup(id);
             }
         }
 
-        for (MarkerDataStandardized fetchedMarkerDataStandardized : markerDataStandardizedList) { //pour chaque marker
-            if (!networkFilterDrawer.isNetworkVisible(fetchedMarkerDataStandardized.getNetworkRef())) { //si le network n'est pas autorisé d'affichage
-                if (activeMarkers.containsKey(fetchedMarkerDataStandardized.getId())) { //s'il était affiché, c'est ciao
-                    if (fetchedMarkerDataStandardized.getId().equals(followManager.getFollowedMarkerId())) followManager.disableFollow(false);
-                    if (fetchedMarkerDataStandardized.getId().equals(routeArtist.getCurrentMarkerId())) routeArtist.remove();
-                    if (fetchedMarkerDataStandardized.getId().equals(markerStopsDetailActivity.getCurrentVehicleId())) markerStopsDetailActivity.close();
-                    activeMarkers.get(fetchedMarkerDataStandardized.getId()).remove();
-                    activeMarkers.remove(fetchedMarkerDataStandardized.getId());
+        //traitement des markers fetch
+        for (MarkerDataStandardized fetchedMarkerDataStandardized : markerDataStandardizedList) {
+            String id = fetchedMarkerDataStandardized.getId();
+
+            //on check par rapport au filtre réseau
+            if (!networkFilterDrawerActivity.isNetworkVisible(fetchedMarkerDataStandardized.getNetworkRef())) {
+                if (activeMarkers.containsKey(id)) {
+                    // Filtré : on retire de l'affichage mais on garde follow/polyline car il existe
+                    activeMarkers.get(id).remove();
+                    activeMarkers.remove(id);
+                    activeAnimators.remove(id);
                 }
-                continue; //si il était pas là, chill
+                continue;
             }
 
-            float mapRotation = mMap.getCameraPosition().bearing;
+            float mapRotation = googleMap.getCameraPosition().bearing;
             LatLng position = new LatLng(fetchedMarkerDataStandardized.getLatitude(), fetchedMarkerDataStandardized.getLongitude());
 
-            if (activeMarkers.containsKey(fetchedMarkerDataStandardized.getId())) {
-                Marker existingMarker = activeMarkers.get(fetchedMarkerDataStandardized.getId());
+            if (activeMarkers.containsKey(id)) {
+                Marker existingMarker = activeMarkers.get(id);
                 if (existingMarker != null) {
-                    animateMarker(existingMarker, position, followManager.isFollowing(fetchedMarkerDataStandardized.getId()));
+                    animateMarker(existingMarker, position, followManager.isFollowing(id));
 
-                    //màj qui si nécéssaire
                     MarkerDataStandardized oldData = (MarkerDataStandardized) existingMarker.getTag();
                     if (oldData == null ||
                             !Objects.equals(oldData.getFillColor(), fetchedMarkerDataStandardized.getFillColor()) ||
                             !Objects.equals(oldData.getLineId(), fetchedMarkerDataStandardized.getLineId()) ||
                             Math.abs(oldData.getBearing() - fetchedMarkerDataStandardized.getBearing()) > 5) {
 
-                        existingMarker.setIcon(createCustomMarker(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(fetchedMarkerDataStandardized.getId())));
+                        existingMarker.setIcon(createCustomMarker(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id)));
                     }
 
                     existingMarker.setTag(fetchedMarkerDataStandardized);
                 }
             } else {
-                Marker newMarker = mMap.addMarker(new MarkerOptions()
+                Marker newMarker = googleMap.addMarker(new MarkerOptions()
                         .position(position)
-                        .icon(createCustomMarker(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(fetchedMarkerDataStandardized.getId())))
+                        .icon(createCustomMarker(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id)))
                         .anchor(0.5f, 0.3f));
+
                 if (newMarker != null) {
                     newMarker.setTag(fetchedMarkerDataStandardized);
-                    activeMarkers.put(fetchedMarkerDataStandardized.getId(), newMarker);
+                    activeMarkers.put(id, newMarker);
                 }
             }
         }
+    }
+
+    private void checkVehicleAliveAndCleanup(String id) {
+        context.getFetcher().fetchVehicleAlive(id, new FetchingManager.OnVehicleAliveListener() {
+            @Override
+            public void onResponseVehicleAliveListener(boolean isAlive) {
+                if (!isAlive) {
+                    //le vehicle est vrmt mort donc on supprime tout
+                    if (id.equals(followManager.getFollowedMarkerId())) followManager.disableFollow(false);
+                    if (id.equals(routeArtist.getCurrentMarkerId())) routeArtist.remove();
+                    if (id.equals(markerStopsDetailActivity.getCurrentVehicleId())) markerStopsDetailActivity.close();
+                }
+            }
+
+            @Override
+            public void onErrorVehicleAliveListener(String error) {
+                // En cas d'erreur, on garde par précaution
+            }
+        });
     }
 
     public BitmapDescriptor createCustomMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
@@ -176,9 +210,9 @@ public class MarkerArtist {
     }
 
     public void updateMarkerRotations() {
-        if (mMap == null) return;
+        if (googleMap == null) return;
 
-        float mapRotation = mMap.getCameraPosition().bearing;
+        float mapRotation = googleMap.getCameraPosition().bearing;
         if (mapRotation == oldMapRotation) return;
         oldMapRotation = mapRotation;
 
@@ -207,11 +241,11 @@ public class MarkerArtist {
             existing.cancel();
         }
 
-        if (shouldFollow && mMap != null) {
+        if (shouldFollow && googleMap != null) {
             MarkerDataStandardized data = (MarkerDataStandardized) marker.getTag();
             float bearing = data != null ? data.getBearing() : 0f;
 
-            mMap.animateCamera(
+            googleMap.animateCamera(
                     CameraUpdateFactory.newCameraPosition(
                             new CameraPosition.Builder()
                                     .target(toPosition)
@@ -245,8 +279,8 @@ public class MarkerArtist {
         this.cachedMarkerView = cachedMarkerView;
     }
 
-    public void setmMap(GoogleMap mMap) {
-        this.mMap = mMap;
+    public void setGoogleMap(GoogleMap googleMap) {
+        this.googleMap = googleMap;
     }
 
     public RouteArtist getRouteArtist() {

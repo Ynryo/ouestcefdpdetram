@@ -32,11 +32,15 @@ import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version.VersionResponse;
+import fr.ynryo.ouestcefdpdetram.artists.MarkerArtist;
+import fr.ynryo.ouestcefdpdetram.managers.CompassManager;
+import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
+import fr.ynryo.ouestcefdpdetram.managers.FollowManager;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveStartedListener {
     private FetchingManager fetcher;
     private MarkerArtist markerArtist;
-    private NetworkFilterDrawer networkFilterDrawer;
+    private NetworkFilterDrawerActivity networkFilterDrawerActivity;
     private CompassManager compassManager;
     private FollowManager followManager;
 
@@ -52,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private List<NetworkData> pendingNetworks;
 
     private boolean isFetching = false;
-    private GoogleMap mMap;
+    private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationClient;
 
     private final Runnable vehicleUpdateRunnable = new Runnable() {
@@ -69,10 +73,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         fetcher = new FetchingManager(this);
-        networkFilterDrawer = new NetworkFilterDrawer(this);
+        networkFilterDrawerActivity = new NetworkFilterDrawerActivity(this);
         compassManager = new CompassManager(this);
         followManager = new FollowManager(this);
-        markerArtist = new MarkerArtist(this, followManager, networkFilterDrawer);
+        markerArtist = new MarkerArtist(this, followManager, networkFilterDrawerActivity);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -129,14 +133,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        findViewById(R.id.btn_open_menu).setOnClickListener(v -> networkFilterDrawer.open());
+        findViewById(R.id.btn_open_menu).setOnClickListener(v -> networkFilterDrawerActivity.open());
         findViewById(R.id.fab_center_location).setOnClickListener(view -> centerMapOnUserLocation());
     }
 
     private void onEverythingReady() {
         if (!isMapReady || !isDataReady) return;
 
-        networkFilterDrawer.populateNetworks(pendingRegions, pendingNetworks);
+        networkFilterDrawerActivity.populateNetworks(pendingRegions, pendingNetworks);
         centerMapOnUserLocation();
         fetchMarkers();
         handler.post(vehicleUpdateRunnable);
@@ -145,22 +149,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @SuppressLint("PotentialBehaviorOverride")
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        mMap = googleMap;
-        markerArtist.setmMap(mMap);
-        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(PARIS, DEFAULT_ZOOM));
-        mMap.setOnCameraIdleListener(this);
-        mMap.setOnMarkerClickListener(this);
-        mMap.setOnCameraMoveListener(this);
-        mMap.setOnCameraMoveStartedListener(this);
-        mMap.getUiSettings().setMyLocationButtonEnabled(false);
-        mMap.getUiSettings().setCompassEnabled(false);
-        mMap.getUiSettings().setMapToolbarEnabled(false);
+        this.googleMap = googleMap;
+        markerArtist.setGoogleMap(this.googleMap);
+        this.googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+        this.googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(PARIS, DEFAULT_ZOOM));
+        this.googleMap.setOnCameraIdleListener(this);
+        this.googleMap.setOnMarkerClickListener(this);
+        this.googleMap.setOnCameraMoveListener(this);
+        this.googleMap.setOnCameraMoveStartedListener(this);
+        this.googleMap.getUiSettings().setMyLocationButtonEnabled(false);
+        this.googleMap.getUiSettings().setCompassEnabled(false);
+        this.googleMap.getUiSettings().setMapToolbarEnabled(false);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         } else {
-            mMap.setMyLocationEnabled(true);
+            this.googleMap.setMyLocationEnabled(true);
         }
 
         isMapReady = true;
@@ -196,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onCameraMove() {
-        compassManager.updateAzimuth(mMap.getCameraPosition().bearing);
+        compassManager.updateAzimuth(googleMap.getCameraPosition().bearing);
     }
 
     @Override
@@ -210,13 +214,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
+            googleMap.setMyLocationEnabled(true);
             centerMapOnUserLocation();
         }
     }
 
     private void centerMapOnUserLocation() {
-        if (mMap == null) return;
+        if (googleMap == null) return;
 
         //no position go paris
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -229,7 +233,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (location != null) {
                     Log.d("MainActivity", "Position trouvée: " + location.getLatitude() + ", " + location.getLongitude());
                     LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                    googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                             new CameraPosition.Builder()
                                     .target(userLocation)
                                     .zoom(15f)
@@ -247,11 +251,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void centerOnMarker(String markerId) {
         Marker marker = markerArtist.getActiveMarkers().get(markerId);
-        if (marker != null && mMap != null) {
+        if (marker != null && googleMap != null) {
             MarkerDataStandardized data = (MarkerDataStandardized) marker.getTag();
             float bearing = data != null ? data.getBearing() : 0f;
 
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                     new CameraPosition.Builder()
                             .target(marker.getPosition())
                             .bearing(bearing)
@@ -285,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public GoogleMap getMap() {
-        return mMap;
+        return googleMap;
     }
 
     public FetchingManager getFetcher() {

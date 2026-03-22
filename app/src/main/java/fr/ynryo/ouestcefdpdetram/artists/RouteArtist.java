@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram;
+package fr.ynryo.ouestcefdpdetram.artists;
 
 import android.graphics.Color;
 import android.util.Log;
@@ -10,7 +10,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.util.List;
 
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.MainActivity;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.bus.BusGeometry;
+import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 
 public class RouteArtist {
     private final MainActivity context;

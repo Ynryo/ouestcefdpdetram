@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram;
+package fr.ynryo.ouestcefdpdetram.managers;
 
 import android.util.Log;
 
@@ -11,8 +11,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.ynryo.ouestcefdpdetram.ApiService;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerType;
+import fr.ynryo.ouestcefdpdetram.MainActivity;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.bus.BusGeometry;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkerData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkersList;
@@ -100,6 +102,11 @@ public class FetchingManager {
     public interface OnVersionListener {
         void onResponseVersionListener(VersionResponse version);
         void onErrorVersionListener(String error);
+    }
+
+    public interface OnVehicleAliveListener {
+        void onResponseVehicleAliveListener(boolean isAlive);
+        void onErrorVehicleAliveListener(String error);
     }
 
     private ApiService getService(String baseUrl) {
@@ -316,6 +323,25 @@ public class FetchingManager {
         }
     }
 
+    // ==================== FETCH IS ALIVE VERSION ====================
+    public void fetchVehicleAlive(String vehicleId, OnVehicleAliveListener listener) {
+        try {
+            getService(BASE_URL_BUS_TRACKER).getVehicleDetails(vehicleId).enqueue(new Callback<VehicleData>() {
+                @Override
+                public void onResponse(@NonNull Call<VehicleData> call, @NonNull Response<VehicleData> response) {
+                    listener.onResponseVehicleAliveListener(response.code() == 200);
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<VehicleData> call, @NonNull Throwable t) {
+                    listener.onErrorVehicleAliveListener(t.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            listener.onErrorVehicleAliveListener(e.getMessage());
+        }
+    }
+
     // ==================== HELPER METHODS (CONVERSION) ====================
     private List<MarkerDataStandardized> convertMarkerDataList(List<MarkerData> markerDataList) {
         List<MarkerDataStandardized> result = new ArrayList<>();
@@ -326,15 +352,11 @@ public class FetchingManager {
 
         for (MarkerData markerData : markerDataList) {
             try {
-                // Déterminer le type automatiquement
-                MarkerType type = MarkerType.fromMarkerId(markerData.getId());
-
-                // Créer le marqueur standardisé
-                MarkerDataStandardized standardized = MarkerDataStandardized.from(markerData, type);
+                MarkerType type = MarkerType.fromMarkerId(markerData.getId()); //determiner type
+                MarkerDataStandardized standardized = MarkerDataStandardized.from(markerData, type); //on convert
 
                 result.add(standardized);
             } catch (Exception e) {
-                // Si la conversion échoue pour un marqueur, on skip et on continue
                 Log.e("FetchingManager", "Erreur conversion MarkerData -> MarkerDataStandardized: " + e.getMessage());
             }
         }

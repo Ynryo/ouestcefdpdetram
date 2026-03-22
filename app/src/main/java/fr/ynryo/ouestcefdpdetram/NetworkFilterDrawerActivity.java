@@ -21,23 +21,24 @@ import java.util.Map;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
+import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
+import fr.ynryo.ouestcefdpdetram.managers.SaveManager;
 
-public class NetworkFilterDrawer {
-    public static final String TAG = "NetworkFilterDrawer";
+public class NetworkFilterDrawerActivity {
+    public static final String TAG = "NetworkFilterDrawerActivity";
     private final MainActivity context;
     private final SaveManager saveManager;
-    private final Map<String, Boolean> filters = new HashMap<>(); //ref reseau <> isShowed ?
+    private final Map<String, Boolean> filters = new HashMap<>(); //ref réseau <> isShowed ?
     private final List<MaterialSwitch> switches = new ArrayList<>();
     private boolean isBulkUpdate = false;
     private boolean isUpdatingMasterSwitch = false;
 
-    public NetworkFilterDrawer(MainActivity context) {
+    public NetworkFilterDrawerActivity(MainActivity context) {
         this.context = context;
         this.saveManager = new SaveManager(context);
     }
 
     public void open() {
-        if (context == null) return;
         DrawerLayout drawerLayout = context.findViewById(R.id.drawer_layout);
         if (drawerLayout != null) {
             drawerLayout.openDrawer(GravityCompat.START);
@@ -45,8 +46,6 @@ public class NetworkFilterDrawer {
     }
 
     public void populateNetworks(List<RegionData> regions, List<NetworkData> networks) {
-        if (context == null) return;
-        
         LinearLayout networksContainer = context.findViewById(R.id.networks_container);
         if (networksContainer == null) return;
         
@@ -104,9 +103,8 @@ public class NetworkFilterDrawer {
         // Grouper les réseaux par région
         for (NetworkData network : networks) {
             int regionId = network.getRegionId();
-//            if (regionId == 0) continue;
             if (!networksByRegion.containsKey(regionId)) {
-                Log.d("NetworkFilterDrawer", "Ajouté à la map: " + network.getName() + " pour la région: " + regionMap.get(regionId).getName() + " avec l'ID: " + regionId);
+                Log.d("NetworkFilterDrawerActivity", "Ajouté à la map: " + network.getName() + " pour la région: " + regionMap.get(regionId).getName() + " avec l'ID: " + regionId);
                 networksByRegion.put(regionId, new ArrayList<>());
             }
             networksByRegion.get(regionId).add(network);
@@ -198,7 +196,7 @@ public class NetworkFilterDrawer {
 
                         @Override
                         public void onErrorMarkersListener(String error) {
-                            Log.e("NetworkFilterDrawer", "Erreur markers: " + error);
+                            Log.e("NetworkFilterDrawerActivity", "Erreur markers: " + error);
                         }
                     });
                 });

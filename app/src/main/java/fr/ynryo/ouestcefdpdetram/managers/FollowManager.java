@@ -1,8 +1,10 @@
-package fr.ynryo.ouestcefdpdetram;
+package fr.ynryo.ouestcefdpdetram.managers;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import fr.ynryo.ouestcefdpdetram.MainActivity;
 
 public class FollowManager {
     private final MainActivity context;
