@@ -38,17 +38,24 @@ import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 import fr.ynryo.ouestcefdpdetram.managers.FollowManager;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveStartedListener {
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private static final float DEFAULT_ZOOM = 13f;
+    private static final LatLng PARIS = new LatLng(48.8566, 2.3522);
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable vehicleUpdateRunnable = new Runnable() {
+        @Override
+        public void run() {
+            handler.postDelayed(this, 5000);
+            fetchMarkers();
+        }
+    };
+
     private FetchingManager fetcher;
     private MarkerArtist markerArtist;
     private NetworkFilterDrawerActivity networkFilterDrawerActivity;
     private CompassManager compassManager;
     private FollowManager followManager;
 
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private static final float DEFAULT_ZOOM = 13f;
-    private static final LatLng PARIS = new LatLng(48.8566, 2.3522);
-
-    private final Handler handler = new Handler(Looper.getMainLooper());
 
     private boolean isMapReady = false;
     private boolean isDataReady = false;
@@ -59,13 +66,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationClient;
 
-    private final Runnable vehicleUpdateRunnable = new Runnable() {
-        @Override
-        public void run() {
-            handler.postDelayed(this, 5000);
-            fetchMarkers();
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        findViewById(R.id.btn_open_menu).setOnClickListener(v -> networkFilterDrawerActivity.open());
+        findViewById(R.id.btn_open_menu).setOnClickListener(view -> networkFilterDrawerActivity.open());
         findViewById(R.id.fab_center_location).setOnClickListener(view -> centerMapOnUserLocation());
     }
 

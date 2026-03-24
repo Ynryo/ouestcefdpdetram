@@ -15,10 +15,10 @@ import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.bus.BusGeometry;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 
 public class RouteArtist {
+    private final static String TAG = "RouteArtist";
     private final MainActivity context;
     private String currentMarkerId;
     private Polyline currentRoutePolyline;
-    private static final String TAG = "RouteArtist";
 
     public RouteArtist(MainActivity context) {
         this.context = context;
@@ -49,7 +49,7 @@ public class RouteArtist {
                 }
             } catch (ClassCastException e) {
                 this.remove();
-                Log.e("RouteArtist", "Format de coordonnées invalide pour LineString");
+                Log.e(TAG, "Format de coordonnées invalide pour LineString");
             }
             if (pointsAdded) {
                 currentMarkerId = mData.getId();
@@ -82,7 +82,7 @@ public class RouteArtist {
                             }
                         } catch (ClassCastException e) {
                             remove();
-                            Log.e("RouteArtist", "Format de coordonnées invalide pour LineString");
+                            Log.e(TAG, "Format de coordonnées invalide pour LineString");
                         }
                         if (pointsAdded) {
                             currentMarkerId = mData.getId();

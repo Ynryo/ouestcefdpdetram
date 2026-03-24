@@ -342,7 +342,7 @@ public class FetchingManager {
         }
     }
 
-    // ==================== HELPER METHODS (CONVERSION) ====================
+    // ==================== CONVERSION ====================
     private List<MarkerDataStandardized> convertMarkerDataList(List<MarkerData> markerDataList) {
         List<MarkerDataStandardized> result = new ArrayList<>();
 
