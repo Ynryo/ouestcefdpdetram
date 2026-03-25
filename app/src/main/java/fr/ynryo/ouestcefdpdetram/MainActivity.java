@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private FetchingManager fetcher;
     private MarkerArtist markerArtist;
-    private NetworkFilterDrawerActivity networkFilterDrawerActivity;
+    private LateralDrawerActivity lateralDrawerActivity;
     private CompassManager compassManager;
     private FollowManager followManager;
 
@@ -73,10 +73,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         fetcher = new FetchingManager(this);
-        networkFilterDrawerActivity = new NetworkFilterDrawerActivity(this);
+        lateralDrawerActivity = new LateralDrawerActivity(this);
         compassManager = new CompassManager(this);
         followManager = new FollowManager(this);
-        markerArtist = new MarkerArtist(this, followManager, networkFilterDrawerActivity);
+        markerArtist = new MarkerArtist(this, followManager, lateralDrawerActivity);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -133,14 +133,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        findViewById(R.id.btn_open_menu).setOnClickListener(view -> networkFilterDrawerActivity.open());
+        findViewById(R.id.btn_open_menu).setOnClickListener(view -> lateralDrawerActivity.open());
         findViewById(R.id.fab_center_location).setOnClickListener(view -> centerMapOnUserLocation());
     }
 
     private void onEverythingReady() {
         if (!isMapReady || !isDataReady) return;
 
-        networkFilterDrawerActivity.populateNetworks(pendingRegions, pendingNetworks);
+        lateralDrawerActivity.populateNetworks(pendingRegions, pendingNetworks);
         centerMapOnUserLocation();
         fetchMarkers();
         handler.post(vehicleUpdateRunnable);

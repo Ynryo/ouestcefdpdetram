@@ -24,8 +24,8 @@ import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 import fr.ynryo.ouestcefdpdetram.managers.SaveManager;
 
-public class NetworkFilterDrawerActivity {
-    public static final String TAG = "NetworkFilterDrawerActivity";
+public class LateralDrawerActivity {
+    private static final String TAG = "LateralDrawerActivity";
     private final MainActivity context;
     private final SaveManager saveManager;
     private final Map<String, Boolean> filters = new HashMap<>(); //ref réseau <> isShowed ?
@@ -33,14 +33,67 @@ public class NetworkFilterDrawerActivity {
     private boolean isBulkUpdate = false;
     private boolean isUpdatingMasterSwitch = false;
 
-    public NetworkFilterDrawerActivity(MainActivity context) {
+    private View mainMenuContainer;
+    private View filtersPageContainer;
+    private View favoritePageContainer;
+    private View creditsPageContainer;
+
+
+    public LateralDrawerActivity(MainActivity context) {
         this.context = context;
         this.saveManager = new SaveManager(context);
+        initMenu();
+    }
+
+    private void initMenu() {
+        mainMenuContainer = context.findViewById(R.id.main_menu_container);
+        filtersPageContainer = context.findViewById(R.id.filters_page_container);
+        favoritePageContainer = context.findViewById(R.id.favorite_page_container);
+        creditsPageContainer = context.findViewById(R.id.credits_page_container);
+
+        View btnFilters = context.findViewById(R.id.btn_menu_filters);
+        View btnFavorites = context.findViewById(R.id.btn_menu_favorites);
+        View btnCredits = context.findViewById(R.id.btn_menu_credits);
+
+        View btnBackFilters = context.findViewById(R.id.btn_back_to_menu_filters);
+        View btnBackFavorites = context.findViewById(R.id.btn_back_to_menu_favorites);
+        View btnBackCredits = context.findViewById(R.id.btn_back_to_menu_credits);
+
+        if (btnFilters != null) btnFilters.setOnClickListener(v -> showFiltersPage());
+        if (btnFavorites != null) btnFavorites.setOnClickListener(v -> showFavoritePage());
+        if (btnCredits != null) btnCredits.setOnClickListener(v -> showCreditsPage());
+        
+        if (btnBackFilters != null) btnBackFilters.setOnClickListener(v -> showMainMenu());
+        if (btnBackFavorites != null) btnBackFavorites.setOnClickListener(v -> showMainMenu());
+        if (btnBackCredits != null) btnBackCredits.setOnClickListener(v -> showMainMenu());
+    }
+
+    private void showMainMenu() {
+        if (mainMenuContainer != null) mainMenuContainer.setVisibility(View.VISIBLE);
+        if (filtersPageContainer != null) filtersPageContainer.setVisibility(View.GONE);
+        if (favoritePageContainer != null) favoritePageContainer.setVisibility(View.GONE);
+        if (creditsPageContainer != null) creditsPageContainer.setVisibility(View.GONE);
+    }
+
+    private void showFiltersPage() {
+        if (mainMenuContainer != null) mainMenuContainer.setVisibility(View.GONE);
+        if (filtersPageContainer != null) filtersPageContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void showFavoritePage() {
+        if (mainMenuContainer != null) mainMenuContainer.setVisibility(View.GONE);
+        if (favoritePageContainer != null) favoritePageContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void showCreditsPage() {
+        if (mainMenuContainer != null) mainMenuContainer.setVisibility(View.GONE);
+        if (creditsPageContainer != null) creditsPageContainer.setVisibility(View.VISIBLE);
     }
 
     public void open() {
         DrawerLayout drawerLayout = context.findViewById(R.id.drawer_layout);
         if (drawerLayout != null) {
+            showMainMenu();
             drawerLayout.openDrawer(GravityCompat.START);
         }
     }
@@ -82,7 +135,7 @@ public class NetworkFilterDrawerActivity {
 
                 @Override
                 public void onErrorMarkersListener(String error) {
-                    Log.e("MainActivity", "Erreur lors de la récupération des données markers" + error);
+                    Log.e(TAG, "Erreur lors de la récupération des données markers" + error);
                 }
             });
         });
@@ -94,7 +147,17 @@ public class NetworkFilterDrawerActivity {
         Map<Integer, RegionData> regionMap = new HashMap<>();
 
         // Créer une map des régions par ID
-        regions.add(new RegionData(0, "National"));
+        boolean hasNational = false;
+        for (RegionData r : regions) {
+            if (r.getId() == 0) {
+                hasNational = true;
+                break;
+            }
+        }
+        if (!hasNational) {
+            regions.add(new RegionData(0, "National"));
+        }
+        
         for (RegionData region : regions) {
             Log.d(TAG, "Region: " + region.getName() + " with ID: " + region.getId());
             regionMap.put(region.getId(), region);
@@ -104,7 +167,8 @@ public class NetworkFilterDrawerActivity {
         for (NetworkData network : networks) {
             int regionId = network.getRegionId();
             if (!networksByRegion.containsKey(regionId)) {
-                Log.d("NetworkFilterDrawerActivity", "Ajouté à la map: " + network.getName() + " pour la région: " + regionMap.get(regionId).getName() + " avec l'ID: " + regionId);
+                String regionName = regionMap.containsKey(regionId) ? regionMap.get(regionId).getName() : "Inconnue";
+                Log.d(TAG, "Ajouté à la map: " + network.getName() + " pour la région: " + regionName + " avec l'ID: " + regionId);
                 networksByRegion.put(regionId, new ArrayList<>());
             }
             networksByRegion.get(regionId).add(network);
@@ -196,7 +260,7 @@ public class NetworkFilterDrawerActivity {
 
                         @Override
                         public void onErrorMarkersListener(String error) {
-                            Log.e("NetworkFilterDrawerActivity", "Erreur markers: " + error);
+                            Log.e("LateralDrawerActivity", "Erreur markers: " + error);
                         }
                     });
                 });

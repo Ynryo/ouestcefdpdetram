@@ -34,9 +34,9 @@ import java.util.Objects;
 import java.util.Set;
 
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.LateralDrawerActivity;
 import fr.ynryo.ouestcefdpdetram.MainActivity;
 import fr.ynryo.ouestcefdpdetram.MarkerStopsDetailActivity;
-import fr.ynryo.ouestcefdpdetram.NetworkFilterDrawerActivity;
 import fr.ynryo.ouestcefdpdetram.R;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 import fr.ynryo.ouestcefdpdetram.managers.FollowManager;
@@ -47,7 +47,7 @@ public class MarkerArtist {
     private final MainActivity context;
     private GoogleMap googleMap;
     private final FollowManager followManager;
-    private final NetworkFilterDrawerActivity networkFilterDrawerActivity;
+    private final LateralDrawerActivity lateralDrawerActivity;
     private final RouteArtist routeArtist;
     private final MarkerStopsDetailActivity markerStopsDetailActivity;
     private final Map<String, BitmapDescriptor> markerIconCache = new HashMap<>();
@@ -56,10 +56,10 @@ public class MarkerArtist {
 
     private float oldMapRotation = 0;
 
-    public MarkerArtist(MainActivity context, FollowManager followManager, NetworkFilterDrawerActivity networkFilterDrawerActivity) {
+    public MarkerArtist(MainActivity context, FollowManager followManager, LateralDrawerActivity lateralDrawerActivity) {
         this.context = context;
         this.followManager = followManager;
-        this.networkFilterDrawerActivity = networkFilterDrawerActivity;
+        this.lateralDrawerActivity = lateralDrawerActivity;
         this.routeArtist = new RouteArtist(context);
         this.markerStopsDetailActivity = new MarkerStopsDetailActivity(context);
     }
@@ -95,7 +95,7 @@ public class MarkerArtist {
             String id = fetchedMarkerDataStandardized.getId();
 
             //on check par rapport au filtre réseau
-            if (!networkFilterDrawerActivity.isNetworkVisible(fetchedMarkerDataStandardized.getNetworkRef())) {
+            if (!lateralDrawerActivity.isNetworkVisible(fetchedMarkerDataStandardized.getNetworkRef())) {
                 if (activeMarkers.containsKey(id)) {
                     // Filtré : on retire de l'affichage mais on garde follow/polyline car il existe
                     activeMarkers.get(id).remove();
