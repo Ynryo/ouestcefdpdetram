@@ -30,7 +30,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:contentDescription="@string/open_menu"
-                android:src="@drawable/menu_24px"
+                android:src="@drawable/icon_menu"
                 app:backgroundTint="?attr/colorSecondary"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -73,7 +73,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:contentDescription="@string/center_map_on_loc"
-                android:src="@drawable/my_location_24px"
+                android:src="@drawable/icon_my_location"
                 app:backgroundTint="?attr/colorPrimary"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -120,7 +120,7 @@
                     android:text="@string/menu_filters"
                     android:textAllCaps="false"
                     android:textAlignment="viewStart"
-                    app:icon="@drawable/filter_list_24px" />
+                    app:icon="@drawable/icon_filter_list" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_menu_favorites"
@@ -131,7 +131,7 @@
                     android:text="@string/menu_favorites"
                     android:textAllCaps="false"
                     android:textAlignment="viewStart"
-                    app:icon="@drawable/favorite_24px" />
+                    app:icon="@drawable/icon_favorite" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_menu_credits"
@@ -142,7 +142,7 @@
                     android:text="@string/menu_credits"
                     android:textAllCaps="false"
                     android:textAlignment="viewStart"
-                    app:icon="@drawable/attribution_24px" />
+                    app:icon="@drawable/icon_attribution" />
 
             </LinearLayout>
 
@@ -166,7 +166,7 @@
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/keyboard_arrow_up_24px"
+                        android:src="@drawable/icon_keyboard_arrow_up"
                         android:rotation="-90"
                         android:contentDescription="@string/back" />
 
@@ -212,7 +212,7 @@
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/keyboard_arrow_up_24px"
+                        android:src="@drawable/icon_keyboard_arrow_up"
                         android:rotation="-90"
                         android:contentDescription="@string/back" />
 
@@ -255,7 +255,7 @@
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/keyboard_arrow_up_24px"
+                        android:src="@drawable/icon_keyboard_arrow_up"
                         android:rotation="-90"
                         android:contentDescription="@string/back" />
 

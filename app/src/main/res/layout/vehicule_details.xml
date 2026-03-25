@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="@string/compass_desc"
-        android:src="@drawable/distance_24px"
+        android:src="@drawable/icon_distance"
         app:backgroundTint="?attr/colorSurface"
         app:fabCustomSize="40dp"
         app:layout_constraintEnd_toEndOf="parent"

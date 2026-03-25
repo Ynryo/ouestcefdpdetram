@@ -330,8 +330,8 @@ public class MarkerStopsDetailActivity {
         }
 
         private int getStopIconResource(MarkerDataStop stop) {
-            if (stop.cantPickup()) return R.drawable.logout_24px;
-            if (stop.cantDropoff()) return R.drawable.login_24px;
+            if (stop.cantPickup()) return R.drawable.icon_logout;
+            if (stop.cantDropoff()) return R.drawable.icon_login;
             return 0;
         }
 
@@ -408,7 +408,7 @@ public class MarkerStopsDetailActivity {
 
         private void bindOnLive(ImageView ivTimeIcon, MarkerDataStop stop) {
             if (stop.isOnLive()) {
-                ivTimeIcon.setImageResource(R.drawable.sensors_24px);
+                ivTimeIcon.setImageResource(R.drawable.icon_sensors);
                 ivTimeIcon.setColorFilter(COLOR_GREEN);
                 ivTimeIcon.setVisibility(View.VISIBLE);
 //                vh.tvAtStopTime.setLayoutParams(new LinearLayout.LayoutParams(

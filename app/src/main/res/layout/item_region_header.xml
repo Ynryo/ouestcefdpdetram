@@ -23,7 +23,7 @@
         android:id="@+id/region_arrow"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:src="@drawable/keyboard_arrow_up_24px"
+        android:src="@drawable/icon_keyboard_arrow_up"
         android:rotation="180"
         android:contentDescription="Déplier"
         app:tint="?attr/colorOnPrimary" />
