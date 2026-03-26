@@ -1,14 +1,18 @@
 [versions]
-agp = "8.7.3"
+agp = "9.1.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 appcompat = "1.7.1"
-material = "1.13.0"
-activity = "1.8.0"
-constraintlayout = "2.1.4"
+material = "1.14.0-alpha10"
+activity = "1.13.0"
+constraintlayout = "2.2.1"
 playServicesMaps = "20.0.0"
 playServicesLocation = "21.3.0"
+retrofit = "3.0.0"
+glide = "5.0.5"
+mapsUtils = "4.1.1"
+androidsvg = "1.4"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -20,6 +24,12 @@ activity = { group = "androidx.activity", name = "activity", version.ref = "acti
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glide" }
+maps-utils = { group = "com.google.maps.android", name = "android-maps-utils", version.ref = "mapsUtils" }
+androidsvg = { group = "com.caverock", name = "androidsvg-aar", version.ref = "androidsvg" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
