@@ -67,6 +67,7 @@ public class MarkerDataStandardized {
 
         marker.markerType = type;
         marker.id = markerData.getId();
+        marker.lineId = marker.isTrain() ? Integer.parseInt(markerData.getVehicleNumber()) : 0;
         marker.lineNumber = marker.isTrain() ? markerData.getVehicleNumber() : markerData.getLineNumber();
         marker.networkRef = markerData.getNetworkRef();
         marker.fillColor = markerData.getFillColor();

@@ -187,7 +187,7 @@ public class FetchingManager {
                     }
                 });
             } else if (markerDataStandardized.isTrain()) {
-                getService(BASE_URL_CARTO_TCHOO).getVehicleDetails(markerDataStandardized.getLineId()).enqueue(new Callback<>() {
+                getService(BASE_URL_CARTO_TCHOO).getVehicleDetails(Integer.parseInt(markerDataStandardized.getLineNumber())).enqueue(new Callback<>() {
                     @Override
                     public void onResponse(@NonNull Call<TrainData> call, @NonNull Response<TrainData> response) {
                         if (response.isSuccessful() && response.body() != null) {
