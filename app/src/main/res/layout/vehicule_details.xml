@@ -8,11 +8,25 @@
         android:id="@+id/followButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="@string/compass_desc"
+        android:contentDescription="@string/follow_button_desc"
         android:src="@drawable/icon_distance"
         app:backgroundTint="?attr/colorSurface"
         app:fabCustomSize="40dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+        app:tint="?attr/colorOnSurface" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/favoriteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:contentDescription="@string/favorite_button_desc"
+        android:src="@drawable/icon_favorite"
+        app:backgroundTint="?attr/colorSurface"
+        app:fabCustomSize="40dp"
+        app:layout_constraintEnd_toStartOf="@+id/followButton"
         app:layout_constraintTop_toTopOf="parent"
         app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
         app:tint="?attr/colorOnSurface" />
