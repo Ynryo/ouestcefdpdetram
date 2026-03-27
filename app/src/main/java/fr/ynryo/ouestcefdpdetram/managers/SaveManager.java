@@ -21,7 +21,7 @@ public class SaveManager {
     private static final String KEY_PREFIX_NETWORK = "network_";
     private static final String KEY_FAVORITE = "favorite";
     private final SharedPreferences prefs;
-    private Gson gson;
+    private final Gson gson;
 
     public SaveManager(Context context) {
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);

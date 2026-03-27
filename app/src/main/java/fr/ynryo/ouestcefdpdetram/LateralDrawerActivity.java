@@ -1,7 +1,6 @@
 package fr.ynryo.ouestcefdpdetram;
 
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -333,11 +332,11 @@ public class LateralDrawerActivity {
                             public void onResponseVehicleDetailsListener(MarkerDataStandardized markerDetails) {
                                 if (f.getDestination().equals(markerDetails.getDestination())) {
                                     View vehicleView = LayoutInflater.from(context).inflate(R.layout.item_favorite_vehicle, lineVehiclesContainer, false);
-                                    TextView tvDestination = vehicleView.findViewById(R.id.tv_destination);
+                                    ImageView ivMarker = vehicleView.findViewById(R.id.iv_marker);
                                     TextView tvNextStop = vehicleView.findViewById(R.id.tv_next_stop);
                                     TextView tvTime = vehicleView.findViewById(R.id.tv_time);
 
-                                    tvDestination.setText(markerDetails.getDestination());
+                                    ivMarker.setImageBitmap(context.getMarkerArtist().createCustomMarker(markerDetails, 0, false));
                                     tvNextStop.setText(markerDetails.getNextStop() != null ? markerDetails.getNextStop().getStopName() : context.getString(R.string.no_data));
                                     tvTime.setText(markerDetails.getNextStop() != null && markerDetails.getNextStop().getDepartureTime() != null ? markerDetails.getNextStop().getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm")) : context.getString(R.string.no_data));
                                     lineVehiclesContainer.addView(vehicleView);

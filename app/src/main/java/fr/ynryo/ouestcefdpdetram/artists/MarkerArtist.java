@@ -119,7 +119,7 @@ public class MarkerArtist {
                             !Objects.equals(oldData.getLineId(), fetchedMarkerDataStandardized.getLineId()) ||
                             Math.abs(oldData.getBearing() - fetchedMarkerDataStandardized.getBearing()) > 5) {
 
-                        existingMarker.setIcon(createCustomMarker(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id)));
+                        existingMarker.setIcon(createCustomMarkerBD(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id)));
                     }
 
                     existingMarker.setTag(fetchedMarkerDataStandardized);
@@ -127,7 +127,7 @@ public class MarkerArtist {
             } else {
                 Marker newMarker = googleMap.addMarker(new MarkerOptions()
                         .position(position)
-                        .icon(createCustomMarker(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id)))
+                        .icon(createCustomMarkerBD(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id)))
                         .anchor(0.5f, 0.3f));
 
                 if (newMarker != null) {
@@ -157,12 +157,8 @@ public class MarkerArtist {
         });
     }
 
-    public BitmapDescriptor createCustomMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
-        String cacheKey = markerDataStandardized.getFillColor() + "_" + markerDataStandardized.getLineId() + "_" + (int) (markerDataStandardized.getBearing() - mapRotation);
+    public Bitmap createCustomMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
 
-        if (markerIconCache.containsKey(cacheKey)) {
-            return markerIconCache.get(cacheKey);
-        }
 
         ImageView markerCircle = cachedMarkerView.findViewById(R.id.marker_circle);
         TextView lineNumberView = cachedMarkerView.findViewById(R.id.line_number);
@@ -203,6 +199,19 @@ public class MarkerArtist {
         Canvas canvas = new Canvas(bitmap);
         cachedMarkerView.draw(canvas);
 
+        return bitmap;
+    }
+
+
+    public BitmapDescriptor createCustomMarkerBD(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
+        String cacheKey = markerDataStandardized.getFillColor() + "_" + markerDataStandardized.getLineId() + "_" + (int) (markerDataStandardized.getBearing() - mapRotation);
+
+        if (markerIconCache.containsKey(cacheKey)) {
+            return markerIconCache.get(cacheKey);
+        }
+
+        Bitmap bitmap = createCustomMarker(markerDataStandardized, mapRotation, shouldFollow);
+
         BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
         markerIconCache.put(cacheKey, descriptor);
 
@@ -220,7 +229,7 @@ public class MarkerArtist {
             Marker marker = entry.getValue();
             MarkerDataStandardized data = (MarkerDataStandardized) marker.getTag();
             if (data != null) {
-                marker.setIcon(createCustomMarker(data, mapRotation, followManager.isFollowing(data.getId())));
+                marker.setIcon(createCustomMarkerBD(data, mapRotation, followManager.isFollowing(data.getId())));
             }
         }
     }

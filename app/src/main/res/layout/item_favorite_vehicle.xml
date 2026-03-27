@@ -6,28 +6,42 @@
     android:padding="8dp"
     android:background="?attr/colorSurface">
 
-    <TextView
-        android:id="@+id/tv_destination"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="?attr/colorOnSurface"
-        android:text="@string/destination" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-        <TextView
-            android:id="@+id/tv_next_stop"
+        <ImageView
+            android:id="@+id/iv_marker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/marker_circle">
+        </ImageView>
+
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textSize="14sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:text="@string/next_stop_label" />
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:text="@string/next_stop_label" />
+
+            <TextView
+                android:id="@+id/tv_next_stop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:text="@string/next_stop_label" />
+        </LinearLayout>
+
 
         <TextView
             android:id="@+id/tv_time"
