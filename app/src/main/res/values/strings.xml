@@ -19,7 +19,7 @@
     <string name="menu_credits">Crédits et règles</string>
     <string name="filters_title">Filtrer les réseaux</string>
     <string name="favorites_title">Favoris</string>
-    <string name="credits_title">Crédits</string>
+    <string name="credits_title">Crédits et règles</string>
     <string name="credits_content">Créé par <a href="https://github.com/Ynryo">Ynryo</a> dans le cadre d\'un projet scolaire\n\n Code source disponible sur <a href="https://github.com/Ynryo/ouestcefdpdetram">GitHub</a></string>
     <string name="follow_button_desc">Bouton pour suivre le véhicle</string>
     <string name="favorite_button_desc">Bouton pour ajouter la ligne au favoris</string>
@@ -28,4 +28,64 @@
     <string name="time_label">Heure</string>
     <string name="no_info_for_line">%s (aucune info)</string>
     <string name="favorite_load_error">Erreur de chargement des favoris: %s</string>
+    <string name="guide_title">Guide d\'Utilisation de l\'Application</string>
+    <string name="guide_introduction">Bienvenue sur "Où est ce fdp de tram" ! Cette application a été conçue pour vous permettre
+        de suivre en temps réel les transports en commun (principalement les trams, mais aussi
+        d\'autres réseaux si disponibles) dans votre région.
+    </string>
+
+    <string name="guide_main_map_title">1. La Carte Principale</string>
+    <string name="guide_main_map_content">
+        Sur la carte, vous verrez des icônes représentant les véhicules en circulation.
+        \n\n•\t**Visualisation des Véhicules**: Chaque icône indique la position actuelle d\'un
+        véhicule, souvent avec son numéro de ligne et sa destination.
+        \n\n•\t**Informations Détaillées**: Appuyez sur une icône de véhicule pour afficher une
+        fenêtre d\'information contenant des détails supplémentaires comme la prochaine arrêt,
+        l\'heure de départ estimée, et la destination finale.
+    </string>
+
+    <string name="guide_lateral_menu_title">2. Le Menu Latéral (Tiroir de Navigation)</string>
+    <string name="guide_lateral_menu_content">
+        Pour accéder aux options de l\'application, faites glisser votre doigt depuis le bord gauche
+        de l\'écran, ou appuyez sur l\'icône de menu (trois lignes horizontales) située en haut à
+        gauche de la carte.
+    </string>
+
+    <string name="guide_filters_title">2.1. Filtres des Réseaux</string>
+    <string name="guide_filters_content">
+        •\t**Accès**: Sélectionnez "Filtres" dans le menu latéral.
+        \n\n•\t**Gestion des Réseaux**: Vous y trouverez une liste des réseaux de transport
+        disponibles, regroupés par région. Utilisez les interrupteurs à côté de chaque réseau pour
+        afficher ou masquer les véhicules de ce réseau sur la carte.
+        \n\n•\t**Tout Afficher/Masquer**: Un interrupteur "Tout afficher" en haut de la liste vous
+        permet d\'activer ou de désactiver la visibilité de tous les réseaux en une seule fois.
+        \n\n•\t**Sections Pliables**: Les en-têtes de région sont cliquables pour déplier ou replier
+        la liste des réseaux de transport de cette région, facilitant la navigation.
+    </string>
+
+    <string name="guide_favorites_title">2.2. Lignes Favorites</string>
+    <string name="guide_favorites_content">
+        •\t**Accès**: Sélectionnez "Favoris" dans le menu latéral.
+        \n\n•\t**Ajouter un Favori**: Pour ajouter une ligne à vos favoris, appuyez sur un véhicule
+        sur la carte, puis sur l\'icône en forme de cœur ou d\'étoile dans la fenêtre d\'information
+        du véhicule.
+        \n\n•\t**Suivi Rapide**: Cette section affiche les véhicules des lignes que vous avez
+        marquées comme favorites, avec leurs prochaines arrêts et horaires, pour un suivi rapide.
+    </string>
+
+    <string name="guide_credits_rules_title">2.3. Crédits &amp; Règles</string>
+    <string name="guide_credits_rules_content">
+        C\'est la section dans laquelle vous vous trouvez actuellement. Elle contient ce guide
+        d\'utilisation ainsi que des informations sur le développement de l\'application et les
+        attributions.
+    </string>
+
+    <string name="guide_useful_tips_title">3. Conseils Utiles</string>
+    <string name="guide_useful_tips_content">
+        •\t**Zoom et Déplacement**: Utilisez les gestes classiques (pincer/écarter pour zoomer,
+        glisser pour déplacer) pour naviguer sur la carte.
+        \n\n•\t**Actualisation des Données**: L\'application met à jour les positions des véhicules
+        en temps réel. Si vous remarquez un délai, une actualisation automatique est effectuée
+        régulièrement.
+    </string>
 </resources>

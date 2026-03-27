@@ -270,6 +270,117 @@
                         android:textStyle="bold"/>
                 </LinearLayout>
 
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_title"
+                            android:textSize="24sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="16dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_introduction"
+                            android:textSize="16sp"
+                            android:layout_marginBottom="16dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_main_map_title"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_main_map_content"
+                            android:textSize="16sp"
+                            android:layout_marginBottom="16dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_lateral_menu_title"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_lateral_menu_content"
+                            android:textSize="16sp"
+                            android:layout_marginBottom="16dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_filters_title"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_filters_content"
+                            android:textSize="16sp"
+                            android:layout_marginBottom="16dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_favorites_title"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_favorites_content"
+                            android:textSize="16sp"
+                            android:layout_marginBottom="16dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_credits_rules_title"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_credits_rules_content"
+                            android:textSize="16sp"
+                            android:layout_marginBottom="16dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_useful_tips_title"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/guide_useful_tips_content"
+                            android:textSize="16sp"
+                            android:layout_marginBottom="16dp"/>
+                    </LinearLayout>
+                </ScrollView>
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -279,7 +390,6 @@
                     android:padding="12dp"
                     android:autoLink="web"
                     android:linksClickable="true" />
-
             </LinearLayout>
 
         </LinearLayout>
