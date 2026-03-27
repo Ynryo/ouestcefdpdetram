@@ -43,8 +43,8 @@ import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 
 public class MarkerStopsDetailActivity {
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private static final String TAG = "MarkerStopsDetailActivity";
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private static final int COLOR_GREEN = Color.rgb(15, 150, 40);
     private final MainActivity context;
     private BottomSheetDialog bottomSheetDialog;
@@ -104,7 +104,7 @@ public class MarkerStopsDetailActivity {
     private void setupLineHeader(View view, MarkerDataStandardized markerDataStandardized) {
         TextView tvLigne = view.findViewById(R.id.tvLigneNumero);
 
-        String lineNumber = markerDataStandardized.getLineId();
+        String lineNumber = markerDataStandardized.getLineNumber();
         tvLigne.setText(lineNumber);
 
         int fillColor = Color.parseColor(markerDataStandardized.getFillColor() != null ? markerDataStandardized.getFillColor() : "#424242");
@@ -192,6 +192,7 @@ public class MarkerStopsDetailActivity {
     // ==================== DISPLAY ====================
     private void showVehicleDetails(MarkerDataStandardized markerDataStandardized, View view) {
         context.getFollowManager().setFollowButton(view.findViewById(R.id.followButton), markerDataStandardized.getId());
+        context.getFavoriteManager().setFavoriteButton(view.findViewById(R.id.favoriteButton), markerDataStandardized);
 
         setupDestinationText(view, markerDataStandardized);
         setupStopsList(view, markerDataStandardized);

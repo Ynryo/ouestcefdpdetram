@@ -185,7 +185,7 @@ public class MarkerArtist {
             markerCircle.setImageDrawable(layerDrawable);
         }
 
-        lineNumberView.setText(markerDataStandardized.getLineId() != null ? markerDataStandardized.getLineId() : "BD");
+        lineNumberView.setText(markerDataStandardized.getLineNumber() != null ? markerDataStandardized.getLineNumber() : "BD");
         lineNumberView.setTextColor(textColor);
 
         GradientDrawable gd = new GradientDrawable();

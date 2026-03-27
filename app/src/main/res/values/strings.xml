@@ -20,6 +20,12 @@
     <string name="filters_title">Filtrer les réseaux</string>
     <string name="favorites_title">Favoris</string>
     <string name="credits_title">Crédits</string>
-    <string name="favorites_title">Favoris</string>
-    <string name="credits_content">Créé par un étudiant dans le cadre d\'un projet scolaire</string>
+    <string name="credits_content">Créé par <a href="https://github.com/Ynryo">Ynryo</a> dans le cadre d\'un projet scolaire\n\n Code source disponible sur <a href="https://github.com/Ynryo/ouestcefdpdetram">GitHub</a></string>
+    <string name="follow_button_desc">Bouton pour suivre le véhicle</string>
+    <string name="favorite_button_desc">Bouton pour ajouter la ligne au favoris</string>
+    <string name="no_favorites_message">Aucune ligne favorite pour le moment.</string>
+    <string name="next_stop_label">Prochain arrêt</string>
+    <string name="time_label">Heure</string>
+    <string name="no_info_for_line">%s (aucune info)</string>
+    <string name="favorite_load_error">Erreur de chargement des favoris: %s</string>
 </resources>

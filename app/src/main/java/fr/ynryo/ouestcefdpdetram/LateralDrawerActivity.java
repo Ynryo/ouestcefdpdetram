@@ -1,5 +1,7 @@
 package fr.ynryo.ouestcefdpdetram;
 
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,11 +10,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.materialswitch.MaterialSwitch;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +25,7 @@ import java.util.Map;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
+import fr.ynryo.ouestcefdpdetram.managers.Favorite;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 import fr.ynryo.ouestcefdpdetram.managers.SaveManager;
 
@@ -39,9 +44,9 @@ public class LateralDrawerActivity {
     private View creditsPageContainer;
 
 
-    public LateralDrawerActivity(MainActivity context) {
+    public LateralDrawerActivity(MainActivity context, SaveManager saveManager) {
         this.context = context;
-        this.saveManager = new SaveManager(context);
+        this.saveManager = saveManager;
         initMenu();
     }
 
@@ -83,6 +88,7 @@ public class LateralDrawerActivity {
     private void showFavoritePage() {
         if (mainMenuContainer != null) mainMenuContainer.setVisibility(View.GONE);
         if (favoritePageContainer != null) favoritePageContainer.setVisibility(View.VISIBLE);
+        populateFavoriteLines(); // Call to populate favorite lines
     }
 
     private void showCreditsPage() {
@@ -99,6 +105,8 @@ public class LateralDrawerActivity {
     }
 
     public void populateNetworks(List<RegionData> regions, List<NetworkData> networks) {
+        if (saveManager == null) return;
+
         LinearLayout networksContainer = context.findViewById(R.id.networks_container);
         if (networksContainer == null) return;
         
@@ -267,6 +275,88 @@ public class LateralDrawerActivity {
 
                 regionNetworksContainer.addView(row);
             }
+        }
+    }
+
+    private void populateFavoriteLines() {
+        LinearLayout favoritesContainer = context.findViewById(R.id.favorites_container);
+        if (favoritesContainer == null) return;
+
+        favoritesContainer.removeAllViews();
+
+        List<Favorite> favoriteLines = saveManager.loadFavoriteLines();
+
+        // si y'a pas de favoris
+        if (favoriteLines.isEmpty()) {
+            TextView noFavoritesText = new TextView(context);
+            noFavoritesText.setText(R.string.no_favorites_message);
+            noFavoritesText.setTextSize(16);
+            noFavoritesText.setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+            noFavoritesText.setPadding(16, 16, 16, 16);
+            favoritesContainer.addView(noFavoritesText);
+            return;
+        }
+
+        for (Favorite f : favoriteLines) {
+            String lineIdStr = String.valueOf(f.getLigneId());
+            
+            View lineHeaderView = LayoutInflater.from(context).inflate(R.layout.item_favorite_line_header, favoritesContainer, false);
+            TextView tvLineNumber = lineHeaderView.findViewById(R.id.tv_line_number);
+            TextView tvDestinationHeader = lineHeaderView.findViewById(R.id.tv_destination);
+
+            int fillColor = Color.parseColor(f.getFillColor() != null ? f.getFillColor() : "#424242");
+            int textColor = Color.parseColor(f.getTextColor() != null ? f.getTextColor() : "#FFFFFF");
+
+            tvLineNumber.setText(f.getLineText());
+            tvLineNumber.setBackgroundColor(fillColor);
+            tvLineNumber.setTextColor(textColor);
+            tvDestinationHeader.setText(f.getDestination());
+
+            favoritesContainer.addView(lineHeaderView);
+
+            LinearLayout lineVehiclesContainer = new LinearLayout(context);
+            lineVehiclesContainer.setOrientation(LinearLayout.VERTICAL);
+            lineVehiclesContainer.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
+            favoritesContainer.addView(lineVehiclesContainer);
+
+            // fetch markers for favorite line
+            context.getFetcher().fetchMarkers(lineIdStr, new FetchingManager.OnMarkersListener() {
+                @Override
+                public void onResponseMarkersListener(List<MarkerDataStandardized> markerDataStandardizedList) {
+                    // filtrer uniquement les véhicules de la ligne
+                    for (MarkerDataStandardized vehicle : markerDataStandardizedList) {
+                        context.getFetcher().fetchVehicleStopsInfo(vehicle, new FetchingManager.OnVehicleDetailsListener() {
+                            @Override
+                            public void onResponseVehicleDetailsListener(MarkerDataStandardized markerDetails) {
+                                if (f.getDestination().equals(markerDetails.getDestination())) {
+                                    View vehicleView = LayoutInflater.from(context).inflate(R.layout.item_favorite_vehicle, lineVehiclesContainer, false);
+                                    TextView tvDestination = vehicleView.findViewById(R.id.tv_destination);
+                                    TextView tvNextStop = vehicleView.findViewById(R.id.tv_next_stop);
+                                    TextView tvTime = vehicleView.findViewById(R.id.tv_time);
+
+                                    tvDestination.setText(markerDetails.getDestination());
+                                    tvNextStop.setText(markerDetails.getNextStop() != null ? markerDetails.getNextStop().getStopName() : context.getString(R.string.no_data));
+                                    tvTime.setText(markerDetails.getNextStop() != null && markerDetails.getNextStop().getDepartureTime() != null ? markerDetails.getNextStop().getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm")) : context.getString(R.string.no_data));
+                                    lineVehiclesContainer.addView(vehicleView);
+                                }
+                            }
+
+                            @Override
+                            public void onErrorVehicleDetailsListener(String error) {
+                                Log.e(TAG, "Error fetching details for favorite " + lineIdStr + ": " + error);
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onErrorMarkersListener(String error) {
+                    Log.e(TAG, "Error fetching markers for favorite " + lineIdStr + ": " + error);
+                }
+            });
         }
     }
 

@@ -39,7 +39,6 @@ public class RouteArtist {
             try {
                 List<List<Double>> allPoints;
                 Object geometry = mData.getMarkerDataRoute();
-                Log.d(TAG, mData.getMarkerDataRoute().toString());
                 if (geometry instanceof List) {
                     allPoints = (List<List<Double>>) geometry;
                     for (List<Double> point : allPoints) {
@@ -72,7 +71,6 @@ public class RouteArtist {
                         try {
                             List<List<Double>> allPoints;
                             Object geometry = ((BusGeometry) mData.getMarkerDataRoute()).getGeometry();
-                            Log.d(TAG, mData.getMarkerDataRoute().toString());
                             if (geometry instanceof List) {
                                 allPoints = (List<List<Double>>) geometry;
                                 for (List<Double> point : allPoints) {

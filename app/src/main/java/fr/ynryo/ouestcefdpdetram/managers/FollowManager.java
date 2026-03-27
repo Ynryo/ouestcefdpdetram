@@ -5,8 +5,13 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import fr.ynryo.ouestcefdpdetram.MainActivity;
+import fr.ynryo.ouestcefdpdetram.R;
 
+/**
+ * Classe gérant le suivi d'un marqueur en survol du véhicule sur la carte
+ */
 public class FollowManager {
+    private final static String TAG = "FollowManager";
     private final MainActivity context;
     private boolean isFollowing;
     private String followedMarkerId;
@@ -32,7 +37,7 @@ public class FollowManager {
             isFollowing = true;
             this.followedMarkerId = followedMarkerId;
             centerOnFollowed();
-            followButton.setAlpha(0.6f);
+            followButton.setImageResource(R.drawable.icon_distance_fill);
         }
     }
 
@@ -40,7 +45,7 @@ public class FollowManager {
         if (isFollowing) {
             isFollowing = false;
             if (followButton != null) {
-                followButton.setAlpha(1f);
+                followButton.setImageResource(R.drawable.icon_distance);
             }
 
             if (!isGesture && context.getMap() != null) {
@@ -56,10 +61,6 @@ public class FollowManager {
 
             followedMarkerId = null;
         }
-    }
-
-    public void setFollowedMarkerId(String markerId) {
-        this.followedMarkerId = markerId;
     }
 
     public boolean isFollowing(String markerId) {
@@ -78,7 +79,7 @@ public class FollowManager {
     public void setFollowButton(FloatingActionButton followButton, String followedMarkerId) {
         this.followButton = followButton;
         if (this.followButton == null) return;
-        if (isFollowing(followedMarkerId)) this.followButton.setAlpha(0.6f);
+        if (isFollowing(followedMarkerId)) this.followButton.setImageResource(R.drawable.icon_distance_fill);
         this.followButton.setOnClickListener(view -> toggleFollow(followedMarkerId));
     }
 }

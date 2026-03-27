@@ -34,9 +34,16 @@ import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version.VersionResponse;
 import fr.ynryo.ouestcefdpdetram.artists.MarkerArtist;
 import fr.ynryo.ouestcefdpdetram.managers.CompassManager;
+import fr.ynryo.ouestcefdpdetram.managers.FavoriteManager;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 import fr.ynryo.ouestcefdpdetram.managers.FollowManager;
+import fr.ynryo.ouestcefdpdetram.managers.SaveManager;
 
+/**
+ * Classe principale, gère la vue et les managers
+ * @author Ynryo
+ * @version 1.2.3
+ */
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveStartedListener {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final float DEFAULT_ZOOM = 13f;
@@ -50,12 +57,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     };
 
+    private LateralDrawerActivity lateralDrawerActivity;
     private FetchingManager fetcher;
     private MarkerArtist markerArtist;
-    private LateralDrawerActivity lateralDrawerActivity;
     private CompassManager compassManager;
     private FollowManager followManager;
-
+    private FavoriteManager favoriteManager;
+    private SaveManager saveManager;
 
     private boolean isMapReady = false;
     private boolean isDataReady = false;
@@ -72,10 +80,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        saveManager = new SaveManager(this);
         fetcher = new FetchingManager(this);
-        lateralDrawerActivity = new LateralDrawerActivity(this);
+        lateralDrawerActivity = new LateralDrawerActivity(this, saveManager);
         compassManager = new CompassManager(this);
         followManager = new FollowManager(this);
+        favoriteManager = new FavoriteManager(this, saveManager);
         markerArtist = new MarkerArtist(this, followManager, lateralDrawerActivity);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -266,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void fetchMarkers() {
+    private void fetchMarkers() {
         if (isFetching) return;
         isFetching = true;
 
@@ -302,5 +312,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public MarkerArtist getMarkerArtist() {
         return markerArtist;
+    }
+
+    public FavoriteManager getFavoriteManager() {
+        return favoriteManager;
     }
 }
