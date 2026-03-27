@@ -14,13 +14,17 @@ import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
+/**
+ * Interface de l'API, gère les requêtes et les réponses
+ */
 public interface ApiService {
     @GET("vehicle-journeys/markers")
     Call<MarkersList> getVehicleMarkers(
         @Query("swLat") double swLat,
         @Query("swLon") double swLon,
         @Query("neLat") double neLat,
-        @Query("neLon") double neLon
+        @Query("neLon") double neLon,
+        @Query("lineId") String lineId
     );
 
     @GET("vehicle-journeys/{vehicleId}")

@@ -30,11 +30,14 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+/**
+ * Classe gérant les requêtes et réponses de l'API et les conversions avec MarkerDataStandardized
+ */
 public class FetchingManager {
+    private static final String TAG = "FetchingManager";
     private static final String BASE_URL_BUS_TRACKER = "https://bus-tracker.fr/api/";
     private static final String BASE_URL_CARTO_TCHOO = "https://api.tchoo.net/api/";
     private static final String BASE_URL_DL_YNRYO = "https://dl.ynryo.fr/api/ouestcefdpdetram/";
-    private static final String TAG = "FetchingManager";
 
     private final MainActivity context;
     private static ApiService busTrackerService;
@@ -127,12 +130,19 @@ public class FetchingManager {
 
     // ==================== FETCH MARKERS (PRINCIPAL) ====================
     public void fetchMarkers(OnMarkersListener listener) {
+        fetchMarkers(null, listener);
+    }
+
+    public void fetchMarkers(String lineId, OnMarkersListener listener) {
         if (context.getMap() == null) return;
 
         LatLngBounds bounds = context.getMap().getProjection().getVisibleRegion().latLngBounds;
         getService(BASE_URL_BUS_TRACKER).getVehicleMarkers(
-                bounds.southwest.latitude, bounds.southwest.longitude,
-                bounds.northeast.latitude, bounds.northeast.longitude
+                bounds.southwest.latitude,
+                bounds.southwest.longitude,
+                bounds.northeast.latitude,
+                bounds.northeast.longitude,
+                lineId
         ).enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<MarkersList> call, @NonNull Response<MarkersList> response) {
@@ -177,7 +187,7 @@ public class FetchingManager {
                     }
                 });
             } else if (markerDataStandardized.isTrain()) {
-                getService(BASE_URL_CARTO_TCHOO).getVehicleDetails(Integer.parseInt(markerDataStandardized.getLineId())).enqueue(new Callback<>() {
+                getService(BASE_URL_CARTO_TCHOO).getVehicleDetails(markerDataStandardized.getLineId()).enqueue(new Callback<>() {
                     @Override
                     public void onResponse(@NonNull Call<TrainData> call, @NonNull Response<TrainData> response) {
                         if (response.isSuccessful() && response.body() != null) {
