@@ -8,16 +8,17 @@
     <string name="center_map_on_loc">Centrer la position de la carte</string>
     <string name="vehicle_position">Marker de position du véhicule</string>
     <string name="show_all">Tout afficher</string>
-    <string name="filter_networks">Filtrer les réseaux</string>
-    <string name="menu_filters">Filtres</string>
-    <string name="menu_favorites">Favoris</string>
-    <string name="menu_credits">Crédits et règles</string>
     <string name="open_menu">Ouvrir le menu</string>
     <string name="destination">Destination</string>
     <string name="_0" translatable="false">0</string>
     <string name="network_logo">Logo du réseau de transport</string>
     <string name="compass_desc">Bousole</string>
     <string name="back">Retour</string>
+    <string name="menu_filters">Filtres</string>
+    <string name="menu_favorites">Favoris</string>
+    <string name="menu_credits">Crédits et règles</string>
+    <string name="filters_title">Filtrer les réseaux</string>
+    <string name="favorites_title">Favoris</string>
     <string name="credits_title">Crédits</string>
     <string name="favorites_title">Favoris</string>
     <string name="credits_content">Créé par un étudiant dans le cadre d\'un projet scolaire</string>

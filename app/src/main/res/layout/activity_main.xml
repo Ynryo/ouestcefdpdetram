@@ -173,7 +173,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/filter_networks"
+                        android:text="@string/filters_title"
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -225,12 +225,16 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/credits_content"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="15sp" />
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:id="@+id/favorites_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </ScrollView>
 
             </LinearLayout>
 
@@ -273,7 +277,9 @@
                     android:layout_height="wrap_content"
                     android:text="@string/credits_content"
                     android:textColor="?attr/colorOnSurface"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    android:autoLink="web"
+                    android:linksClickable="true" />
 
             </LinearLayout>
 
