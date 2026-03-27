@@ -21,32 +21,33 @@ import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleStop;
 public class MarkerDataStandardized {
 
     // ==================== DONNÉES D'IDENTIFICATION ====================
-    private MarkerType markerType;              // Type du véhicule (train ou bus/tram)
-    private String id;                          // ID unique (numéro train ou id bus tracker)
-    private String lineId;                      // Numéro de ligne (vehicleNumber pour train et lineNumber pour le reste)
-    private String networkRef;                  // Référence réseau (ex: "SNCF", "RATP")
-    private int networkId;                      // ID numérique du réseau (pour fetch logo)
+    private MarkerType markerType; // Type du véhicule (train ou bus/tram)
+    private String id; // ID unique (numéro train ou id bus tracker)
+    private int lineId; // Numéro de ligne (vehicleNumber pour train et lineNumber pour le reste)
+    private String lineNumber; // Numéro de ligne pour l'affichage
+    private String networkRef; // Référence réseau (ex: "SNCF", "RATP")
+    private int networkId; // ID numérique du réseau (pour fetch logo)
 
     // ==================== DONNÉES D'AFFICHAGE ====================
-    private String fillColor;                   // Couleur de remplissage du marqueur
-    private String textColor;                   // Couleur du texte (numéro de ligne)
+    private String fillColor; // Couleur de remplissage du marqueur
+    private String textColor; // Couleur du texte (numéro de ligne)
 
     // ==================== POSITION ET DIRECTION ====================
-    private double latitude;                    // Latitude actuelle
-    private double longitude;                   // Longitude actuelle
-    private float bearing;                      // Azimut/direction du véhicule (0-360°)
+    private double latitude; // Latitude actuelle
+    private double longitude; // Longitude actuelle
+    private float bearing; // Azimut/direction du véhicule (0-360°)
     private String pathRef;
-    private Object markerDataRoute;       // Liste des points du tracé
+    private Object markerDataRoute; // Liste des points du tracé
 
     // ==================== DONNÉES DE VOYAGE ====================
-    private String destination;                 // Destination finale
-    private List<MarkerDataStop> stops;         // Liste des arrêts à venir
+    private String destination; // Destination finale
+    private List<MarkerDataStop> stops; // Liste des arrêts à venir
 
     // ==================== MÉTADONNÉES ====================
-    private boolean isFollowed;                 // Est-ce que l'utilisateur suit ce véhicule?
-    private Instant createdAt;                     // Quand ce marqueur a été créé
-    private Instant lastUpdatedAt;                 // Quand la position a été mise à jour
-    private boolean detailsLoaded;              // Les infos détaillées (stops) ont-elles été fetched?
+    private boolean isFollowed; // Est-ce que l'utilisateur suit ce véhicule?
+    private Instant createdAt; // Quand ce marqueur a été créé
+    private Instant lastUpdatedAt; // Quand la position a été mise à jour
+    private boolean detailsLoaded; // Les infos détaillées (stops) ont-elles été fetched?
 
     private final static String TAG = "MarkerDataStandardized";
     private final static int NETWORK_ID_SNCF = 17;
@@ -60,13 +61,13 @@ public class MarkerDataStandardized {
         this.detailsLoaded = false;
     }
 
-    // ==================== BUILDER PATTERN ====================
+    // ==================== CONVERSION ====================
     public static MarkerDataStandardized from(@NonNull MarkerData markerData, @NonNull MarkerType type) {
         MarkerDataStandardized marker = new MarkerDataStandardized();
 
         marker.markerType = type;
         marker.id = markerData.getId();
-        marker.lineId = marker.isTrain() ? markerData.getVehicleNumber() : markerData.getLineNumber();
+        marker.lineNumber = marker.isTrain() ? markerData.getVehicleNumber() : markerData.getLineNumber();
         marker.networkRef = markerData.getNetworkRef();
         marker.fillColor = markerData.getFillColor();
         marker.textColor = markerData.getColor();
@@ -88,6 +89,7 @@ public class MarkerDataStandardized {
 
     // à la priorité sur les datas
     public void setVehicleDetailsVehicleData(@NonNull VehicleData vehicleData) {
+        this.lineId = vehicleData.getLineId();
         this.destination = vehicleData.getDestination();
         this.networkId = vehicleData.getNetworkId();
         this.pathRef = vehicleData.getPathRef();
@@ -178,8 +180,12 @@ public class MarkerDataStandardized {
         return id;
     }
 
-    public String getLineId() {
+    public int getLineId() {
         return lineId;
+    }
+
+    public String getLineNumber() {
+        return lineNumber;
     }
 
     public String getNetworkRef() {
@@ -251,8 +257,12 @@ public class MarkerDataStandardized {
         this.id = id;
     }
 
-    public void setLineId(String lineId) {
+    public void setLineId(int lineId) {
         this.lineId = lineId;
+    }
+
+    public void setLineNumber(String lineNumber) {
+        this.lineNumber = lineNumber;
     }
 
     public void setNetworkRef(String networkRef) {
@@ -350,6 +360,7 @@ public class MarkerDataStandardized {
                 "markerType=" + markerType +
                 ", id='" + id + '\'' +
                 ", lineId='" + lineId + '\'' +
+                ", lineNumber='" + lineNumber + '\'' +
                 ", networkRef='" + networkRef + '\'' +
                 ", networkId=" + networkId +
                 ", fillColor='" + fillColor + '\'' +
