@@ -6,7 +6,7 @@
     <string name="network_error">Erreur de réseau</string>
     <string name="no_data">Aucune donnée</string>
     <string name="center_map_on_loc">Centrer la position de la carte</string>
-    <string name="vehicle_position">Marker de position du véhicule</string>
+    <string name="vehicle_position" translatable="false">Marker de position du véhicule</string>
     <string name="show_all">Tout afficher</string>
     <string name="open_menu">Ouvrir le menu</string>
     <string name="destination">Destination</string>
