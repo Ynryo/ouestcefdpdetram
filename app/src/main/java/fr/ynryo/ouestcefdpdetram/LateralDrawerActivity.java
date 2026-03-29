@@ -302,6 +302,7 @@ public class LateralDrawerActivity {
             View lineHeaderView = LayoutInflater.from(context).inflate(R.layout.item_favorite_line_header, favoritesContainer, false);
             TextView tvLineNumber = lineHeaderView.findViewById(R.id.tv_line_number);
             TextView tvDestinationHeader = lineHeaderView.findViewById(R.id.tv_destination);
+            ImageView ivArrow = lineHeaderView.findViewById(R.id.iv_arrow);
 
             int fillColor = Color.parseColor(f.getFillColor() != null ? f.getFillColor() : "#424242");
             int textColor = Color.parseColor(f.getTextColor() != null ? f.getTextColor() : "#FFFFFF");
@@ -319,6 +320,16 @@ public class LateralDrawerActivity {
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             ));
+            
+            final boolean[] isExpanded = {false};
+            lineVehiclesContainer.setVisibility(View.GONE);
+            lineHeaderView.setOnClickListener(v -> {
+                isExpanded[0] = !isExpanded[0];
+                lineVehiclesContainer.setVisibility(isExpanded[0] ? View.VISIBLE : View.GONE);
+                ivArrow.setRotation(isExpanded[0] ? 0 : 180);
+                ivArrow.setContentDescription(context.getString(isExpanded[0] ? R.string.collapse_desc : R.string.expand_desc));
+            });
+
             favoritesContainer.addView(lineVehiclesContainer);
 
             // fetch markers for favorite line

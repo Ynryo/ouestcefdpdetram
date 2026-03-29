@@ -1,5 +1,7 @@
 package fr.ynryo.ouestcefdpdetram.managers;
 
+import android.view.View;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 
@@ -72,6 +74,7 @@ public class FavoriteManager {
     public void setFavoriteButton(FloatingActionButton favoriteButton, MarkerDataStandardized mData) {
         this.favoriteButton = favoriteButton;
         if (this.favoriteButton == null) return;
+        if (mData.isTrain()) this.favoriteButton.setVisibility(View.GONE); //temp pour éviter les bugs
         if (isFavorite(mData)) this.favoriteButton.setImageResource(R.drawable.icon_favorite_fill);
         this.favoriteButton.setOnClickListener(view -> toggleFavorite(mData));
     }

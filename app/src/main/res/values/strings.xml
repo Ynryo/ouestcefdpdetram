@@ -28,6 +28,8 @@
     <string name="time_label">Heure</string>
     <string name="no_info_for_line">%s (aucune info)</string>
     <string name="favorite_load_error">Erreur de chargement des favoris: %s</string>
+    <string name="expand_desc">Déplier</string>
+    <string name="collapse_desc">Replier</string>
     <string name="guide_title">Guide d\'Utilisation de l\'Application</string>
     <string name="guide_introduction">Bienvenue sur "Où est ce fdp de tram" ! Cette application a été conçue pour vous permettre
         de suivre en temps réel les transports en commun (principalement les trams, mais aussi
