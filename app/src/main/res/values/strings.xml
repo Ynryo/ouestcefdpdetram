@@ -55,23 +55,23 @@
 
     <string name="guide_filters_title" translatable="false">2.1. Filtres des Réseaux</string>
     <string name="guide_filters_content" translatable="false">
-        •\t**Accès**: Sélectionnez "Filtres" dans le menu latéral.
-        \n\n•\t**Gestion des Réseaux**: Vous y trouverez une liste des réseaux de transport
+        •\tAccès: Sélectionnez "Filtres" dans le menu latéral.
+        \n\n•\tGestion des Réseaux: Vous y trouverez une liste des réseaux de transport
         disponibles, regroupés par région. Utilisez les interrupteurs à côté de chaque réseau pour
         afficher ou masquer les véhicules de ce réseau sur la carte.
-        \n\n•\t**Tout Afficher/Masquer**: Un interrupteur "Tout afficher" en haut de la liste vous
+        \n\n•\tTout Afficher/Masquer: Un interrupteur "Tout afficher" en haut de la liste vous
         permet d\'activer ou de désactiver la visibilité de tous les réseaux en une seule fois.
-        \n\n•\t**Sections Pliables**: Les en-têtes de région sont cliquables pour déplier ou replier
+        \n\n•\tSections Pliables: Les en-têtes de région sont cliquables pour déplier ou replier
         la liste des réseaux de transport de cette région, facilitant la navigation.
     </string>
 
     <string name="guide_favorites_title" translatable="false">2.2. Lignes Favorites</string>
     <string name="guide_favorites_content" translatable="false">
-        •\t**Accès**: Sélectionnez "Favoris" dans le menu latéral.
-        \n\n•\t**Ajouter un Favori**: Pour ajouter une ligne à vos favoris, appuyez sur un véhicule
+        •\tAccès: Sélectionnez "Favoris" dans le menu latéral.
+        \n\n•\tAjouter un Favori: Pour ajouter une ligne à vos favoris, appuyez sur un véhicule
         sur la carte, puis sur l\'icône en forme de cœur ou d\'étoile dans la fenêtre d\'information
         du véhicule.
-        \n\n•\t**Suivi Rapide**: Cette section affiche les véhicules des lignes que vous avez
+        \n\n•\tSuivi Rapide: Cette section affiche les véhicules des lignes que vous avez
         marquées comme favorites, avec leurs prochaines arrêts et horaires, pour un suivi rapide.
     </string>
 
@@ -84,9 +84,9 @@
 
     <string name="guide_useful_tips_title" translatable="false">3. Conseils Utiles</string>
     <string name="guide_useful_tips_content" translatable="false">
-        •\t**Zoom et Déplacement**: Utilisez les gestes classiques (pincer/écarter pour zoomer,
+        •\tZoom et Déplacement: Utilisez les gestes classiques (pincer/écarter pour zoomer,
         glisser pour déplacer) pour naviguer sur la carte.
-        \n\n•\t**Actualisation des Données**: L\'application met à jour les positions des véhicules
+        \n\n•\tActualisation des Données: L\'application met à jour les positions des véhicules
         en temps réel. Si vous remarquez un délai, une actualisation automatique est effectuée
         régulièrement.
     </string>
