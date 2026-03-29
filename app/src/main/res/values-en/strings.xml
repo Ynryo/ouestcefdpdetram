@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Où est ce fdp de tram</string>
     <string name="nexts_stops">Next stops</string>
     <string name="start_time">Departure time</string>
     <string name="network_error">Network error</string>
