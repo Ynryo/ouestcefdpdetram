@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Où est ce fdp de tram"
+rootProject.name = "Où est ce tram"
 include(":app")
