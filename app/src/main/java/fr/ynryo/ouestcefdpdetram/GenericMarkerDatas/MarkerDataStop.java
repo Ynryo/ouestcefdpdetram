@@ -11,16 +11,18 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 public class MarkerDataStop {
-    private String stopRef;              // Identifiant unique de l'arrêt
-    private String stopName;             // Nom de l'arrêt
-    private String platformName;                // Quai/Platform (ex: "A3", "Voie 2")
-    private String arrivalTimeRaw;             // Heure d'arrivée (format brut - stockée pour flexibilité)
-    private String departureTimeRaw;            // Heure de départ (format brut)
-    private long atStopDurationMs;       // Durée d'arrêt en millisecondes TODO: REMOVE ce truc kk
-    private Long delay;                  // Retard/décalage par rapport à l'horaire prévu
-    private StopType stopType;           // Type d'arrêt (PICKUP, DROPOFF)
-    private int stopOrder;               // Position dans la liste des arrêts (0, 1, 2, ...)
-    private boolean isOnLive;           // Statut de l'appel (EXPECTED, ACTUAL, etc.)
+    private String stopRef; // Identifiant unique de l'arrêt
+    private String stopName; // Nom de l'arrêt
+    private String platformName; // Quai/Platform (ex: "A3", "Voie 2")
+    private String arrivalTimeRaw; // Heure d'arrivée (format brut - stockée pour flexibilité)
+    private String departureTimeRaw; // Heure de départ (format brut)
+    private Long delay; // Retard/décalage par rapport à l'horaire prévu
+    private StopType stopType; // Type d'arrêt (PICKUP, DROPOFF)
+    private double distanceTraveled; // Distance parcouru par le véhicule à cet arrêt
+    private double latitude; // Latitude de l'arrêt
+    private double longitude; // Longitude de l'arrêt
+    private int stopOrder; // Position dans la liste des arrêts (0, 1, 2, ...)
+    private boolean isOnLive; // Statut de l'appel (EXPECTED, ACTUAL, etc.)
     private boolean isDestinationStop = false;
     private boolean isDepartureStop = false;
     private MarkerDataStandardized vehicle; // Véhicle parent
@@ -29,7 +31,6 @@ public class MarkerDataStop {
 
     // ==================== CONSTRUCTEURS ====================
     public MarkerDataStop() {
-        this.atStopDurationMs = 0;
         this.stopType = StopType.BOTH;
     }
 
@@ -88,6 +89,18 @@ public class MarkerDataStop {
         return stopOrder;
     }
 
+    public double getDistanceTraveled() {
+        return distanceTraveled;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
     public MarkerDataStandardized getVehicle() {
         return vehicle;
     }
@@ -136,6 +149,18 @@ public class MarkerDataStop {
 
     public void setStopOrder(int stopOrder) {
         this.stopOrder = stopOrder;
+    }
+
+    public void setDistanceTraveled(double distanceTraveled) {
+        this.distanceTraveled = distanceTraveled;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 
     public void setOnLive(boolean onLive) {
@@ -268,11 +293,11 @@ public class MarkerDataStop {
                 ", platformName='" + platformName + '\'' +
                 ", arrivalTimeRaw='" + arrivalTimeRaw + '\'' +
                 ", departureTimeRaw='" + departureTimeRaw + '\'' +
-                ", arrivalTime='" + getArrivalTime() + '\'' +
-                ", departureTime='" + getDepartureTime() + '\'' +
-                ", atStopDurationMs=" + atStopDurationMs +
                 ", delay=" + delay +
                 ", stopType=" + stopType +
+                ", distanceTraveled=" + distanceTraveled +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
                 ", stopOrder=" + stopOrder +
                 ", isOnLive=" + isOnLive +
                 ", isDestinationStop=" + isDestinationStop +

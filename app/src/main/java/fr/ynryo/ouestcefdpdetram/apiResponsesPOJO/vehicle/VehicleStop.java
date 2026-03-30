@@ -10,6 +10,9 @@ public class VehicleStop {
     private String stopRef;
     private String stopName;
     private int stopOrder;
+    private double distanceTraveled;
+    private double latitude;
+    private double longitude;
     private String platformName;
     private String callStatus;
     private List<String> flags;
@@ -34,6 +37,18 @@ public class VehicleStop {
         return stopOrder;
     }
 
+    public double getDistanceTraveled() {
+        return distanceTraveled;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
     public String getPlatformName() {
         return platformName;
     }
@@ -55,6 +70,9 @@ public class VehicleStop {
                 ", stopRef='" + stopRef + '\'' +
                 ", stopName='" + stopName + '\'' +
                 ", stopOrder=" + stopOrder +
+                ", distanceTraveled=" + distanceTraveled +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
                 ", callStatus='" + callStatus + '\'' +
                 ", flags=" + flags +
                 '}';

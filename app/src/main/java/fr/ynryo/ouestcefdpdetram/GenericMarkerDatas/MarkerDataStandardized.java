@@ -88,7 +88,7 @@ public class MarkerDataStandardized {
         return marker;
     }
 
-    // à la priorité sur les datas
+    // à la priorité sur les datas (bus tracker api)
     public void setVehicleDetailsVehicleData(@NonNull VehicleData vehicleData) {
         this.lineId = vehicleData.getLineId();
         this.destination = vehicleData.getDestination();
@@ -113,6 +113,9 @@ public class MarkerDataStandardized {
                 }
                 stop.setDepartureTime(vehicleStop.getExpectedTime() != null ? vehicleStop.getExpectedTime() : vehicleStop.getAimedTime());
                 stop.setStopOrder(vehicleStop.getStopOrder());
+                stop.setLongitude(vehicleStop.getLongitude());
+                stop.setLatitude(vehicleStop.getLatitude());
+                stop.setDistanceTraveled(vehicleStop.getDistanceTraveled());
                 stop.setVehicle(this);
 
                 if (vehicleStop.getFlags().contains("NO_PICKUP")) {
@@ -122,7 +125,7 @@ public class MarkerDataStandardized {
                 } else {
                     stop.setStopType(StopType.BOTH);
                 }
-
+                Log.i(TAG, stop.toString());
                 this.stops.add(stop);
             }
         }
@@ -131,7 +134,7 @@ public class MarkerDataStandardized {
         this.lastUpdatedAt = Instant.now();
     }
 
-    // n'a pas la priorité, complete juste
+    // n'a pas la priorité, complete juste (trains)
     public void setVehicleDetailsTrainData(@NonNull TrainData trainData) throws ParseException {
         List<TrainFeature> trainFeatureList = trainData.getRouteFeatures();
         if (trainFeatureList != null && !trainFeatureList.isEmpty()) {
