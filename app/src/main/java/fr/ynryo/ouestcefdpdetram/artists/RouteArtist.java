@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.Log;
 
@@ -42,7 +43,7 @@ public class RouteArtist {
                     .width(12)
                     .color(Color.parseColor(mData.getFillColor()))
                     .geodesic(true)
-                    .zIndex(1.0f);
+                    .zIndex(2.0f);
 
             boolean pointsAdded = false;
 
@@ -75,7 +76,7 @@ public class RouteArtist {
                                 .width(12)
                                 .color(Color.parseColor(mData.getFillColor()))
                                 .geodesic(true)
-                                .zIndex(1.0f);
+                                .zIndex(2.0f);
 
                         boolean pointsAdded = false;
 
@@ -128,7 +129,7 @@ public class RouteArtist {
                     .icon(icon)
                     .anchor(0.0f, 0.5f) // label à droite du point
                     .flat(true)
-                    .zIndex(2.0f));
+                    .zIndex(3.0f));
             if (marker != null) stopMarkers.add(marker);
         }
     }
@@ -168,17 +169,17 @@ public class RouteArtist {
 
         //circle border
         circlePaint.setColor(lineColor);
-        circlePaint.setStyle(android.graphics.Paint.Style.STROKE);
+        circlePaint.setStyle(Paint.Style.STROKE);
         circlePaint.setStrokeWidth(3 * density);
         canvas.drawCircle(dotPx / 2f, cy, dotPx / 2f - (1.5f * density), circlePaint);
 
         //fond du label
         int labelLeft = dotPx + (int) (4 * density);
-        android.graphics.RectF labelRect = new android.graphics.RectF(
+        RectF labelRect = new RectF(
                 labelLeft, cy - labelHeight / 2f,
                 labelLeft + labelWidth, cy + labelHeight / 2f);
 
-        android.graphics.Paint bgPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         bgPaint.setColor(lineColor);
         bgPaint.setAlpha(220);
         canvas.drawRoundRect(labelRect, cornerRadius, cornerRadius, bgPaint);

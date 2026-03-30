@@ -152,14 +152,12 @@ public class MarkerArtist {
 
             @Override
             public void onErrorVehicleAliveListener(String error) {
-                // En cas d'erreur, on garde par précaution
+                //if error
             }
         });
     }
 
     public Bitmap createCustomMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
-
-
         ImageView markerCircle = cachedMarkerView.findViewById(R.id.marker_circle);
         TextView lineNumberView = cachedMarkerView.findViewById(R.id.line_number);
 
