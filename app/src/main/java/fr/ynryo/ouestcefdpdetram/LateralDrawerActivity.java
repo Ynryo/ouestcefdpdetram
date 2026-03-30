@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
@@ -36,6 +37,7 @@ public class LateralDrawerActivity {
     private final List<MaterialSwitch> switches = new ArrayList<>();
     private boolean isBulkUpdate = false;
     private boolean isUpdatingMasterSwitch = false;
+    private boolean isNetworksFiltersFetch = false;
 
     private View mainMenuContainer;
     private View filtersPageContainer;
@@ -82,12 +84,14 @@ public class LateralDrawerActivity {
     private void showFiltersPage() {
         if (mainMenuContainer != null) mainMenuContainer.setVisibility(View.GONE);
         if (filtersPageContainer != null) filtersPageContainer.setVisibility(View.VISIBLE);
+
+        if (!isNetworksFiltersFetch) fetchAndPopulateNetworks();
     }
 
     private void showFavoritePage() {
         if (mainMenuContainer != null) mainMenuContainer.setVisibility(View.GONE);
         if (favoritePageContainer != null) favoritePageContainer.setVisibility(View.VISIBLE);
-        populateFavoriteLines(); // Call to populate favorite lines
+        populateFavoriteLines();
     }
 
     private void showCreditsPage() {
@@ -102,6 +106,55 @@ public class LateralDrawerActivity {
             drawerLayout.openDrawer(GravityCompat.START);
         }
     }
+
+    private void fetchAndPopulateNetworks() {
+        LinearLayout networksContainer = context.findViewById(R.id.networks_container);
+        if (networksContainer == null) return;
+
+        networksContainer.removeAllViews();
+        ProgressBar loader = new ProgressBar(context);
+        loader.setIndeterminateTintList(
+                android.content.res.ColorStateList.valueOf(
+                        context.getResources().getColor(R.color.blue_primary, context.getTheme())
+                )
+        );
+        networksContainer.addView(loader);
+
+        context.getFetcher().fetchRegions(new FetchingManager.OnRegionsListener() {
+            @Override
+            public void onResponseRegionsListener(List<RegionData> regions) {
+                context.getFetcher().fetchNetworks(new FetchingManager.OnNetworkListener() {
+                    @Override
+                    public void onResponseNetworkListener(List<NetworkData> networks) {
+                        isNetworksFiltersFetch = true;
+                        populateNetworks(regions, networks);
+                    }
+
+                    @Override
+                    public void onErrorNetworkListener(String error) {
+                        Log.e(TAG, "Erreur réseaux: " + error);
+                        showNetworkError(networksContainer);
+                    }
+                });
+            }
+
+            @Override
+            public void onErrorRegionsListener(String error) {
+                Log.e(TAG, "Erreur régions: " + error);
+                showNetworkError(networksContainer);
+            }
+        });
+    }
+
+    private void showNetworkError(LinearLayout networksContainer) {
+        networksContainer.removeAllViews();
+        TextView tvError = new TextView(context);
+        tvError.setText(R.string.network_error);
+        tvError.setPadding(32, 32, 32, 32);
+        tvError.setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+        networksContainer.addView(tvError);
+    }
+
 
     public void populateNetworks(List<RegionData> regions, List<NetworkData> networks) {
         if (saveManager == null) return;

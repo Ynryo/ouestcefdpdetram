@@ -29,8 +29,6 @@ import com.google.android.gms.maps.model.Marker;
 import java.util.List;
 
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
-import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
-import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version.VersionResponse;
 import fr.ynryo.ouestcefdpdetram.artists.MarkerArtist;
 import fr.ynryo.ouestcefdpdetram.managers.CompassManager;
@@ -64,11 +62,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FollowManager followManager;
     private FavoriteManager favoriteManager;
     private SaveManager saveManager;
-
-    private boolean isMapReady = false;
-    private boolean isDataReady = false;
-    private List<RegionData> pendingRegions;
-    private List<NetworkData> pendingNetworks;
 
     private boolean isFetching = false;
     private GoogleMap googleMap;
@@ -118,42 +111,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        fetcher.fetchRegions(new FetchingManager.OnRegionsListener() {
-            @Override
-            public void onResponseRegionsListener(List<RegionData> regions) {
-                fetcher.fetchNetworks(new FetchingManager.OnNetworkListener() {
-                    @Override
-                    public void onResponseNetworkListener(List<NetworkData> data) {
-                        pendingRegions = regions;
-                        pendingNetworks = data;
-                        isDataReady = true;
-                        onEverythingReady();
-                    }
-
-                    @Override
-                    public void onErrorNetworkListener(String error) {
-                        Log.e("MainActivity", "Erreur réseaux: " + error);
-                    }
-                });
-            }
-
-            @Override
-            public void onErrorRegionsListener(String error) {
-                Log.e("MainActivity", "Erreur régions: " + error);
-            }
-        });
-
         findViewById(R.id.btn_open_menu).setOnClickListener(view -> lateralDrawerActivity.open());
         findViewById(R.id.fab_center_location).setOnClickListener(view -> centerMapOnUserLocation());
-    }
-
-    private void onEverythingReady() {
-        if (!isMapReady || !isDataReady) return;
-
-        lateralDrawerActivity.populateNetworks(pendingRegions, pendingNetworks);
-        centerMapOnUserLocation();
-        fetchMarkers();
-        handler.post(vehicleUpdateRunnable);
     }
 
     @SuppressLint("PotentialBehaviorOverride")
@@ -177,14 +136,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             this.googleMap.setMyLocationEnabled(true);
         }
 
-        isMapReady = true;
-        onEverythingReady();
+        centerMapOnUserLocation();
+        fetchMarkers();
+        handler.post(vehicleUpdateRunnable);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (isMapReady && isDataReady) {
+        if (googleMap != null) {
             handler.post(vehicleUpdateRunnable);
         }
     }
