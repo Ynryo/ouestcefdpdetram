@@ -3,10 +3,11 @@ package fr.ynryo.ouestcefdpdetram.artists;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.RectF;
-import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -22,6 +23,7 @@ import java.util.List;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStop;
 import fr.ynryo.ouestcefdpdetram.MainActivity;
+import fr.ynryo.ouestcefdpdetram.R;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.bus.BusGeometry;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 
@@ -128,66 +130,39 @@ public class RouteArtist {
                     .position(new LatLng(stop.getLatitude(), stop.getLongitude()))
                     .icon(icon)
                     .anchor(0.0f, 0.5f) // label à droite du point
-                    .flat(true)
+                    .flat(false)
                     .zIndex(3.0f));
             if (marker != null) stopMarkers.add(marker);
         }
     }
 
     private BitmapDescriptor createStopIcon(String stopName, int lineColor) {
-        int dotSize = 16;
-        float density = context.getResources().getDisplayMetrics().density;
-        int dotPx = (int) (dotSize * density);
-        int padding = (int) (6 * density);
-        int textSize = (int) (13 * density);
-        int cornerRadius = (int) (4 * density);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_stop_marker, null);
 
-        // mesurer txt
-        Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        textPaint.setTextSize(textSize);
-        textPaint.setColor(Color.WHITE);
-        textPaint.setTypeface(Typeface.DEFAULT_BOLD);
+        //point
+        View dot = view.findViewById(R.id.stop_dot);
+        GradientDrawable dotDrawable = new GradientDrawable();
+        dotDrawable.setShape(GradientDrawable.OVAL);
+        dotDrawable.setColor(Color.WHITE);
+        dotDrawable.setStroke((int) (3 * context.getResources().getDisplayMetrics().density), lineColor);
+        dot.setBackground(dotDrawable);
 
-        float textWidth = textPaint.measureText(stopName);
-        Paint.FontMetrics fm = textPaint.getFontMetrics();
-        int textHeight = (int) (fm.descent - fm.ascent);
+        //background label
+        TextView tvName = view.findViewById(R.id.stop_name);
+        tvName.setText(stopName);
+        GradientDrawable labelDrawable = new GradientDrawable();
+        labelDrawable.setShape(GradientDrawable.RECTANGLE);
+        labelDrawable.setColor(lineColor);
+        labelDrawable.setAlpha(220);
+        labelDrawable.setCornerRadius(8);
+        tvName.setBackground(labelDrawable);
 
-        int labelWidth = (int) (textWidth + padding * 2);
-        int labelHeight = (int) (textHeight + padding);
-        int totalWidth = dotPx + (int) (4 * density) + labelWidth;
-        int totalHeight = Math.max(dotPx, labelHeight);
-
-        Bitmap bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-
-        //draw circle
-        Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        circlePaint.setColor(Color.WHITE);
-        circlePaint.setStyle(Paint.Style.FILL);
-        float cy = totalHeight / 2f;
-        canvas.drawCircle(dotPx / 2f, cy, dotPx / 2f, circlePaint);
-
-        //circle border
-        circlePaint.setColor(lineColor);
-        circlePaint.setStyle(Paint.Style.STROKE);
-        circlePaint.setStrokeWidth(3 * density);
-        canvas.drawCircle(dotPx / 2f, cy, dotPx / 2f - (1.5f * density), circlePaint);
-
-        //fond du label
-        int labelLeft = dotPx + (int) (4 * density);
-        RectF labelRect = new RectF(
-                labelLeft, cy - labelHeight / 2f,
-                labelLeft + labelWidth, cy + labelHeight / 2f);
-
-        Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bgPaint.setColor(lineColor);
-        bgPaint.setAlpha(220);
-        canvas.drawRoundRect(labelRect, cornerRadius, cornerRadius, bgPaint);
-
-        //texte
-        float textX = labelLeft + padding;
-        float textY = cy - (fm.ascent + fm.descent) / 2f;
-        canvas.drawText(stopName, textX, textY, textPaint);
+        //to bitmap
+        view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+        Bitmap bitmap = Bitmap.createBitmap(
+                view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+        view.draw(new Canvas(bitmap));
 
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
