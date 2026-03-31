@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Où est ce fdp de tram"
 include(":app")
+project(":app").projectDir = File(rootDir, "app/")
