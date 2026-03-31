@@ -29,9 +29,9 @@ import com.google.android.gms.maps.model.Marker;
 
 import java.util.List;
 
-import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version.VersionResponse;
 import fr.ynryo.ouestcefdpdetram.artists.MarkerArtist;
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.managers.CompassManager;
 import fr.ynryo.ouestcefdpdetram.managers.FavoriteManager;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;

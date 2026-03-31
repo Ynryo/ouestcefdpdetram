@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram.GenericMarkerDatas;
+package fr.ynryo.ouestcefdpdetram.genericMarkerDatas;
 
 import android.util.Log;
 

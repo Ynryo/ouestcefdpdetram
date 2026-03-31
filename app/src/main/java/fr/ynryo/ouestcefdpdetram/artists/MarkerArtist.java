@@ -33,11 +33,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.LateralDrawerActivity;
 import fr.ynryo.ouestcefdpdetram.MainActivity;
 import fr.ynryo.ouestcefdpdetram.MarkerStopsDetailActivity;
 import fr.ynryo.ouestcefdpdetram.R;
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 import fr.ynryo.ouestcefdpdetram.managers.FollowManager;
 

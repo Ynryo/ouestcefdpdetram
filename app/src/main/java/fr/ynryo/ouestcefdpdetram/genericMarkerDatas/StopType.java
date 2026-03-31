@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram.GenericMarkerDatas;
+package fr.ynryo.ouestcefdpdetram.genericMarkerDatas;
 
 public enum StopType {
     NO_DROPOFF("Montée uniquement"),

@@ -7,9 +7,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.MainActivity;
 import fr.ynryo.ouestcefdpdetram.R;
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
 
 /**
  * Classe gérant les lignes favorites

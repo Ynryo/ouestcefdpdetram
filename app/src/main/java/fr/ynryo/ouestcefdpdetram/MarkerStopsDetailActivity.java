@@ -37,9 +37,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
-import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStop;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStop;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 
 public class MarkerStopsDetailActivity {

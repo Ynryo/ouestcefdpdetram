@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.ynryo.ouestcefdpdetram.ApiService;
-import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
-import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerType;
 import fr.ynryo.ouestcefdpdetram.MainActivity;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.bus.BusGeometry;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkerData;
@@ -24,6 +22,8 @@ import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.train.TrainData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.train.TrainFeature;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version.VersionResponse;
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerType;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;

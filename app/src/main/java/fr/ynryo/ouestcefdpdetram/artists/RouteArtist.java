@@ -20,11 +20,11 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
-import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStop;
 import fr.ynryo.ouestcefdpdetram.MainActivity;
 import fr.ynryo.ouestcefdpdetram.R;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.bus.BusGeometry;
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStop;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 
 public class RouteArtist {
