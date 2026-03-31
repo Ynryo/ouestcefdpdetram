@@ -3,12 +3,9 @@ package fr.ynryo.ouestcefdpdetram.managers;
 import android.view.View;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import fr.ynryo.ouestcefdpdetram.GenericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.MainActivity;

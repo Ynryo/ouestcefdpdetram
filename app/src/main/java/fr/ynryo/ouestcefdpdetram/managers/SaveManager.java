@@ -9,6 +9,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +60,10 @@ public class SaveManager {
     }
 
     public void saveFavoriteLines(List<Favorite> favoriteLines) {
+        favoriteLines.sort(Comparator
+                .comparing(Favorite::getLineText, Comparator.nullsLast(String::compareToIgnoreCase))
+                .thenComparing(Favorite::getDestination, Comparator.nullsLast(String::compareToIgnoreCase))
+        );
         String json = gson.toJson(favoriteLines);
         prefs.edit().putString(KEY_FAVORITE, json).apply();
     }
