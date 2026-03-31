@@ -67,7 +67,7 @@ public class RouteArtist {
             if (pointsAdded) {
                 currentMarkerId = mData.getId();
                 currentRoutePolyline = context.getMap().addPolyline(options);
-                drawStopCircles(mData, mData.getFillColor() != null ? Color.parseColor(mData.getFillColor()) : Color.parseColor("#424242")); // ← ajouter ici
+                drawStopCircles(mData);
             }
         } else if (mData.isVehicle() || mData.getPathRef() != null) {
             context.getFetcher().fetchBusLine(mData, new FetchingManager.OnRouteLineListener() {
@@ -100,7 +100,7 @@ public class RouteArtist {
                         if (pointsAdded) {
                             currentMarkerId = mData.getId();
                             currentRoutePolyline = context.getMap().addPolyline(options);
-                            drawStopCircles(mData, mData.getFillColor() != null ? Color.parseColor(mData.getFillColor()) : Color.parseColor("#424242"));
+                            drawStopCircles(mData);
                         }
                     }
                 }
@@ -114,7 +114,7 @@ public class RouteArtist {
         }
     }
 
-    private void drawStopCircles(MarkerDataStandardized mData, int color) {
+    private void drawStopCircles(MarkerDataStandardized mData) {
         for (Marker m : stopMarkers) m.remove();
         stopMarkers.clear();
 
@@ -124,7 +124,7 @@ public class RouteArtist {
         for (MarkerDataStop stop : stops) {
             if (stop.getLatitude() == 0 && stop.getLongitude() == 0) continue;
 
-            BitmapDescriptor icon = createStopIcon(stop.getStopName(), color);
+            BitmapDescriptor icon = createStopIcon(stop.getStopName(), mData);
 
             Marker marker = context.getMap().addMarker(new MarkerOptions()
                     .position(new LatLng(stop.getLatitude(), stop.getLongitude()))
@@ -136,7 +136,7 @@ public class RouteArtist {
         }
     }
 
-    private BitmapDescriptor createStopIcon(String stopName, int lineColor) {
+    private BitmapDescriptor createStopIcon(String stopName, MarkerDataStandardized mData) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_stop_marker, null);
 
         //point
@@ -144,15 +144,16 @@ public class RouteArtist {
         GradientDrawable dotDrawable = new GradientDrawable();
         dotDrawable.setShape(GradientDrawable.OVAL);
         dotDrawable.setColor(Color.WHITE);
-        dotDrawable.setStroke((int) (3 * context.getResources().getDisplayMetrics().density), lineColor);
+        dotDrawable.setStroke((int) (3 * context.getResources().getDisplayMetrics().density), mData.getFillColor() != null ? Color.parseColor(mData.getFillColor()) : Color.parseColor("#424242"));
         dot.setBackground(dotDrawable);
 
         //background label
         TextView tvName = view.findViewById(R.id.stop_name);
         tvName.setText(stopName);
+        tvName.setTextColor(mData.getTextColor() != null ? Color.parseColor(mData.getTextColor()) : Color.parseColor("#424242"));
         GradientDrawable labelDrawable = new GradientDrawable();
         labelDrawable.setShape(GradientDrawable.RECTANGLE);
-        labelDrawable.setColor(lineColor);
+        labelDrawable.setColor(mData.getFillColor() != null ? Color.parseColor(mData.getFillColor()) : Color.parseColor("#424242"));
         labelDrawable.setAlpha(220);
         labelDrawable.setCornerRadius(8);
         tvName.setBackground(labelDrawable);
