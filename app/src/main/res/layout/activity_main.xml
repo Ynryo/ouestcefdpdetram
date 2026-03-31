@@ -354,20 +354,6 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/guide_credits_rules_title"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:layout_marginBottom="8dp"/>
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/guide_credits_rules_content"
-                            android:textSize="16sp"
-                            android:layout_marginBottom="16dp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
                             android:text="@string/guide_useful_tips_title"
                             android:textSize="20sp"
                             android:textStyle="bold"
