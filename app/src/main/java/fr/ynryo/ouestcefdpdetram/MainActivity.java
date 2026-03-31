@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -112,7 +113,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         findViewById(R.id.btn_open_menu).setOnClickListener(view -> lateralDrawerActivity.open());
-        findViewById(R.id.fab_center_location).setOnClickListener(view -> centerMapOnUserLocation());
+        findViewById(R.id.fab_center_location).setOnClickListener(view -> {
+            MediaPlayer mp = MediaPlayer.create(this, R.raw.avion);
+            if (mp != null) {
+                mp.setOnCompletionListener(MediaPlayer::release);
+                mp.start();
+            }
+            centerMapOnUserLocation();
+        });
     }
 
     @SuppressLint("PotentialBehaviorOverride")
