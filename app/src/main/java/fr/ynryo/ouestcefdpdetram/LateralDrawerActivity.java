@@ -364,6 +364,11 @@ public class LateralDrawerActivity {
             tvLineNumber.setBackgroundColor(fillColor);
             tvLineNumber.setTextColor(textColor);
             tvDestinationHeader.setText(f.getDestination());
+            tvDestinationHeader.setSingleLine(true);
+            tvDestinationHeader.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+            tvDestinationHeader.setMarqueeRepeatLimit(-1);
+            tvDestinationHeader.setHorizontallyScrolling(true);
+            tvDestinationHeader.setSelected(true);
 
             favoritesContainer.addView(lineHeaderView);
 

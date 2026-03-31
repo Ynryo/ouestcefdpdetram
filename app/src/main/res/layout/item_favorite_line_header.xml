@@ -6,7 +6,9 @@
     android:orientation="horizontal"
     android:layout_marginTop="8dp"
     android:gravity="center_vertical"
-    android:padding="8dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:paddingEnd="8dp"
     android:background="?attr/selectableItemBackground">
 
     <TextView
