@@ -23,15 +23,31 @@
         android:textSize="18sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/tv_destination"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginStart="12dp"
-        android:text="@string/destination"
-        android:textSize="18sp"
-        android:textColor="?attr/colorOnSurface" />
+        android:orientation="vertical"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tv_destination"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="@string/destination"
+            android:textSize="18sp"
+            android:textColor="?attr/colorOnSurface" />
+        <TextView
+            android:id="@+id/tv_city"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="@string/city"
+            android:textSize="11sp"
+            android:textColor="?attr/colorOnSurface" />
+    </LinearLayout>
+
 
     <ImageView
         android:id="@+id/iv_arrow"

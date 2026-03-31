@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Où est ce fdp de tram</string>
     <string name="nexts_stops">Next stops</string>
     <string name="start_time">Departure time</string>
     <string name="network_error">Network error</string>
     <string name="no_data">No data</string>
     <string name="center_map_on_loc">Center map</string>
+    <string name="vehicle_position">Vehicle position marker</string>
     <string name="show_all">Show all</string>
     <string name="open_menu">Open menu</string>
     <string name="destination">Destination</string>
@@ -24,4 +24,5 @@
     <string name="no_favorites_message">No favorites lines for the moment</string>
     <string name="next_stop_label">Next stop :</string>
     <string name="time_label">Time</string>
+    <string name="city">City</string>
 </resources>

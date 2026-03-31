@@ -39,9 +39,9 @@
     <string name="guide_main_map_title" translatable="false">1. La Carte Principale</string>
     <string name="guide_main_map_content" translatable="false">
         Sur la carte, vous verrez des icônes représentant les véhicules en circulation.
-        \n\n•\t**Visualisation des Véhicules**: Chaque icône indique la position actuelle d\'un
+        \n\n•\tVisualisation des Véhicules: Chaque icône indique la position actuelle d\'un
         véhicule, souvent avec son numéro de ligne et sa destination.
-        \n\n•\t**Informations Détaillées**: Appuyez sur une icône de véhicule pour afficher une
+        \n\n•\tInformations Détaillées: Appuyez sur une icône de véhicule pour afficher une
         fenêtre d\'information contenant des détails supplémentaires comme la prochaine arrêt,
         l\'heure de départ estimée, et la destination finale.
     </string>
@@ -61,8 +61,6 @@
         afficher ou masquer les véhicules de ce réseau sur la carte.
         \n\n•\tTout Afficher/Masquer: Un interrupteur "Tout afficher" en haut de la liste vous
         permet d\'activer ou de désactiver la visibilité de tous les réseaux en une seule fois.
-        \n\n•\tSections Pliables: Les en-têtes de région sont cliquables pour déplier ou replier
-        la liste des réseaux de transport de cette région, facilitant la navigation.
     </string>
 
     <string name="guide_favorites_title" translatable="false">2.2. Lignes Favorites</string>
@@ -75,13 +73,6 @@
         marquées comme favorites, avec leurs prochaines arrêts et horaires, pour un suivi rapide.
     </string>
 
-    <string name="guide_credits_rules_title" translatable="false">2.3. Crédits &amp; Règles</string>
-    <string name="guide_credits_rules_content" translatable="false">
-        C\'est la section dans laquelle vous vous trouvez actuellement. Elle contient ce guide
-        d\'utilisation ainsi que des informations sur le développement de l\'application et les
-        attributions.
-    </string>
-
     <string name="guide_useful_tips_title" translatable="false">3. Conseils Utiles</string>
     <string name="guide_useful_tips_content" translatable="false">
         •\tZoom et Déplacement: Utilisez les gestes classiques (pincer/écarter pour zoomer,
@@ -90,4 +81,5 @@
         en temps réel. Si vous remarquez un délai, une actualisation automatique est effectuée
         régulièrement.
     </string>
+    <string name="city">Ville</string>
 </resources>

@@ -355,6 +355,7 @@ public class LateralDrawerActivity {
             View lineHeaderView = LayoutInflater.from(context).inflate(R.layout.item_favorite_line_header, favoritesContainer, false);
             TextView tvLineNumber = lineHeaderView.findViewById(R.id.tv_line_number);
             TextView tvDestinationHeader = lineHeaderView.findViewById(R.id.tv_destination);
+            TextView tvCityHeader = lineHeaderView.findViewById(R.id.tv_city);
             ImageView ivArrow = lineHeaderView.findViewById(R.id.iv_arrow);
 
             int fillColor = Color.parseColor(f.getFillColor() != null ? f.getFillColor() : "#424242");
@@ -369,6 +370,10 @@ public class LateralDrawerActivity {
             tvDestinationHeader.setMarqueeRepeatLimit(-1);
             tvDestinationHeader.setHorizontallyScrolling(true);
             tvDestinationHeader.setSelected(true);
+
+            tvCityHeader.setVisibility(View.GONE);
+//            String city = f.getCity() != null ? f.getCity() : context.getString(R.string.no_data);
+//            tvCityHeader.setText(city);
 
             favoritesContainer.addView(lineHeaderView);
 

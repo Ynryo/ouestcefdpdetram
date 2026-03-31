@@ -41,7 +41,7 @@ public class FavoriteManager {
     public void addFavorite(MarkerDataStandardized mData) {
         if (isFavorite(mData)) return;
         this.showedVehicleId = mData;
-        favoriteLines.add(new Favorite(mData.getLineId(), mData.getLineNumber(), mData.getDestination(), mData.getFillColor(), mData.getTextColor()));
+        favoriteLines.add(new Favorite(mData.getLineId(), mData.getLineNumber(), mData.getDestination(), mData.getFillColor(), mData.getTextColor(), mData.getNetworkRef()));
         favoriteButton.setImageResource(R.drawable.icon_favorite_fill);
         saveManager.saveFavoriteLines(favoriteLines);
     }

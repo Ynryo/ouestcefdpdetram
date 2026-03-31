@@ -15,6 +15,8 @@ public class Favorite {
     private String fillColor;
     @SerializedName("textColor")
     private String textColor;
+    @SerializedName("city")
+    private String city;
 
     public Favorite() {
         this.ligneId = 0;
@@ -32,10 +34,11 @@ public class Favorite {
         this.destination = destination;
     }
 
-    public Favorite(int ligneId, String lineText, String destination, String fillColor, String textColor) {
+    public Favorite(int ligneId, String lineText, String destination, String fillColor, String textColor, String city) {
         this(ligneId, lineText, destination);
         this.fillColor = fillColor;
         this.textColor = textColor;
+        this.city = city;
     }
 
     public int getLigneId() {
@@ -58,6 +61,11 @@ public class Favorite {
         return textColor;
     }
 
+    public String getCity() {
+        return city;
+    }
+
+
     @NonNull
     @Override
     public String toString() {
@@ -67,6 +75,7 @@ public class Favorite {
                 ", destination='" + destination + '\'' +
                 ", fillColor='" + fillColor + '\'' +
                 ", textColor='" + textColor + '\'' +
+                ", city='" + city + '\'' +
                 '}';
     }
 }
