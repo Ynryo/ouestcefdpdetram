@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Où est ce fdp de tram</string>
+    <string name="app_name" translatable="false">Où est ce tram</string>
     <string name="nexts_stops">Prochains arrêts</string>
     <string name="start_time">Heure de départ</string>
     <string name="title_activity_maps" translatable="false">MapsActivity</string>
@@ -31,7 +31,7 @@
     <string name="expand_desc">Déplier</string>
     <string name="collapse_desc">Replier</string>
     <string name="guide_title" translatable="false">Guide d\'Utilisation de l\'Application</string>
-    <string name="guide_introduction" translatable="false">Bienvenue sur "Où est ce fdp de tram" ! Cette application a été conçue pour vous permettre
+    <string name="guide_introduction" translatable="false">Bienvenue sur "Où est ce tram" ! Cette application a été conçue pour vous permettre
         de suivre en temps réel les transports en commun (principalement les trams, mais aussi
         d\'autres réseaux si disponibles) dans votre région.
     </string>
