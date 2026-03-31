@@ -6,6 +6,44 @@
     android:orientation="horizontal"
     android:paddingVertical="8dp">
 
+    <!-- === COLONNE TIMELINE (visible uniquement pour les trains) === -->
+<!--    <FrameLayout -->
+<!--        android:id="@+id/flTimeline"-->
+<!--        android:layout_width="24dp"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:visibility="gone">-->
+
+<!--        &lt;!&ndash; Ligne verticale HAUT (du bord supérieur jusqu'au centre du point) &ndash;&gt;-->
+<!--        <View-->
+<!--            android:id="@+id/vLineTop"-->
+<!--            android:layout_width="4dp"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_gravity="top|center_horizontal" />-->
+
+<!--        &lt;!&ndash; Ligne verticale BAS (du centre du point jusqu'en bas) &ndash;&gt;-->
+<!--        <View-->
+<!--            android:id="@+id/vLineBottom"-->
+<!--            android:layout_width="4dp"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_gravity="bottom|center_horizontal" />-->
+
+<!--        &lt;!&ndash; Point central de l'arrêt &ndash;&gt;-->
+<!--        <View-->
+<!--            android:id="@+id/vStopDot"-->
+<!--            android:layout_width="12dp"-->
+<!--            android:layout_height="12dp"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:background="@drawable/stop_dot" />-->
+
+<!--    </FrameLayout>-->
+
+<!--    &lt;!&ndash; Séparateur entre timeline et contenu &ndash;&gt;-->
+<!--    <View-->
+<!--        android:id="@+id/spacerTimeline"-->
+<!--        android:layout_width="8dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:visibility="gone" />-->
+
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"

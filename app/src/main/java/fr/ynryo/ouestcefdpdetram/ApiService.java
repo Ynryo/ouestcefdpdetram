@@ -18,6 +18,14 @@ import retrofit2.http.Query;
  * Interface de l'API, gère les requêtes et les réponses
  */
 public interface ApiService {
+    /**
+     * API call vers https://bus-tracker.fr/api/vehicle-journeys/markers + params
+     * @param swLat sud ouest latitude
+     * @param swLon sud ouest longitude
+     * @param neLat nord est latitude
+     * @param neLon nord est longitude
+     * @param lineId id de ligne optionnel
+     */
     @GET("vehicle-journeys/markers")
     Call<MarkersList> getVehicleMarkers(
         @Query("swLat") double swLat,
