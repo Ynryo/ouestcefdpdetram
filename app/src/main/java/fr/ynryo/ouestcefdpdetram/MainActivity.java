@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void centerOnMarker(String markerId) {
+    public void centerOnMarker(String markerId, boolean isTilted, boolean isRotated) {
         Marker marker = markerArtist.getActiveMarkers().get(markerId);
         if (marker != null && googleMap != null) {
             MarkerDataStandardized data = (MarkerDataStandardized) marker.getTag();
@@ -236,12 +236,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                     new CameraPosition.Builder()
                             .target(marker.getPosition())
-                            .bearing(bearing)
-                            .tilt(60f)
+                            .bearing(isRotated ? bearing : 0)
+                            .tilt(isTilted ? 60f : 0)
                             .zoom(17f)
                             .build()
             ), 1000, null);
         }
+    }
+
+    //TODO: refactor
+    public void centerOnMarker(MarkerDataStandardized markerDataStandardized, boolean isTilted, boolean isRotated) {
+        float bearing = markerDataStandardized != null ? markerDataStandardized.getBearing() : 0f;
+
+        googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                new CameraPosition.Builder()
+                        .target(new LatLng(markerDataStandardized.getLatitude(), markerDataStandardized.getLongitude()))
+                        .bearing(isRotated ? bearing : 0)
+                        .tilt(isTilted ? 60f : 0f)
+                        .zoom(17f)
+                        .build()
+        ), 1000, null);
     }
 
     private void fetchMarkers() {

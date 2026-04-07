@@ -39,12 +39,18 @@ public class LateralDrawerActivity {
     private boolean isUpdatingMasterSwitch = false;
     private boolean isNetworksFiltersFetch = false;
 
+    private DrawerLayout drawerLayout;
+
     private View mainMenuContainer;
     private View filtersPageContainer;
     private View favoritePageContainer;
     private View creditsPageContainer;
 
-
+    /**
+     * Constructeur de la classe LateralDrawerActivity
+     * @param context context
+     * @param saveManager saveManager
+     */
     public LateralDrawerActivity(MainActivity context, SaveManager saveManager) {
         this.context = context;
         this.saveManager = saveManager;
@@ -100,13 +106,16 @@ public class LateralDrawerActivity {
     }
 
     public void open() {
-        DrawerLayout drawerLayout = context.findViewById(R.id.drawer_layout);
+        drawerLayout = context.findViewById(R.id.drawer_layout);
         if (drawerLayout != null) {
             showMainMenu();
             drawerLayout.openDrawer(GravityCompat.START);
         }
     }
 
+    /**
+     * Récupère les données des réseaux depuis l'API et les popule dans la liste des réseaux
+     */
     private void fetchAndPopulateNetworks() {
         LinearLayout networksContainer = context.findViewById(R.id.networks_container);
         if (networksContainer == null) return;
@@ -146,6 +155,10 @@ public class LateralDrawerActivity {
         });
     }
 
+    /**
+     * Affiche un message d'erreur lorsque la récupération des données réseau échoue
+     * @param networksContainer networksContainer
+     */
     private void showNetworkError(LinearLayout networksContainer) {
         networksContainer.removeAllViews();
         TextView tvError = new TextView(context);
@@ -155,7 +168,11 @@ public class LateralDrawerActivity {
         networksContainer.addView(tvError);
     }
 
-
+    /**
+     * Popule la liste des réseaux avec les données fournies
+     * @param regions regions
+     * @param networks networks
+     */
     public void populateNetworks(List<RegionData> regions, List<NetworkData> networks) {
         if (saveManager == null) return;
 
@@ -330,6 +347,9 @@ public class LateralDrawerActivity {
         }
     }
 
+    /**
+     * Popule la liste des lignes favorites avec les données fournies
+     */
     private void populateFavoriteLines() {
         LinearLayout favoritesContainer = context.findViewById(R.id.favorites_container);
         if (favoritesContainer == null) return;
@@ -413,6 +433,11 @@ public class LateralDrawerActivity {
                                     ivMarker.setImageBitmap(context.getMarkerArtist().createCustomMarker(markerDetails, 0, false));
                                     tvNextStop.setText(markerDetails.getNextStop() != null ? markerDetails.getNextStop().getStopName() : context.getString(R.string.no_data));
                                     tvTime.setText(markerDetails.getNextStop() != null && markerDetails.getNextStop().getDepartureTime() != null ? markerDetails.getNextStop().getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm")) : context.getString(R.string.no_data));
+                                    vehicleView.setOnClickListener(v -> {
+                                        context.getMarkerArtist().getMarkerStopsDetailActivity().open(markerDetails);
+                                        context.centerOnMarker(markerDetails, false, true);
+                                        drawerLayout.closeDrawer(GravityCompat.START);
+                                    });
                                     lineVehiclesContainer.addView(vehicleView);
                                 }
                             }
