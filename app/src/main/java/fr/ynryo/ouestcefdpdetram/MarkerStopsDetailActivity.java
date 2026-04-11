@@ -125,6 +125,12 @@ public class MarkerStopsDetailActivity {
     }
 
     // ==================== DATA FETCHING ====================
+
+    /**
+     * Fetch data from API
+     * @param markerDataStandardized the marker data
+     * @param view the view
+     */
     private void fetchVehicleData(MarkerDataStandardized markerDataStandardized, View view) {
         context.getFetcher().fetchVehicleStopsInfo(markerDataStandardized, new FetchingManager.OnVehicleDetailsListener() {
             @Override
@@ -147,6 +153,11 @@ public class MarkerStopsDetailActivity {
         });
     }
 
+    /**
+     * Fetch network logo from API
+     * @param markerDataStandardized the marker data
+     * @param view the view
+     */
     private void fetchNetworkLogo(MarkerDataStandardized markerDataStandardized, View view) {
         if (markerDataStandardized.getNetworkId() == 0) return;
 
@@ -166,6 +177,11 @@ public class MarkerStopsDetailActivity {
         });
     }
 
+    /**
+     * Load network logo from API
+     * @param view the view
+     * @param imgURI the URI of the logo
+     */
     private void loadNetworkLogo(View view, URI imgURI) {
         ImageView ivLogo = view.findViewById(R.id.ivNetworkLogo);
         ivLogo.setBackgroundResource(R.color.surface_light);
@@ -180,16 +196,30 @@ public class MarkerStopsDetailActivity {
                 .into(ivLogo);
     }
 
+    /**
+     * Hide loader from view
+     * @param view the view
+     */
     private void hideLoader(View view) {
         view.findViewById(R.id.loader).setVisibility(View.GONE);
     }
 
+    /**
+     * Show error from view
+     * @param view the view
+     */
     private void showError(View view) {
         TextView tvDest = view.findViewById(R.id.tvDestination);
         tvDest.setText(R.string.network_error);
     }
 
     // ==================== DISPLAY ====================
+
+    /**
+     * Show vehicle details from marker data
+     * @param markerDataStandardized the marker data
+     * @param view the view
+     */
     private void showVehicleDetails(MarkerDataStandardized markerDataStandardized, View view) {
         context.getFollowManager().setFollowButton(view.findViewById(R.id.followButton), markerDataStandardized.getId());
         context.getFavoriteManager().setFavoriteButton(view.findViewById(R.id.favoriteButton), markerDataStandardized);
@@ -198,6 +228,11 @@ public class MarkerStopsDetailActivity {
         setupStopsList(view, markerDataStandardized);
     }
 
+    /**
+     * Setup destination text from marker data
+     * @param view the view
+     * @param markerDataStandardized the marker data
+     */
     private void setupDestinationText(View view, MarkerDataStandardized markerDataStandardized) {
         TextView tvDestination = view.findViewById(R.id.tvDestination);
         tvDestination.setText(markerDataStandardized.getDestination());
@@ -208,6 +243,11 @@ public class MarkerStopsDetailActivity {
         tvDestination.setSelected(true);
     }
 
+    /**
+     * Setup stops list from marker data
+     * @param view the view
+     * @param markerDataStandardized the marker data
+     */
     private void setupStopsList(View view, MarkerDataStandardized markerDataStandardized) {
         RecyclerView rvStops = view.findViewById(R.id.rvStops);
         rvStops.setLayoutManager(new LinearLayoutManager(context));
@@ -223,21 +263,41 @@ public class MarkerStopsDetailActivity {
     }
 
     // ==================== ADAPTER ====================
+
+    /**
+     * Stops adapter for recycler view
+     */
     private class StopsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private static final int TYPE_STOP = 0;
         private static final int TYPE_EMPTY = 1;
 
         private final List<MarkerDataStop> stops;
 
+        /**
+         * Constructor
+         * @param stops the list of stops
+         */
         StopsAdapter(List<MarkerDataStop> stops) {
             this.stops = stops;
         }
 
+        /**
+         * Get item view type
+         * @param position position to query
+         * @return the item view type
+         */
         @Override
         public int getItemViewType(int position) {
             return stops.isEmpty() ? TYPE_EMPTY : TYPE_STOP;
         }
 
+        /**
+         * Create view holder
+         * @param parent   The ViewGroup into which the new View will be added after it is bound to
+         *                 an adapter position.
+         * @param viewType The view type of the new View.
+         * @return A new ViewHolder that holds a View of the given view type.
+         */
         @NonNull
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -247,6 +307,12 @@ public class MarkerStopsDetailActivity {
             return createStopViewHolder(parent);
         }
 
+        /**
+         * Bind view holder
+         * @param holder   The ViewHolder which should be updated to represent the contents of the
+         *                 item at the given position in the data set.
+         * @param position The position of the item within the adapter's data set.
+         */
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             if (getItemViewType(position) == TYPE_EMPTY) {
@@ -258,12 +324,23 @@ public class MarkerStopsDetailActivity {
             bindStopViewHolder((StopViewHolder) holder, stop);
         }
 
+        /**
+         * Get item count
+         * @return the item count
+         */
         @Override
         public int getItemCount() {
             return stops.isEmpty() ? 1 : stops.size();
         }
 
         // ========== NO DATA ==========
+
+        /**
+         * Create empty view holder
+         * @param parent   The ViewGroup into which the new View will be added after it is bound to
+         *                 an adapter position.
+         * @return A new ViewHolder that holds a View of the given view type.
+         */
         private RecyclerView.ViewHolder createEmptyViewHolder(ViewGroup parent) {
             TextView tvEmpty = new TextView(parent.getContext());
             tvEmpty.setLayoutParams(new ViewGroup.LayoutParams(
@@ -275,6 +352,11 @@ public class MarkerStopsDetailActivity {
             return new RecyclerView.ViewHolder(tvEmpty) {};
         }
 
+        /**
+         * Bind empty view holder
+         * @param holder The ViewHolder which should be updated to represent the contents of the
+         *               item at the given position in the data set.
+         */
         private void bindEmptyViewHolder(RecyclerView.ViewHolder holder) {
             TextView tvEmpty = (TextView) holder.itemView;
             tvEmpty.setText(R.string.no_data);

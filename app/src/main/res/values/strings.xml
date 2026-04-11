@@ -14,12 +14,11 @@
     <string name="network_logo">Logo du réseau de transport</string>
     <string name="compass_desc">Bousole</string>
     <string name="back">Retour</string>
-    <string name="menu_filters">Filtres</string>
-    <string name="menu_favorites">Favoris</string>
+    <string name="menu_filters">Filtrer les transports</string>
+    <string name="menu_favorites_lines">Lignes de bus favorites</string>
+    <string name="menu_favorites_stops">Arrêts de bus favoris</string>
+    <string name="menu_favorites_trains">Trains favoris</string>
     <string name="menu_credits">Crédits et règles</string>
-    <string name="filters_title">Filtrer les réseaux</string>
-    <string name="favorites_title">Favoris</string>
-    <string name="credits_title">Crédits et règles</string>
     <string name="credits_content" translatable="false">Créé par <a href="https://github.com/Ynryo">Ynryo</a> dans le cadre d\'un projet scolaire\n\n Code source disponible sur <a href="https://github.com/Ynryo/ouestcefdpdetram">GitHub</a></string>
     <string name="follow_button_desc" translatable="false">Bouton pour suivre le véhicle</string>
     <string name="favorite_button_desc" translatable="false">Bouton pour ajouter la ligne au favoris</string>

@@ -12,12 +12,11 @@
     <string name="network_logo">Transportation network logo</string>
     <string name="compass_desc">Compass</string>
     <string name="back">Back</string>
-    <string name="menu_filters">Filters</string>
-    <string name="menu_favorites">Favorites</string>
+    <string name="menu_filters">Filter transports</string>
+    <string name="menu_favorites_lines">Favorites bus lines</string>
+    <string name="menu_favorites_stops">Favorites bus stops</string>
+    <string name="menu_favorites_trains">Favorites trains</string>
     <string name="menu_credits">Credits and rules</string>
-    <string name="filters_title">Filter networks</string>
-    <string name="favorites_title">Favorites</string>
-    <string name="credits_title">Credits and rules</string>
     <string name="favorite_load_error">Error whilr fetching favorites datas</string>
     <string name="expand_desc">Unfold</string>
     <string name="collapse_desc">Fold</string>

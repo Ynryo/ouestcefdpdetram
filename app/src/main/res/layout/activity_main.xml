@@ -123,15 +123,37 @@
                     app:icon="@drawable/icon_filter_list" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_menu_favorites"
+                    android:id="@+id/btn_menu_favorites_lines"
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:text="@string/menu_favorites"
+                    android:text="@string/menu_favorites_lines"
                     android:textAllCaps="false"
                     android:textAlignment="viewStart"
-                    app:icon="@drawable/icon_favorite" />
+                    app:icon="@drawable/icon_conversion_path" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_menu_favorites_stops"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="@string/menu_favorites_stops"
+                    android:textAllCaps="false"
+                    android:textAlignment="viewStart"
+                    app:icon="@drawable/icon_bus_map_pin" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_menu_favorites_trains"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="@string/menu_favorites_trains"
+                    android:textAllCaps="false"
+                    android:textAlignment="viewStart"
+                    app:icon="@drawable/icon_train" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_menu_credits"
@@ -173,7 +195,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/filters_title"
+                        android:text="@string/menu_filters"
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -191,9 +213,9 @@
                 </ScrollView>
             </LinearLayout>
 
-            <!-- FAVORITE PAGE -->
+            <!-- FAVORITE LINES PAGE -->
             <LinearLayout
-                android:id="@+id/favorite_page_container"
+                android:id="@+id/favorite_lines_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
@@ -207,7 +229,7 @@
                     android:padding="12dp">
 
                     <ImageButton
-                        android:id="@+id/btn_back_to_menu_favorites"
+                        android:id="@+id/btn_back_to_menu_favorites_lines"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
@@ -218,7 +240,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/favorites_title"
+                        android:text="@string/menu_favorites_lines"
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -229,7 +251,99 @@
                     android:layout_height="match_parent">
 
                     <LinearLayout
-                        android:id="@+id/favorites_container"
+                        android:id="@+id/favorites_lines_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </ScrollView>
+
+            </LinearLayout>
+
+            <!-- FAVORITE STOPS PAGE -->
+            <LinearLayout
+                android:id="@+id/favorite_stops_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="12dp">
+
+                    <ImageButton
+                        android:id="@+id/btn_back_to_menu_favorites_stops"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/icon_keyboard_arrow_up"
+                        android:rotation="-90"
+                        android:contentDescription="@string/back" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/menu_favorites_lines"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:id="@+id/favorites_stops_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </ScrollView>
+
+            </LinearLayout>
+
+            <!-- FAVORITE TRAIN PAGE -->
+            <LinearLayout
+                android:id="@+id/favorite_trains_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="12dp">
+
+                    <ImageButton
+                        android:id="@+id/btn_back_to_menu_favorites_trains"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/icon_keyboard_arrow_up"
+                        android:rotation="-90"
+                        android:contentDescription="@string/back" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/menu_favorites_lines"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:id="@+id/favorites_trains_container"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical" />
@@ -264,7 +378,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/credits_title"
+                        android:text="@string/menu_credits"
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="20sp"
                         android:textStyle="bold"/>

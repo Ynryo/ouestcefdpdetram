@@ -56,6 +56,12 @@ public class MarkerArtist {
 
     private float oldMapRotation = 0;
 
+    /**
+     * Constructeur
+     * @param context MainActivity
+     * @param followManager FollowManager
+     * @param lateralDrawerActivity LateralDrawerActivity
+     */
     public MarkerArtist(MainActivity context, FollowManager followManager, LateralDrawerActivity lateralDrawerActivity) {
         this.context = context;
         this.followManager = followManager;
@@ -64,6 +70,10 @@ public class MarkerArtist {
         this.markerStopsDetailActivity = new MarkerStopsDetailActivity(context);
     }
 
+    /**
+     * Affiche les markers sur la carte
+     * @param markerDataStandardizedList List<MarkerDataStandardized>
+     */
     public void showMarkers(List<MarkerDataStandardized> markerDataStandardizedList) {
         if (googleMap == null || markerDataStandardizedList == null) return;
 
@@ -302,7 +312,7 @@ public class MarkerArtist {
         return markerIconCache;
     }
 
-    public MarkerStopsDetailActivity getVehicleDetailsManager() {
+    public MarkerStopsDetailActivity getMarkerStopsDetailActivity() {
         return markerStopsDetailActivity;
     }
 }

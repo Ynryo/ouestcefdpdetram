@@ -69,7 +69,7 @@ public class FollowManager {
 
     public void centerOnFollowed() {
         if (followedMarkerId == null || context.getMap() == null) return;
-        context.centerOnMarker(followedMarkerId);
+        context.centerOnMarker(followedMarkerId, true, true);
     }
     
     public String getFollowedMarkerId() {

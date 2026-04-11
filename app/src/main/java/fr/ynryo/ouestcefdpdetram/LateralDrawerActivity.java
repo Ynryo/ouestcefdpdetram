@@ -43,7 +43,9 @@ public class LateralDrawerActivity {
 
     private View mainMenuContainer;
     private View filtersPageContainer;
-    private View favoritePageContainer;
+    private View favoritesLinesContainer;
+    private View favoritesStopsContainer;
+    private View favoritesTrainsContainer;
     private View creditsPageContainer;
 
     /**
@@ -57,33 +59,46 @@ public class LateralDrawerActivity {
         initMenu();
     }
 
+    // ===== Set up menu =====
     private void initMenu() {
         mainMenuContainer = context.findViewById(R.id.main_menu_container);
         filtersPageContainer = context.findViewById(R.id.filters_page_container);
-        favoritePageContainer = context.findViewById(R.id.favorite_page_container);
+        favoritesLinesContainer = context.findViewById(R.id.favorite_lines_container);
+        favoritesStopsContainer = context.findViewById(R.id.favorite_stops_container);
+        favoritesTrainsContainer = context.findViewById(R.id.favorite_trains_container);
         creditsPageContainer = context.findViewById(R.id.credits_page_container);
 
         View btnFilters = context.findViewById(R.id.btn_menu_filters);
-        View btnFavorites = context.findViewById(R.id.btn_menu_favorites);
+        View btnFavoritesLines = context.findViewById(R.id.btn_menu_favorites_lines);
+        View btnFavoritesStops = context.findViewById(R.id.btn_menu_favorites_stops);
+        View btnFavoritesTrains = context.findViewById(R.id.btn_menu_favorites_trains);
         View btnCredits = context.findViewById(R.id.btn_menu_credits);
 
         View btnBackFilters = context.findViewById(R.id.btn_back_to_menu_filters);
-        View btnBackFavorites = context.findViewById(R.id.btn_back_to_menu_favorites);
+        View btnBackFavoritesLines = context.findViewById(R.id.btn_back_to_menu_favorites_lines);
+        View btnBackFavoritesStops = context.findViewById(R.id.btn_back_to_menu_favorites_stops);
+        View btnBackFavoritesTrains = context.findViewById(R.id.btn_back_to_menu_favorites_trains);
         View btnBackCredits = context.findViewById(R.id.btn_back_to_menu_credits);
 
         if (btnFilters != null) btnFilters.setOnClickListener(v -> showFiltersPage());
-        if (btnFavorites != null) btnFavorites.setOnClickListener(v -> showFavoritePage());
+        if (btnFavoritesLines != null) btnFavoritesLines.setOnClickListener(v -> showFavoriteStopsPage());
+        if (btnFavoritesStops != null) btnFavoritesStops.setOnClickListener(v -> showFavoriteStopsPage());
+        if (btnFavoritesTrains != null) btnFavoritesTrains.setOnClickListener(v -> showFavoriteStopsPage());
         if (btnCredits != null) btnCredits.setOnClickListener(v -> showCreditsPage());
         
         if (btnBackFilters != null) btnBackFilters.setOnClickListener(v -> showMainMenu());
-        if (btnBackFavorites != null) btnBackFavorites.setOnClickListener(v -> showMainMenu());
+        if (btnBackFavoritesLines != null) btnBackFavoritesLines.setOnClickListener(v -> showMainMenu());
+        if (btnBackFavoritesStops != null) btnBackFavoritesStops.setOnClickListener(v -> showMainMenu());
+        if (btnBackFavoritesTrains != null) btnBackFavoritesTrains.setOnClickListener(v -> showMainMenu());
         if (btnBackCredits != null) btnBackCredits.setOnClickListener(v -> showMainMenu());
     }
 
     private void showMainMenu() {
         if (mainMenuContainer != null) mainMenuContainer.setVisibility(View.VISIBLE);
         if (filtersPageContainer != null) filtersPageContainer.setVisibility(View.GONE);
-        if (favoritePageContainer != null) favoritePageContainer.setVisibility(View.GONE);
+        if (favoritesLinesContainer != null) favoritesLinesContainer.setVisibility(View.GONE);
+        if (favoritesStopsContainer != null) favoritesStopsContainer.setVisibility(View.GONE);
+        if (favoritesTrainsContainer != null) favoritesTrainsContainer.setVisibility(View.GONE);
         if (creditsPageContainer != null) creditsPageContainer.setVisibility(View.GONE);
     }
 
@@ -94,9 +109,9 @@ public class LateralDrawerActivity {
         if (!isNetworksFiltersFetch) fetchAndPopulateNetworks();
     }
 
-    private void showFavoritePage() {
+    private void showFavoriteStopsPage() {
         if (mainMenuContainer != null) mainMenuContainer.setVisibility(View.GONE);
-        if (favoritePageContainer != null) favoritePageContainer.setVisibility(View.VISIBLE);
+        if (favoritesLinesContainer != null) favoritesLinesContainer.setVisibility(View.VISIBLE);
         populateFavoriteLines();
     }
 
@@ -351,7 +366,7 @@ public class LateralDrawerActivity {
      * Popule la liste des lignes favorites avec les données fournies
      */
     private void populateFavoriteLines() {
-        LinearLayout favoritesContainer = context.findViewById(R.id.favorites_container);
+        LinearLayout favoritesContainer = context.findViewById(R.id.favorites_lines_container);
         if (favoritesContainer == null) return;
 
         favoritesContainer.removeAllViews();
@@ -458,6 +473,11 @@ public class LateralDrawerActivity {
         }
     }
 
+    /**
+     * Vérifie si un réseau est visible
+     * @param networkRef réseau
+     * @return true si le réseau est visible, false sinon
+     */
     public boolean isNetworkVisible(String networkRef) {
         if (filters.isEmpty()) return true;
         Boolean networkVisibility = filters.get(networkRef);
