@@ -61,6 +61,7 @@ public class LateralDrawerActivity {
 
     // ===== Set up menu =====
     private void initMenu() {
+        drawerLayout = context.findViewById(R.id.drawer_layout);
         mainMenuContainer = context.findViewById(R.id.main_menu_container);
         filtersPageContainer = context.findViewById(R.id.filters_page_container);
         favoritesLinesContainer = context.findViewById(R.id.favorite_lines_container);
@@ -449,9 +450,11 @@ public class LateralDrawerActivity {
                                     tvNextStop.setText(markerDetails.getNextStop() != null ? markerDetails.getNextStop().getStopName() : context.getString(R.string.no_data));
                                     tvTime.setText(markerDetails.getNextStop() != null && markerDetails.getNextStop().getDepartureTime() != null ? markerDetails.getNextStop().getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm")) : context.getString(R.string.no_data));
                                     vehicleView.setOnClickListener(v -> {
+                                        if (drawerLayout != null) {
+                                            drawerLayout.closeDrawer(GravityCompat.START);
+                                        }
                                         context.getMarkerArtist().getMarkerStopsDetailActivity().open(markerDetails);
                                         context.centerOnMarker(markerDetails, false, true);
-                                        drawerLayout.closeDrawer(GravityCompat.START);
                                     });
                                     lineVehiclesContainer.addView(vehicleView);
                                 }
