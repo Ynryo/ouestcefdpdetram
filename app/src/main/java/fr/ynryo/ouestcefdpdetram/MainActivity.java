@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -106,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
                     int latestVersionCode = version.getVersion().getVersionCode();
                     long localVersionCode = pInfo.getLongVersionCode();
-                    Log.d("MainActivity", "Version locale: " + localVersionCode + ", version réseau: " + latestVersionCode);
+                    Log.d(TAG, "Version locale: " + localVersionCode + ", version réseau: " + latestVersionCode);
                     if (latestVersionCode > localVersionCode) {
                         Toast.makeText(MainActivity.this, "Une nouvelle version est disponible", Toast.LENGTH_LONG).show();
                     }
@@ -117,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onErrorVersionListener(String error) {
-                Log.e("MainActivity", "Erreur de l'API: " + error);
+                Log.e(TAG, "Erreur de l'API: " + error);
             }
         });
 
@@ -135,24 +134,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     @Override
                     public void onErrorNetworkListener(String error) {
-                        Log.e("MainActivity", "Erreur réseaux: " + error);
+                        Log.e(TAG, "Erreur réseaux: " + error);
                     }
                 });
             }
 
             @Override
             public void onErrorRegionsListener(String error) {
-                Log.e("MainActivity", "Erreur régions: " + error);
+                Log.e(TAG, "Erreur régions: " + error);
             }
         });
 
         findViewById(R.id.btn_open_menu).setOnClickListener(view -> lateralDrawerActivity.open());
         findViewById(R.id.fab_center_location).setOnClickListener(view -> {
-            MediaPlayer mp = MediaPlayer.create(this, R.raw.avion);
-            if (mp != null) {
-                mp.setOnCompletionListener(MediaPlayer::release);
-                mp.start();
-            }
             centerMapOnUserLocation();
         });
     }
@@ -244,14 +238,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //no position go paris
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d("MainActivity", "Pas de permission - reste à Paris");
+            Log.d(TAG, "Pas de permission - reste à Paris");
             return;
         }
 
         try {
             fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
                 if (location != null) {
-                    Log.d("MainActivity", "Position trouvée: " + location.getLatitude() + ", " + location.getLongitude());
+                    Log.d(TAG, "Position trouvée: " + location.getLatitude() + ", " + location.getLongitude());
                     LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
                     googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                             new CameraPosition.Builder()
@@ -261,11 +255,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     .build()
                     ), 1000, null);
                 } else {
-                    Log.d("MainActivity", "getLastLocation() retourne null - reste à Paris"); //reste sur paris
+                    Log.d(TAG, "getLastLocation() retourne null - reste à Paris"); //reste sur paris
                 }
-            }).addOnFailureListener(e -> Log.e("MainActivity", "Erreur getLastLocation: " + e.getMessage())); //reste sur paris
+            }).addOnFailureListener(e -> Log.e(TAG, "Erreur getLastLocation: " + e.getMessage())); //reste sur paris
         } catch (Exception e) {
-            Log.e("MainActivity", "Exception centerMapOnUserLocation: " + e.getMessage());
+            Log.e(TAG, "Exception centerMapOnUserLocation: " + e.getMessage());
         }
     }
 
@@ -317,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onErrorMarkersListener(String error) {
                 isFetching = false;
-                Log.e("MainActivity", "Erreur markers: " + error);
+                Log.e(TAG, "Erreur markers: " + error);
             }
         });
     }
