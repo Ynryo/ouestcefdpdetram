@@ -43,7 +43,7 @@ import fr.ynryo.ouestcefdpdetram.managers.SaveManager;
 /**
  * Classe principale, gère la vue et les managers
  * @author Ynryo
- * @version 1.2.3
+ * @version 1.2.4
  */
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveStartedListener {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         markerArtist.setCachedMarkerView(LayoutInflater.from(this).inflate(R.layout.custom_marker, null));
+        markerArtist.setCachedUmMarkerView(LayoutInflater.from(this).inflate(R.layout.custom_marker_um, null));
 
         fetcher.fetchLatestVersion(new FetchingManager.OnVersionListener() {
             @Override

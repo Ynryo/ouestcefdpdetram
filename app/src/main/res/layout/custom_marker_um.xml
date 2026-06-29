@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?><!-- Marqueur pour une unité multiple (UM) : deux cercles côte à côte -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="vertical">
+
+    <!-- Conteneur des deux cercles -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/marker_circle_a"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:contentDescription="@string/vehicle_position"
+            android:src="@drawable/marker_circle" />
+
+        <ImageView
+            android:id="@+id/marker_circle_b"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:contentDescription="@string/vehicle_position"
+            android:src="@drawable/marker_circle" />
+
+    </LinearLayout>
+
+    <!-- Étiquette composite "AAAA+BBBB" -->
+    <TextView
+        android:id="@+id/line_number_um"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="#FF0000"
+        android:padding="2dp"
+        android:textColor="#fff"
+        android:textFontWeight="500"
+        android:textSize="9sp" />
+
+</LinearLayout>

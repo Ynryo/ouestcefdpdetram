@@ -38,12 +38,15 @@ import fr.ynryo.ouestcefdpdetram.MainActivity;
 import fr.ynryo.ouestcefdpdetram.MarkerStopsDetailActivity;
 import fr.ynryo.ouestcefdpdetram.R;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.TrainUmDetector;
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.TrainUmDetectorOld;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 import fr.ynryo.ouestcefdpdetram.managers.FollowManager;
 
 public class MarkerArtist {
     private static final String TAG = "MarkerArtist";
     private View cachedMarkerView;
+    private View cachedUmMarkerView;
     private final MainActivity context;
     private GoogleMap googleMap;
     private final FollowManager followManager;
@@ -58,8 +61,9 @@ public class MarkerArtist {
 
     /**
      * Constructeur
-     * @param context MainActivity
-     * @param followManager FollowManager
+     *
+     * @param context               MainActivity
+     * @param followManager         FollowManager
      * @param lateralDrawerActivity LateralDrawerActivity
      */
     public MarkerArtist(MainActivity context, FollowManager followManager, LateralDrawerActivity lateralDrawerActivity) {
@@ -72,13 +76,17 @@ public class MarkerArtist {
 
     /**
      * Affiche les markers sur la carte
+     *
      * @param markerDataStandardizedList List<MarkerDataStandardized>
      */
     public void showMarkers(List<MarkerDataStandardized> markerDataStandardizedList) {
         if (googleMap == null || markerDataStandardizedList == null) return;
 
+        TrainUmDetector UmDetector = new TrainUmDetector();
+        List<MarkerDataStandardized> displayList = UmDetector.mergeUm(markerDataStandardizedList);
+
         Set<String> fetchedMarkerIds = new HashSet<>();
-        for (MarkerDataStandardized fetchedMarkerDataStandardized : markerDataStandardizedList) { //on met tout les markers dans une liste
+        for (MarkerDataStandardized fetchedMarkerDataStandardized : displayList) { //on met tout les markers dans une liste
             fetchedMarkerIds.add(fetchedMarkerDataStandardized.getId());
         }
 
@@ -101,7 +109,7 @@ public class MarkerArtist {
         }
 
         //traitement des markers fetch
-        for (MarkerDataStandardized fetchedMarkerDataStandardized : markerDataStandardizedList) {
+        for (MarkerDataStandardized fetchedMarkerDataStandardized : displayList) {
             String id = fetchedMarkerDataStandardized.getId();
 
             //on check par rapport au filtre réseau
@@ -124,21 +132,14 @@ public class MarkerArtist {
                     animateMarker(existingMarker, position, followManager.isFollowing(id));
 
                     MarkerDataStandardized oldData = (MarkerDataStandardized) existingMarker.getTag();
-                    if (oldData == null ||
-                            !Objects.equals(oldData.getFillColor(), fetchedMarkerDataStandardized.getFillColor()) ||
-                            !Objects.equals(oldData.getLineId(), fetchedMarkerDataStandardized.getLineId()) ||
-                            Math.abs(oldData.getBearing() - fetchedMarkerDataStandardized.getBearing()) > 5) {
-
+                    if (oldData == null || !Objects.equals(oldData.getFillColor(), fetchedMarkerDataStandardized.getFillColor()) || !Objects.equals(oldData.getLineId(), fetchedMarkerDataStandardized.getLineId()) || Math.abs(oldData.getBearing() - fetchedMarkerDataStandardized.getBearing()) > 5) {
                         existingMarker.setIcon(createCustomMarkerBD(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id)));
                     }
 
                     existingMarker.setTag(fetchedMarkerDataStandardized);
                 }
             } else {
-                Marker newMarker = googleMap.addMarker(new MarkerOptions()
-                        .position(position)
-                        .icon(createCustomMarkerBD(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id)))
-                        .anchor(0.5f, 0.3f));
+                Marker newMarker = googleMap.addMarker(new MarkerOptions().position(position).icon(createCustomMarkerBD(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id))).anchor(0.5f, 0.3f));
 
                 if (newMarker != null) {
                     newMarker.setTag(fetchedMarkerDataStandardized);
@@ -154,9 +155,11 @@ public class MarkerArtist {
             public void onResponseVehicleAliveListener(boolean isAlive) {
                 if (!isAlive) {
                     //le vehicle est vrmt mort donc on supprime tout
-                    if (id.equals(followManager.getFollowedMarkerId())) followManager.disableFollow(false);
+                    if (id.equals(followManager.getFollowedMarkerId()))
+                        followManager.disableFollow(false);
                     if (id.equals(routeArtist.getCurrentMarkerId())) routeArtist.remove();
-                    if (id.equals(markerStopsDetailActivity.getCurrentVehicleId())) markerStopsDetailActivity.close();
+                    if (id.equals(markerStopsDetailActivity.getCurrentVehicleId()))
+                        markerStopsDetailActivity.close();
                 }
             }
 
@@ -262,18 +265,7 @@ public class MarkerArtist {
             MarkerDataStandardized data = (MarkerDataStandardized) marker.getTag();
             float bearing = data != null ? data.getBearing() : 0f;
 
-            googleMap.animateCamera(
-                    CameraUpdateFactory.newCameraPosition(
-                            new CameraPosition.Builder()
-                                    .target(toPosition)
-                                    .bearing(bearing)
-                                    .tilt(60f)
-                                    .zoom(17f)
-                                    .build()
-                    ),
-                    2000,
-                    null
-            );
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(toPosition).bearing(bearing).tilt(60f).zoom(17f).build()), 2000, null);
         }
 
         ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
@@ -294,6 +286,10 @@ public class MarkerArtist {
 
     public void setCachedMarkerView(View cachedMarkerView) {
         this.cachedMarkerView = cachedMarkerView;
+    }
+
+    public void setCachedUmMarkerView(View cachedUmMarkerView) {
+        this.cachedUmMarkerView = cachedUmMarkerView;
     }
 
     public void setGoogleMap(GoogleMap googleMap) {

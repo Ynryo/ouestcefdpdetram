@@ -47,7 +47,11 @@ public class MarkerDataStandardized {
     private boolean isFollowed; // Est-ce que l'utilisateur suit ce véhicule?
     private Instant createdAt; // Quand ce marqueur a été créé
     private Instant lastUpdatedAt; // Quand la position a été mise à jour
-    private boolean detailsLoaded; // Les infos détaillées (stops) ont-elles été fetched?
+    private boolean detailsLoaded; // Les infos détaillées (stops) ont-ils été fetched?
+
+    // ==================== SI TRAIN EN UM ====================
+    private MarkerDataStandardized umA;
+    private MarkerDataStandardized umB;
 
     private final static String TAG = "MarkerDataStandardized";
     private final static int NETWORK_ID_SNCF = 17;
@@ -252,6 +256,14 @@ public class MarkerDataStandardized {
         return detailsLoaded;
     }
 
+    public MarkerDataStandardized getUmA() {
+        return umA;
+    }
+
+    public void setUmA(MarkerDataStandardized umA) {
+        this.umA = umA;
+    }
+
     // ==================== SETTERS ====================
     public void setMarkerType(MarkerType markerType) {
         this.markerType = markerType;
@@ -329,6 +341,25 @@ public class MarkerDataStandardized {
         this.markerDataRoute = markerDataRoute;
     }
 
+    public MarkerDataStandardized getUmB() {
+        return umB;
+    }
+
+    public void setUmB(MarkerDataStandardized umB) {
+        this.umB = umB;
+    }
+
+    /**
+     * Sets the pair of standardized markers forming a multiple-unit train (UM - Unité Multiple).
+     *
+     * @param umA The first unit of the train.
+     * @param umB The second unit of the train.
+     */
+    public void setUmPair(MarkerDataStandardized umA, MarkerDataStandardized umB) {
+        this.setUmA(umA);
+        this.setUmB(umB);
+    }
+
     // ==================== MÉTHODES UTILITAIRES ====================
     public boolean isTrain() {
         return markerType == MarkerType.TRAIN;
@@ -336,6 +367,10 @@ public class MarkerDataStandardized {
 
     public boolean isVehicle() {
         return markerType == MarkerType.BUS_TRAM;
+    }
+
+    public boolean isUm() {
+        return isTrain() && umA != null && umB != null;
     }
 
     @Nullable
