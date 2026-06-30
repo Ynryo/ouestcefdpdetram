@@ -23,11 +23,11 @@ public class TrainUmDetector {
 
         for (int i = 0; i < result.size(); i++) {
             MarkerDataStandardized a = result.get(i);
-            if (!a.isTrain()) continue;
+            if (!a.isTrain() || a.getBearing() == 0) continue; //bearing == 0 == gare
 
             for (int j = i + 1; j < result.size(); j++) {
                 MarkerDataStandardized b = result.get(j);
-                if (!b.isTrain()) continue;
+                if (!b.isTrain() || b.getBearing() == 0) continue;
 
                 if (areColocated(a, b)) {
                     result.set(i, buildUmMarker(a, b)); // remplace a par l'UM

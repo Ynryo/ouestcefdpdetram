@@ -46,6 +46,7 @@ import fr.ynryo.ouestcefdpdetram.managers.SaveManager;
  * @version 1.2.4
  */
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnCameraMoveStartedListener {
+    private static final String TAG = "MainActivity";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final float DEFAULT_ZOOM = 13f;
     private static final LatLng PARIS = new LatLng(48.8566, 2.3522);
