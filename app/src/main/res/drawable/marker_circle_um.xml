@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/marker_background">
+        <vector
+                android:width="48dp"
+                android:height="64dp"
+                android:viewportWidth="48"
+                android:viewportHeight="64">
+
+            <group android:translateY="22">
+                <path
+                        android:fillColor="#FF0000"
+                        android:pathData="M24,24m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" />
+            </group>
+
+            <path
+                    android:fillColor="#FF0000"
+                    android:pathData="M14,24 L34,24 L34,46 L14,46 Z" />
+
+            <path
+                    android:fillColor="#FF0000"
+                    android:pathData="M24,24m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0" />
+        </vector>
+    </item>
+
+    <item android:id="@+id/marker_arrow">
+        <vector
+                android:width="48dp"
+                android:height="64dp"
+                android:viewportWidth="48"
+                android:viewportHeight="64">
+            <path
+                    android:fillColor="#FF0000"
+                    android:pathData="M24,4 L16,20 L32,20 Z" />
+        </vector>
+    </item>
+
+    <item>
+        <vector
+                android:width="48dp"
+                android:height="64dp"
+                android:viewportWidth="48"
+                android:viewportHeight="64">
+
+            <group android:translateY="22">
+                <path
+                        android:fillColor="#FFFFFF"
+                        android:pathData="M24,24m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+            </group>
+
+            <path
+                    android:fillColor="#FFFFFF"
+                    android:pathData="M24,24m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+        </vector>
+    </item>
+
+</layer-list>

@@ -4,7 +4,7 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:id="@+id/marker_circle"
+            android:id="@+id/marker_circle_um"
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:contentDescription="@string/vehicle_position"
@@ -16,11 +16,10 @@
         android:id="@+id/line_number"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/marker_circle"
+            android:layout_below="@id/marker_circle_um"
         android:layout_centerHorizontal="true"
         android:padding="2dp"
         android:textFontWeight="500"
         android:textColor="#fff"
         android:background="#FF0000"/>
-
 </RelativeLayout>
