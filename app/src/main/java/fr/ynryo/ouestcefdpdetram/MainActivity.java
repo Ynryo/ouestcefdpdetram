@@ -95,8 +95,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mapFragment.getMapAsync(this);
         }
 
-        markerArtist.setCachedMarkerView(LayoutInflater.from(this).inflate(R.layout.custom_marker, null));
-        markerArtist.setCachedUmMarkerView(LayoutInflater.from(this).inflate(R.layout.custom_marker_um, null));
+        markerArtist.setCachedMarkerView(LayoutInflater.from(this).inflate(R.layout.marker, null));
+        markerArtist.setCachedUmMarkerView(LayoutInflater.from(this).inflate(R.layout.marker_um, null));
 
         fetcher.fetchLatestVersion(new FetchingManager.OnVersionListener() {
             @Override

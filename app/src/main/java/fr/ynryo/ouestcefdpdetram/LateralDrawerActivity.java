@@ -199,7 +199,7 @@ public class LateralDrawerActivity {
         filters.clear();
         switches.clear();
 
-        View allShowRow = LayoutInflater.from(context).inflate(R.layout.item_network, networksContainer, false);
+        View allShowRow = LayoutInflater.from(context).inflate(R.layout.network_item, networksContainer, false);
         TextView tvShowName = allShowRow.findViewById(R.id.network_name);
         MaterialSwitch msShowToggle = allShowRow.findViewById(R.id.network_switch);
 
@@ -275,7 +275,7 @@ public class LateralDrawerActivity {
             }
 
             // Header de région (pliable)
-            View regionHeader = LayoutInflater.from(context).inflate(R.layout.item_region_header, networksContainer, false);
+            View regionHeader = LayoutInflater.from(context).inflate(R.layout.region_header, networksContainer, false);
             TextView tvRegionTitle = regionHeader.findViewById(R.id.region_title);
             ImageView ivArrow = regionHeader.findViewById(R.id.region_arrow);
 
@@ -306,7 +306,7 @@ public class LateralDrawerActivity {
                 boolean isVisible = saveManager.loadNetworkFilter(networkRef);
                 filters.put(networkRef, isVisible);
 
-                View row = LayoutInflater.from(context).inflate(R.layout.item_network, regionNetworksContainer, false);
+                View row = LayoutInflater.from(context).inflate(R.layout.network_item, regionNetworksContainer, false);
                 TextView tvName = row.findViewById(R.id.network_name);
                 TextView tvCity = row.findViewById(R.id.network_city);
                 MaterialSwitch visibilitySwitch = row.findViewById(R.id.network_switch);
@@ -387,8 +387,8 @@ public class LateralDrawerActivity {
 
         for (Favorite f : favoriteLines) {
             String lineIdStr = String.valueOf(f.getLigneId());
-            
-            View lineHeaderView = LayoutInflater.from(context).inflate(R.layout.item_favorite_line_header, favoritesContainer, false);
+
+            View lineHeaderView = LayoutInflater.from(context).inflate(R.layout.favorite_line_header, favoritesContainer, false);
             TextView tvLineNumber = lineHeaderView.findViewById(R.id.tv_line_number);
             TextView tvDestinationHeader = lineHeaderView.findViewById(R.id.tv_destination);
             TextView tvCityHeader = lineHeaderView.findViewById(R.id.tv_city);
@@ -441,7 +441,7 @@ public class LateralDrawerActivity {
                             @Override
                             public void onResponseVehicleDetailsListener(MarkerDataStandardized markerDetails) {
                                 if (f.getDestination().equals(markerDetails.getDestination())) {
-                                    View vehicleView = LayoutInflater.from(context).inflate(R.layout.item_favorite_vehicle, lineVehiclesContainer, false);
+                                    View vehicleView = LayoutInflater.from(context).inflate(R.layout.favorite_line_item, lineVehiclesContainer, false);
                                     ImageView ivMarker = vehicleView.findViewById(R.id.iv_marker);
                                     TextView tvNextStop = vehicleView.findViewById(R.id.tv_next_stop);
                                     TextView tvTime = vehicleView.findViewById(R.id.tv_time);

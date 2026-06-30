@@ -18,7 +18,7 @@ public class TrainUmDetector {
      * @param markers La liste des trains récupérés.
      * @return umPairs Une liste de paires de trains couplés.
      */
-    public static List<MarkerDataStandardized> mergeUm(List<MarkerDataStandardized> markers) {
+    public static List<MarkerDataStandardized> filterUm(List<MarkerDataStandardized> markers) {
         List<MarkerDataStandardized> result = new ArrayList<>(markers);
 
         for (int i = 0; i < result.size(); i++) {
@@ -31,8 +31,8 @@ public class TrainUmDetector {
 
                 if (areColocated(a, b)) {
                     result.set(i, buildUmMarker(a, b)); // remplace a par l'UM
-                    result.remove(j);                   // supprime b
-                    break;                              // a ne peut avoir qu'un seul partenaire
+                    result.remove(j); // supprime b
+                    break; // a ne peut avoir qu'un seul partenaire
                 }
             }
         }

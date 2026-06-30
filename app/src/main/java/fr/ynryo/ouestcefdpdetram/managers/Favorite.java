@@ -65,7 +65,6 @@ public class Favorite {
         return city;
     }
 
-
     @NonNull
     @Override
     public String toString() {

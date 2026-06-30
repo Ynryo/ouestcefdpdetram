@@ -81,8 +81,7 @@ public class MarkerArtist {
     public void showMarkers(List<MarkerDataStandardized> markerDataStandardizedList) {
         if (googleMap == null || markerDataStandardizedList == null) return;
 
-        TrainUmDetector UmDetector = new TrainUmDetector();
-        List<MarkerDataStandardized> displayList = UmDetector.mergeUm(markerDataStandardizedList);
+        List<MarkerDataStandardized> displayList = TrainUmDetector.filterUm(markerDataStandardizedList);
 
         Set<String> fetchedMarkerIds = new HashSet<>();
         for (MarkerDataStandardized fetchedMarkerDataStandardized : displayList) { //on met tout les markers dans une liste
@@ -170,8 +169,51 @@ public class MarkerArtist {
     }
 
     public Bitmap createCustomMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
-        ImageView markerCircle = cachedMarkerView.findViewById(R.id.marker_circle);
+        ImageView markerCircle = cachedMarkerView.findViewById(R.id.marker_circle_um);
         TextView lineNumberView = cachedMarkerView.findViewById(R.id.line_number);
+
+        int fillColor = Color.parseColor(markerDataStandardized.getFillColor() != null ? markerDataStandardized.getFillColor() : "#424242");
+        int textColor = Color.parseColor(markerDataStandardized.getTextColor() != null ? markerDataStandardized.getTextColor() : "#FFFFFF");
+        float bearing = markerDataStandardized.getBearing();
+
+        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.marker_circle);
+        if (drawable != null) {
+            LayerDrawable layerDrawable = (LayerDrawable) drawable.mutate();
+            Drawable backgroundPart = layerDrawable.findDrawableByLayerId(R.id.marker_background);
+            Drawable arrowPart = layerDrawable.findDrawableByLayerId(R.id.marker_arrow);
+
+            if (backgroundPart != null) DrawableCompat.setTint(backgroundPart, fillColor);
+            if (arrowPart != null) {
+                DrawableCompat.setTint(arrowPart, fillColor);
+                arrowPart.setAlpha(bearing == 0 ? 0 : 255);
+            }
+            markerCircle.setImageDrawable(layerDrawable);
+        }
+
+        lineNumberView.setText(markerDataStandardized.getLineNumber() != null ? markerDataStandardized.getLineNumber() : "BD");
+        lineNumberView.setTextColor(textColor);
+
+        GradientDrawable gd = new GradientDrawable();
+        gd.setShape(GradientDrawable.RECTANGLE);
+        gd.setColor(fillColor);
+        gd.setCornerRadius(10);
+        lineNumberView.setBackground(gd);
+
+        markerCircle.setRotation(shouldFollow ? 0 : bearing - mapRotation);
+
+        cachedMarkerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        cachedMarkerView.layout(0, 0, cachedMarkerView.getMeasuredWidth(), cachedMarkerView.getMeasuredHeight());
+
+        Bitmap bitmap = Bitmap.createBitmap(cachedMarkerView.getMeasuredWidth(), cachedMarkerView.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        cachedMarkerView.draw(canvas);
+
+        return bitmap;
+    }
+
+    public Bitmap createCustomUmMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
+        ImageView markerCircle = cachedUmMarkerView.findViewById(R.id.marker_circle_um);
+        TextView lineNumberView = cachedUmMarkerView.findViewById(R.id.line_number);
 
         int fillColor = Color.parseColor(markerDataStandardized.getFillColor() != null ? markerDataStandardized.getFillColor() : "#424242");
         int textColor = Color.parseColor(markerDataStandardized.getTextColor() != null ? markerDataStandardized.getTextColor() : "#FFFFFF");
@@ -220,7 +262,12 @@ public class MarkerArtist {
             return markerIconCache.get(cacheKey);
         }
 
-        Bitmap bitmap = createCustomMarker(markerDataStandardized, mapRotation, shouldFollow);
+        Bitmap bitmap;
+        if (markerDataStandardized.isUm()) {
+            bitmap = createCustomUmMarker(markerDataStandardized, mapRotation, shouldFollow);
+        } else {
+            bitmap = createCustomMarker(markerDataStandardized, mapRotation, shouldFollow);
+        }
 
         BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
         markerIconCache.put(cacheKey, descriptor);
