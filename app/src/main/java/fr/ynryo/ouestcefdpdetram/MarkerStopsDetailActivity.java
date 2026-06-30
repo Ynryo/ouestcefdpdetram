@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -264,6 +265,27 @@ public class MarkerStopsDetailActivity {
 
     // ==================== ADAPTER ====================
 
+    private static class StopViewHolder extends RecyclerView.ViewHolder {
+        final TextView tvPlatform, tvStopName, tvDepartureTime, tvAtStopTime, tvArrivingTime, tvDelay;
+        final View spacerPlatform;
+        final ImageView ivArrivingTimeIcon, ivDepartureTimeIcon;
+        final FrameLayout flTimeline;
+
+        StopViewHolder(View itemView) {
+            super(itemView);
+            tvPlatform = itemView.findViewById(R.id.tvPlatform);
+            tvStopName = itemView.findViewById(R.id.tvStopName);
+            tvDepartureTime = itemView.findViewById(R.id.tvDepartureTime);
+            tvAtStopTime = itemView.findViewById(R.id.tvAtStopTime);
+            tvArrivingTime = itemView.findViewById(R.id.tvArrivingTime);
+            tvDelay = itemView.findViewById(R.id.tvDelay);
+            spacerPlatform = itemView.findViewById(R.id.spacerPlatform);
+            ivArrivingTimeIcon = itemView.findViewById(R.id.ivArrivingTimeIcon);
+            ivDepartureTimeIcon = itemView.findViewById(R.id.ivDepartureTimeIcon);
+            flTimeline = itemView.findViewById(R.id.flTimeline);
+        }
+    }
+
     /**
      * Stops adapter for recycler view
      */
@@ -292,7 +314,7 @@ public class MarkerStopsDetailActivity {
         }
 
         /**
-         * Create view holder
+         * Create a view holder
          * @param parent   The ViewGroup into which the new View will be added after it is bound to
          *                 an adapter position.
          * @param viewType The view type of the new View.
@@ -321,7 +343,7 @@ public class MarkerStopsDetailActivity {
             }
 
             MarkerDataStop stop = stops.get(position);
-            bindStopViewHolder((StopViewHolder) holder, stop);
+            bindStopViewHolder((StopViewHolder) holder, stop, position, stops.size());
         }
 
         /**
@@ -372,13 +394,52 @@ public class MarkerStopsDetailActivity {
             return new StopViewHolder(view);
         } //inflate item stop
 
-        private void bindStopViewHolder(StopViewHolder vh, MarkerDataStop stop) { //distribute data
+        private void bindStopViewHolder(StopViewHolder vh, MarkerDataStop stop, int position, int itemCount) { //distribute data
+            bindTimeline(vh, stop, position, itemCount);
             bindPlatform(vh, stop);
             bindStopName(vh, stop);
             bindArrivalTime(vh, stop);
             bindAtStopTime(vh, stop);
             bindDepartureTime(vh, stop);
             bindDelay(vh, stop);
+        }
+
+        public void bindTimeline(StopViewHolder vh, MarkerDataStop stop, int position, int itemCount) {
+            MarkerDataStandardized vehicle = stop.getVehicle();
+
+            // Affiche la timeline uniquement pour les trains
+            if (!vehicle.isTrain()) {
+                vh.flTimeline.setVisibility(View.GONE);
+                return;
+            }
+
+            vh.flTimeline.setVisibility(View.VISIBLE);
+            vh.flTimeline.removeAllViews();
+
+            // Choisis le layout selon la position
+            int layoutRes;
+            if (position == 0) {
+                layoutRes = R.layout.timeline_first_stop;
+            } else if (position == itemCount - 1) {
+                layoutRes = R.layout.timeline_last_stop;
+            } else {
+                layoutRes = R.layout.timeline_intermediate_stop;
+            }
+
+            // Inflate le layout dedans
+            View timelineView = LayoutInflater.from(context).inflate(layoutRes, vh.flTimeline, true);
+
+            // Tinte la barre avec la couleur du train
+            int fillColor = Color.parseColor(vehicle.getFillColor() != null ? vehicle.getFillColor() : "#424242");
+
+            View lineView = timelineView.findViewById(R.id.vLineBottom);
+            if (lineView == null) lineView = timelineView.findViewById(R.id.vLineTop);
+            if (lineView == null) lineView = timelineView.findViewById(R.id.vLineFull);
+
+            if (lineView != null) {
+                ((GradientDrawable) lineView.getBackground().mutate()).setColor(fillColor);
+            }
+
         }
 
         private void bindPlatform(StopViewHolder vh, MarkerDataStop stop) {
@@ -515,25 +576,6 @@ public class MarkerStopsDetailActivity {
 
         private int getDefaultTextColor(StopViewHolder vh) {
             return MaterialColors.getColor(vh.tvDepartureTime, com.google.android.material.R.attr.colorOnSurface);
-        }
-    }
-
-    private static class StopViewHolder extends RecyclerView.ViewHolder {
-        final TextView tvPlatform, tvStopName, tvDepartureTime, tvAtStopTime, tvArrivingTime, tvDelay;
-        final View spacerPlatform;
-        final ImageView ivArrivingTimeIcon, ivDepartureTimeIcon;
-
-        StopViewHolder(View itemView) {
-            super(itemView);
-            tvPlatform = itemView.findViewById(R.id.tvPlatform);
-            tvStopName = itemView.findViewById(R.id.tvStopName);
-            tvDepartureTime = itemView.findViewById(R.id.tvDepartureTime);
-            tvAtStopTime = itemView.findViewById(R.id.tvAtStopTime);
-            tvArrivingTime = itemView.findViewById(R.id.tvArrivingTime);
-            tvDelay = itemView.findViewById(R.id.tvDelay);
-            spacerPlatform = itemView.findViewById(R.id.spacerPlatform);
-            ivArrivingTimeIcon = itemView.findViewById(R.id.ivArrivingTimeIcon);
-            ivDepartureTimeIcon = itemView.findViewById(R.id.ivDepartureTimeIcon);
         }
     }
 }
