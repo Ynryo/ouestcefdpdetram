@@ -39,7 +39,6 @@ import fr.ynryo.ouestcefdpdetram.MarkerStopsDetailActivity;
 import fr.ynryo.ouestcefdpdetram.R;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.TrainUmDetector;
-import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.TrainUmDetectorOld;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 import fr.ynryo.ouestcefdpdetram.managers.FollowManager;
 

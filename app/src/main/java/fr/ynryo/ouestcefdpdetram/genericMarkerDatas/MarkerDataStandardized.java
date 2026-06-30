@@ -260,8 +260,8 @@ public class MarkerDataStandardized {
         return umA;
     }
 
-    public void setUmA(MarkerDataStandardized umA) {
-        this.umA = umA;
+    public MarkerDataStandardized getUmB() {
+        return umB;
     }
 
     // ==================== SETTERS ====================
@@ -341,8 +341,8 @@ public class MarkerDataStandardized {
         this.markerDataRoute = markerDataRoute;
     }
 
-    public MarkerDataStandardized getUmB() {
-        return umB;
+    public void setUmA(MarkerDataStandardized umA) {
+        this.umA = umA;
     }
 
     public void setUmB(MarkerDataStandardized umB) {
@@ -414,6 +414,8 @@ public class MarkerDataStandardized {
                 ", createdAt=" + createdAt +
                 ", lastUpdatedAt=" + lastUpdatedAt +
                 ", detailsLoaded=" + detailsLoaded +
+                ", umA=" + (umA != null ? umA.getId() : "null") +
+                ", umB=" + (umB != null ? umB.getId() : "null") +
                 '}';
     }
 }
