@@ -446,7 +446,7 @@ public class LateralDrawerActivity {
                                     TextView tvNextStop = vehicleView.findViewById(R.id.tv_next_stop);
                                     TextView tvTime = vehicleView.findViewById(R.id.tv_time);
 
-                                    ivMarker.setImageBitmap(context.getMarkerArtist().createCustomMarker(markerDetails, 0, false));
+                                    ivMarker.setImageBitmap(context.getMarkerArtist().createMarker(markerDetails, 0, false));
                                     tvNextStop.setText(markerDetails.getNextStop() != null ? markerDetails.getNextStop().getStopName() : context.getString(R.string.no_data));
                                     tvTime.setText(markerDetails.getNextStop() != null && markerDetails.getNextStop().getDepartureTime() != null ? markerDetails.getNextStop().getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm")) : context.getString(R.string.no_data));
                                     vehicleView.setOnClickListener(v -> {

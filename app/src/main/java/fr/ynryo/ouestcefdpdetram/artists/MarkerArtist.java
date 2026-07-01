@@ -131,13 +131,13 @@ public class MarkerArtist {
 
                     MarkerDataStandardized oldData = (MarkerDataStandardized) existingMarker.getTag();
                     if (oldData == null || !Objects.equals(oldData.getFillColor(), fetchedMarkerDataStandardized.getFillColor()) || !Objects.equals(oldData.getLineId(), fetchedMarkerDataStandardized.getLineId()) || Math.abs(oldData.getBearing() - fetchedMarkerDataStandardized.getBearing()) > 5) {
-                        existingMarker.setIcon(createCustomMarkerBD(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id)));
+                        existingMarker.setIcon(createMarkerBitmapDescriptor(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id)));
                     }
 
                     existingMarker.setTag(fetchedMarkerDataStandardized);
                 }
             } else {
-                Marker newMarker = googleMap.addMarker(new MarkerOptions().position(position).icon(createCustomMarkerBD(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id))).anchor(0.5f, 0.3f));
+                Marker newMarker = googleMap.addMarker(new MarkerOptions().position(position).icon(createMarkerBitmapDescriptor(fetchedMarkerDataStandardized, mapRotation, followManager.isFollowing(id))).anchor(0.5f, 0.3f));
 
                 if (newMarker != null) {
                     newMarker.setTag(fetchedMarkerDataStandardized);
@@ -168,7 +168,7 @@ public class MarkerArtist {
         });
     }
 
-    public Bitmap createCustomMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
+    public Bitmap createMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
         ImageView markerCircle = cachedMarkerView.findViewById(R.id.marker_circle);
         TextView lineNumberView = cachedMarkerView.findViewById(R.id.line_number);
 
@@ -211,15 +211,15 @@ public class MarkerArtist {
         return bitmap;
     }
 
-    public Bitmap createCustomUmMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
-        ImageView markerCircle = cachedUmMarkerView.findViewById(R.id.marker_circle_um);
+    public Bitmap createUmMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
+        ImageView markerCircleUm = cachedUmMarkerView.findViewById(R.id.marker_circle_um);
         TextView lineNumberView = cachedUmMarkerView.findViewById(R.id.line_number);
 
         int fillColor = Color.parseColor(markerDataStandardized.getFillColor() != null ? markerDataStandardized.getFillColor() : "#424242");
         int textColor = Color.parseColor(markerDataStandardized.getTextColor() != null ? markerDataStandardized.getTextColor() : "#FFFFFF");
         float bearing = markerDataStandardized.getBearing();
 
-        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.marker_circle);
+        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.marker_circle_um);
         if (drawable != null) {
             LayerDrawable layerDrawable = (LayerDrawable) drawable.mutate();
             Drawable backgroundPart = layerDrawable.findDrawableByLayerId(R.id.marker_background);
@@ -230,7 +230,7 @@ public class MarkerArtist {
                 DrawableCompat.setTint(arrowPart, fillColor);
                 arrowPart.setAlpha(bearing == 0 ? 0 : 255);
             }
-            markerCircle.setImageDrawable(layerDrawable);
+            markerCircleUm.setImageDrawable(layerDrawable);
         }
 
         lineNumberView.setText(markerDataStandardized.getLineNumber() != null ? markerDataStandardized.getLineNumber() : "BD");
@@ -242,7 +242,7 @@ public class MarkerArtist {
         gd.setCornerRadius(10);
         lineNumberView.setBackground(gd);
 
-        markerCircle.setRotation(shouldFollow ? 0 : bearing - mapRotation);
+        markerCircleUm.setRotation(shouldFollow ? 0 : bearing - mapRotation);
 
         cachedUmMarkerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         cachedUmMarkerView.layout(0, 0, cachedUmMarkerView.getMeasuredWidth(), cachedUmMarkerView.getMeasuredHeight());
@@ -255,8 +255,13 @@ public class MarkerArtist {
     }
 
 
-    public BitmapDescriptor createCustomMarkerBD(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
-        String cacheKey = markerDataStandardized.getFillColor() + "_" + markerDataStandardized.getLineId() + "_" + (int) (markerDataStandardized.getBearing() - mapRotation);
+    public BitmapDescriptor createMarkerBitmapDescriptor(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
+        String cacheKey = (markerDataStandardized.isUm() ? "UM_" : "US_")
+                + markerDataStandardized.getFillColor() + "_"
+                + markerDataStandardized.getLineId() + "_"
+                + (int) (markerDataStandardized.getBearing() - mapRotation) + "_"
+                + markerDataStandardized.getId();
+//        Log.d(TAG, "cacheKey=" + cacheKey + " isUm=" + markerDataStandardized.isUm() + " cacheHit=" + markerIconCache.containsKey(cacheKey));
 
         if (markerIconCache.containsKey(cacheKey)) {
             return markerIconCache.get(cacheKey);
@@ -264,9 +269,9 @@ public class MarkerArtist {
 
         Bitmap bitmap;
         if (markerDataStandardized.isUm()) {
-            bitmap = createCustomUmMarker(markerDataStandardized, mapRotation, shouldFollow);
+            bitmap = createUmMarker(markerDataStandardized, mapRotation, shouldFollow);
         } else {
-            bitmap = createCustomMarker(markerDataStandardized, mapRotation, shouldFollow);
+            bitmap = createMarker(markerDataStandardized, mapRotation, shouldFollow);
         }
 
         BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
@@ -286,7 +291,7 @@ public class MarkerArtist {
             Marker marker = entry.getValue();
             MarkerDataStandardized data = (MarkerDataStandardized) marker.getTag();
             if (data != null) {
-                marker.setIcon(createCustomMarkerBD(data, mapRotation, followManager.isFollowing(data.getId())));
+                marker.setIcon(createMarkerBitmapDescriptor(data, mapRotation, followManager.isFollowing(data.getId())));
             }
         }
     }
