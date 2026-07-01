@@ -146,9 +146,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         findViewById(R.id.btn_open_menu).setOnClickListener(view -> lateralDrawerActivity.open());
-        findViewById(R.id.fab_center_location).setOnClickListener(view -> {
-            centerMapOnUserLocation();
-        });
+        findViewById(R.id.fab_center_location).setOnClickListener(view -> centerMapOnUserLocation());
     }
 
     private void onEverythingReady() {

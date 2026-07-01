@@ -137,7 +137,7 @@ public class RouteArtist {
     }
 
     private BitmapDescriptor createStopIcon(String stopName, MarkerDataStandardized mData) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_stop_marker, null);
+        View view = LayoutInflater.from(context).inflate(R.layout.stop_marker, null);
 
         //point
         View dot = view.findViewById(R.id.stop_dot);

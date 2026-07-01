@@ -57,6 +57,7 @@ public class TrainUmDetector {
         um.setLongitude((trainA.getLongitude() + trainB.getLongitude()) / 2.0);
         um.setBearing((trainA.getBearing() + trainB.getBearing()) / 2.0f);
         um.setFillColor(trainA.getFillColor());
+//        um.setFillColor("#FF0000");
         um.setTextColor(trainA.getTextColor());
         um.setLineNumber(trainA.getLineNumber() + " et " + trainB.getLineNumber());
         um.setNetworkRef(trainA.getNetworkRef());

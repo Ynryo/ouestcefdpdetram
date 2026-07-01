@@ -167,6 +167,10 @@ public class FetchingManager {
     // ==================== FETCH VEHICLE DETAILS ====================
     public void fetchVehicleStopsInfo(MarkerDataStandardized markerDataStandardized, OnVehicleDetailsListener listener) {
         try {
+            if (markerDataStandardized.isUm()) {
+                fetchVehicleStopsInfo(markerDataStandardized.getUmA(), listener);
+                return;
+            }
             if (markerDataStandardized.isVehicle()) {
                 String encodedId = URLEncoder.encode(markerDataStandardized.getId(), "UTF-8");
                 getService(BASE_URL_BUS_TRACKER).getVehicleDetails(encodedId).enqueue(new Callback<>() {

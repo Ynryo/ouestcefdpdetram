@@ -253,11 +253,11 @@ public class MarkerDataStop {
             return Color.rgb(15, 150, 40);  // Vert
         }
 
-        if (delay <= 5) {
+        if (delay < 5) {
             return Color.rgb(224, 159, 7);  // Orange clair
         }
 
-        if (delay <= 15) {
+        if (delay < 15) {
             return Color.rgb(224, 112, 7);  // Orange foncé
         }
 

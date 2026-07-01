@@ -63,7 +63,7 @@ public class MarkerStopsDetailActivity {
         bottomSheetDialog = new BottomSheetDialog(context);
         vehicleId = markerDataStandardized.getId();
 
-        View view = LayoutInflater.from(context).inflate(R.layout.vehicule_details, null);
+        View view = LayoutInflater.from(context).inflate(R.layout.vehicle_details, null);
         bottomSheetDialog.setContentView(view);
         setupBottomSheetAppearance(view);
         setupLineHeader(view, markerDataStandardized);
@@ -390,7 +390,7 @@ public class MarkerStopsDetailActivity {
 
         // ========== STOP ITEM ==========
         private RecyclerView.ViewHolder createStopViewHolder(ViewGroup parent) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_stop, parent, false);
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.vehicle_stop_details, parent, false);
             return new StopViewHolder(view);
         } //inflate item stop
 

@@ -101,8 +101,8 @@ public class MarkerArtist {
                 marker.remove(); //remove map
                 iterator.remove(); //remove list of active markers
                 activeAnimators.remove(id); //remove animator
-
-                checkVehicleAliveAndCleanup(id);
+                if (id.equals(followManager.getFollowedMarkerId()) || id.equals(routeArtist.getCurrentMarkerId()) || id.equals(markerStopsDetailActivity.getCurrentVehicleId()))
+                    checkVehicleAliveAndCleanup(id);
             }
         }
 
@@ -169,7 +169,7 @@ public class MarkerArtist {
     }
 
     public Bitmap createCustomMarker(MarkerDataStandardized markerDataStandardized, float mapRotation, boolean shouldFollow) {
-        ImageView markerCircle = cachedMarkerView.findViewById(R.id.marker_circle_um);
+        ImageView markerCircle = cachedMarkerView.findViewById(R.id.marker_circle);
         TextView lineNumberView = cachedMarkerView.findViewById(R.id.line_number);
 
         int fillColor = Color.parseColor(markerDataStandardized.getFillColor() != null ? markerDataStandardized.getFillColor() : "#424242");
@@ -244,12 +244,12 @@ public class MarkerArtist {
 
         markerCircle.setRotation(shouldFollow ? 0 : bearing - mapRotation);
 
-        cachedMarkerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-        cachedMarkerView.layout(0, 0, cachedMarkerView.getMeasuredWidth(), cachedMarkerView.getMeasuredHeight());
+        cachedUmMarkerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        cachedUmMarkerView.layout(0, 0, cachedUmMarkerView.getMeasuredWidth(), cachedUmMarkerView.getMeasuredHeight());
 
-        Bitmap bitmap = Bitmap.createBitmap(cachedMarkerView.getMeasuredWidth(), cachedMarkerView.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(cachedUmMarkerView.getMeasuredWidth(), cachedUmMarkerView.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        cachedMarkerView.draw(canvas);
+        cachedUmMarkerView.draw(canvas);
 
         return bitmap;
     }
