@@ -7,7 +7,7 @@ import java.util.List;
  * Reçoit une liste de trains fraichement fetched et return une liste de trains nettoyée contenant des UMs (Unités Multiples)
  */
 public class TrainUmDetector {
-    private static final double UM_THRESHOLD_DEG = 0.0002;
+    private static final double UM_THRESHOLD_DEG = 0.0005;
 
     public TrainUmDetector() {
     }
