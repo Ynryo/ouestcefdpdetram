@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -110,7 +111,6 @@ public class MarkerDataStandardized {
     }
 
     // à la priorité sur les datas (bus tracker api)
-
     /**
      * Updates the details of the current vehicle instance using the given {@code VehicleData} object.
      * Populates various fields such as line ID, destination, network ID, path reference, stops,
@@ -130,7 +130,7 @@ public class MarkerDataStandardized {
 
         if (vehicleData.getCalls() != null && !vehicleData.getCalls().isEmpty()) {
             this.stops = new ArrayList<>();
-            for (int i = 0; i < vehicleData.getCalls().size(); i++) {
+            for (int i = 0; i < vehicleData.getCalls().size(); i++) { //calls = stops
                 VehicleStop vehicleStop = vehicleData.getCalls().get(i);
                 MarkerDataStop stop = new MarkerDataStop();
 
@@ -144,7 +144,7 @@ public class MarkerDataStandardized {
                     Long delay = ChronoUnit.MINUTES.between(aimed, expected);
                     stop.setDelay(delay);
                 }
-                stop.setDepartureTime(vehicleStop.getExpectedTime() != null ? vehicleStop.getExpectedTime() : vehicleStop.getAimedTime());
+                stop.setDepartureTime(LocalTime.parse(vehicleStop.getExpectedTime() != null ? vehicleStop.getExpectedTime() : vehicleStop.getAimedTime()));
                 stop.setStopOrder(vehicleStop.getStopOrder());
                 stop.setLongitude(vehicleStop.getLongitude());
                 stop.setLatitude(vehicleStop.getLatitude());
@@ -197,8 +197,8 @@ public class MarkerDataStandardized {
 //                stop.setPlatformName(trainFeature.getPlatformName()); // TODO: à ajouter avec l'api carto tchoo guestplatform
                     stop.setOnLive(true);
                     stop.setDelay((long) trainFeature.getProperties().getDelay());
-                    stop.setArrivalTime(trainFeature.getProperties().getDebut().toString());
-                    stop.setDepartureTime(trainFeature.getProperties().getFin().toString());
+                    stop.setArrivalTime(trainFeature.getProperties().getDebut());
+                    stop.setDepartureTime(trainFeature.getProperties().getFin());
                     stop.setDestinationStop(trainData.isDestinationStop(trainFeature.getProperties().getLocalite()));
                     stop.setDepartureStop(trainData.isDepartureStop(trainFeature.getProperties().getLocalite()));
                     stop.setVehicle(this);

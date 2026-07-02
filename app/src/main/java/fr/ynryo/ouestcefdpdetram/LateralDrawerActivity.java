@@ -25,9 +25,9 @@ import java.util.Map;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.region.RegionData;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
-import fr.ynryo.ouestcefdpdetram.managers.Favorite;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 import fr.ynryo.ouestcefdpdetram.managers.SaveManager;
+import fr.ynryo.ouestcefdpdetram.managers.favorite.Favorite;
 
 public class LateralDrawerActivity {
     private static final String TAG = "LateralDrawerActivity";

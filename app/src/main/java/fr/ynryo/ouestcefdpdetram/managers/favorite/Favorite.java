@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram.managers;
+package fr.ynryo.ouestcefdpdetram.managers.favorite;
 
 import androidx.annotation.NonNull;
 

@@ -13,6 +13,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import fr.ynryo.ouestcefdpdetram.managers.favorite.Favorite;
+
 /**
  * Classe gérant le stockage des préférences de l'utilisateur
  */

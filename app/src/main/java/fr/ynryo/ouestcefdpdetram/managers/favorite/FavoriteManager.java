@@ -1,4 +1,4 @@
-package fr.ynryo.ouestcefdpdetram.managers;
+package fr.ynryo.ouestcefdpdetram.managers.favorite;
 
 import android.view.View;
 
@@ -10,6 +10,7 @@ import java.util.List;
 import fr.ynryo.ouestcefdpdetram.MainActivity;
 import fr.ynryo.ouestcefdpdetram.R;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
+import fr.ynryo.ouestcefdpdetram.managers.SaveManager;
 
 /**
  * Classe gérant les lignes favorites

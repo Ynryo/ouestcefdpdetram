@@ -34,10 +34,10 @@ import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version.VersionResponse;
 import fr.ynryo.ouestcefdpdetram.artists.MarkerArtist;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.managers.CompassManager;
-import fr.ynryo.ouestcefdpdetram.managers.FavoriteManager;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
 import fr.ynryo.ouestcefdpdetram.managers.FollowManager;
 import fr.ynryo.ouestcefdpdetram.managers.SaveManager;
+import fr.ynryo.ouestcefdpdetram.managers.favorite.FavoriteManager;
 
 /**
  * Classe principale, gère la vue et les managers

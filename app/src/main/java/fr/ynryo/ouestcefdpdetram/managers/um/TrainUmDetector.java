@@ -1,16 +1,15 @@
-package fr.ynryo.ouestcefdpdetram.genericMarkerDatas;
+package fr.ynryo.ouestcefdpdetram.managers.um;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
 
 /**
  * Reçoit une liste de trains fraichement fetched et return une liste de trains nettoyée contenant des UMs (Unités Multiples)
  */
 public class TrainUmDetector {
     private static final double UM_THRESHOLD_DEG = 0.0005;
-
-    public TrainUmDetector() {
-    }
 
     /**
      * Détecte les trains circulant en Unité Multiple (UM).
@@ -30,7 +29,7 @@ public class TrainUmDetector {
                 if (!b.isTrain() || b.getBearing() == 0) continue;
 
                 if (areColocated(a, b)) {
-                    result.set(i, buildUmMarker(a, b)); // remplace a par l'UM
+                    result.set(i, TrainUmAssembler.buildUmMarker(a, b)); // remplace a par l'UM
                     result.remove(j); // supprime b
                     break; // a ne peut avoir qu'un seul partenaire
                 }
@@ -40,28 +39,16 @@ public class TrainUmDetector {
         return result;
     }
 
+    /**
+     * Determines whether two MarkerDataStandardized objects are geographically colocated
+     * based on a predefined threshold for latitude and longitude differences.
+     *
+     * @param a The first MarkerDataStandardized object to compare.
+     * @param b The second MarkerDataStandardized object to compare.
+     * @return true if the two markers are within the threshold distance for both latitude
+     * and longitude; false otherwise.
+     */
     private static boolean areColocated(MarkerDataStandardized a, MarkerDataStandardized b) {
         return Math.abs(a.getLatitude() - b.getLatitude()) < UM_THRESHOLD_DEG && Math.abs(a.getLongitude() - b.getLongitude()) < UM_THRESHOLD_DEG;
-    }
-
-    private static MarkerDataStandardized buildUmMarker(MarkerDataStandardized trainA, MarkerDataStandardized trainB) {
-        MarkerDataStandardized um = new MarkerDataStandardized();
-        String idA = trainA.getId();
-        String idB = trainB.getId();
-        um.setId(idA.compareTo(idB) <= 0 ? idA + "+" + idB : idB + "+" + idA);
-
-        um.setMarkerType(MarkerType.TRAIN);
-        um.setUmPair(trainA, trainB);
-
-        um.setLatitude((trainA.getLatitude() + trainB.getLatitude()) / 2.0);
-        um.setLongitude((trainA.getLongitude() + trainB.getLongitude()) / 2.0);
-        um.setBearing((trainA.getBearing() + trainB.getBearing()) / 2.0f);
-        um.setFillColor(trainA.getFillColor());
-//        um.setFillColor("#FF0000");
-        um.setTextColor(trainA.getTextColor());
-        um.setLineNumber(trainA.getLineNumber() + " et " + trainB.getLineNumber());
-        um.setNetworkRef(trainA.getNetworkRef());
-
-        return um;
     }
 }

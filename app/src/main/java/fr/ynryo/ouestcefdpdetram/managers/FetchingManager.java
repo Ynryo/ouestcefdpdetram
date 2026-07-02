@@ -24,6 +24,7 @@ import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.version.VersionResponse;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerType;
+import fr.ynryo.ouestcefdpdetram.managers.um.TrainUmAssembler;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -168,7 +169,25 @@ public class FetchingManager {
     public void fetchVehicleStopsInfo(MarkerDataStandardized markerDataStandardized, OnVehicleDetailsListener listener) {
         try {
             if (markerDataStandardized.isUm()) {
-                fetchVehicleStopsInfo(markerDataStandardized.getUmA(), listener);
+                OnVehicleDetailsListener umListener = new OnVehicleDetailsListener() {
+                    private int responsesReceived = 0;
+
+                    @Override
+                    public void onResponseVehicleDetailsListener(MarkerDataStandardized data) {
+                        responsesReceived++;
+                        if (responsesReceived == 2) {
+                            TrainUmAssembler.assembleUmStops(markerDataStandardized);
+                            listener.onResponseVehicleDetailsListener(markerDataStandardized);
+                        }
+                    }
+
+                    @Override
+                    public void onErrorVehicleDetailsListener(String error) {
+                        listener.onErrorVehicleDetailsListener(error);
+                    }
+                };
+                fetchVehicleStopsInfo(markerDataStandardized.getUmA(), umListener);
+                fetchVehicleStopsInfo(markerDataStandardized.getUmB(), umListener);
                 return;
             }
             if (markerDataStandardized.isVehicle()) {

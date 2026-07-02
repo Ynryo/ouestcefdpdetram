@@ -34,11 +34,11 @@ public class MarkerDataStop {
         this.stopType = StopType.BOTH;
     }
 
-    public MarkerDataStop(String stopRef, String stopName, String arrivingTime, String departureTime) {
+    public MarkerDataStop(String stopRef, String stopName, LocalTime arrivingTime, LocalTime departureTime) {
         this.stopRef = stopRef;
         this.stopName = stopName;
-        this.arrivalTimeRaw = arrivingTime;
-        this.departureTimeRaw = departureTime;
+        this.arrivalTimeRaw = String.valueOf(arrivingTime);
+        this.departureTimeRaw = String.valueOf(departureTime);
         this.stopType = StopType.BOTH;
     }
 
@@ -70,9 +70,7 @@ public class MarkerDataStop {
         LocalTime arrival = getArrivalTime();
         LocalTime departure = getDepartureTime();
 
-        if (arrival == null || departure == null) {
-            return null;
-        }
+        if (arrival == null || departure == null) return null;
 
         return ChronoUnit.MINUTES.between(arrival, departure);
     }
@@ -131,12 +129,12 @@ public class MarkerDataStop {
         this.platformName = platformName;
     }
 
-    public void setArrivalTime(String timeString) {
-        this.arrivalTimeRaw = timeString;
+    public void setArrivalTime(LocalTime timeString) {
+        this.arrivalTimeRaw = String.valueOf(timeString);
     }
 
-    public void setDepartureTime(String timeString) {
-        this.departureTimeRaw = timeString;
+    public void setDepartureTime(LocalTime timeString) {
+        this.departureTimeRaw = String.valueOf(timeString);
     }
 
     public void setDelay(Long delay) {

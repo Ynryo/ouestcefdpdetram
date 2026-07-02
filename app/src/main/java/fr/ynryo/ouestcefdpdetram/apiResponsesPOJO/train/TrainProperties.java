@@ -2,13 +2,10 @@ package fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.train;
 
 import androidx.annotation.NonNull;
 
-import java.sql.Time;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 
 public class TrainProperties {
-    private final DateFormat formatter = new SimpleDateFormat("HH:mm");
     private String uic;
     private String debut;
     private String fin;
@@ -28,12 +25,12 @@ public class TrainProperties {
         return uic;
     }
 
-    public Time getDebut() throws ParseException {
-        return new Time(formatter.parse(debut).getTime());
+    public LocalTime getDebut() {
+        return LocalTime.parse(debut);
     }
 
-    public Time getFin() throws ParseException {
-        return new Time(formatter.parse(fin).getTime());
+    public LocalTime getFin() {
+        return LocalTime.parse(fin);
     }
 
     public int getEtape() {
@@ -72,9 +69,13 @@ public class TrainProperties {
         return offset;
     }
 
-    public Time getStopTime() throws ParseException {
-        long timeDiff = getFin().getTime() - getDebut().getTime();
-        return new Time(timeDiff);
+    public Long getStopTime() {
+        LocalTime debut = getDebut();
+        LocalTime fin = getFin();
+
+        if (debut != null || fin != null) return null;
+
+        return ChronoUnit.MINUTES.between(getFin(), getDebut());
     }
 
     public int getDelay() {
