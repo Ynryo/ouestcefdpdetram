@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:minWidth="80dp"
-        android:minHeight="100dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minWidth="80dp"
+    android:minHeight="100dp">
 
     <ImageView
             android:id="@+id/line_main"
@@ -24,14 +24,34 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-    <View
-            android:id="@+id/line_horizontal"
-            android:layout_width="0dp"
-            android:layout_height="20dp"
-            android:background="@drawable/timeline_bar_straight"
-            app:layout_constraintStart_toEndOf="@+id/curve_top"
-            app:layout_constraintTop_toTopOf="@+id/curve_top"
-            app:layout_constraintEnd_toStartOf="@+id/curve_bottom" />
+    <ImageView
+        android:id="@+id/line_horizontal"
+        android:layout_width="0dp"
+        android:layout_height="20dp"
+        android:background="@drawable/timeline_bar_straight"
+        app:layout_constraintEnd_toStartOf="@+id/curve_bottom"
+        app:layout_constraintStart_toEndOf="@+id/curve_top"
+        app:layout_constraintTop_toTopOf="@+id/curve_top" />
+
+    <ImageView
+        android:id="@+id/direction_arrow_up"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:rotation="90"
+        android:src="@drawable/timeline_direction_arrow"
+        app:layout_constraintBottom_toBottomOf="@+id/line_horizontal"
+        app:layout_constraintEnd_toEndOf="@+id/line_horizontal"
+        app:layout_constraintStart_toStartOf="@+id/line_horizontal"
+        app:layout_constraintTop_toTopOf="@+id/line_horizontal" />
+
+    <ImageView
+        android:id="@+id/direction_arrow"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/timeline_direction_arrow"
+        app:layout_constraintBottom_toTopOf="@+id/curve_top"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/line_main" />
 
     <ImageView
             android:id="@+id/curve_bottom"
