@@ -34,6 +34,24 @@ public class MarkerDataStop {
         this.stopType = StopType.BOTH;
     }
 
+    public MarkerDataStop(MarkerDataStop markerDataStop) {
+        this.stopRef = markerDataStop.stopRef;
+        this.stopName = markerDataStop.stopName;
+        this.platformName = markerDataStop.platformName;
+        this.arrivalTimeRaw = markerDataStop.arrivalTimeRaw;
+        this.departureTimeRaw = markerDataStop.departureTimeRaw;
+        this.delay = markerDataStop.delay;
+        this.stopType = markerDataStop.stopType;
+        this.distanceTraveled = markerDataStop.distanceTraveled;
+        this.latitude = markerDataStop.latitude;
+        this.longitude = markerDataStop.longitude;
+        this.stopOrder = markerDataStop.stopOrder;
+        this.isOnLive = markerDataStop.isOnLive;
+        this.isDestinationStop = markerDataStop.isDestinationStop;
+        this.isDepartureStop = markerDataStop.isDepartureStop;
+        this.vehicle = markerDataStop.vehicle;
+    }
+
     public MarkerDataStop(String stopRef, String stopName, LocalTime arrivingTime, LocalTime departureTime) {
         this.stopRef = stopRef;
         this.stopName = stopName;
