@@ -7,7 +7,6 @@ import androidx.annotation.Nullable;
 
 import java.text.ParseException;
 import java.time.Instant;
-import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -18,6 +17,7 @@ import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.train.TrainData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.train.TrainFeature;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleData;
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.vehicle.VehicleStop;
+import fr.ynryo.ouestcefdpdetram.utils.Time;
 
 public class MarkerDataStandardized {
 
@@ -144,7 +144,8 @@ public class MarkerDataStandardized {
                     Long delay = ChronoUnit.MINUTES.between(aimed, expected);
                     stop.setDelay(delay);
                 }
-                stop.setDepartureTime(LocalTime.parse(vehicleStop.getExpectedTime() != null ? vehicleStop.getExpectedTime() : vehicleStop.getAimedTime()));
+                String rawDepTime = vehicleStop.getExpectedTime() != null ? vehicleStop.getExpectedTime() : vehicleStop.getAimedTime();
+                stop.setDepartureTime(Time.parseToLocalTime(rawDepTime));
                 stop.setStopOrder(vehicleStop.getStopOrder());
                 stop.setLongitude(vehicleStop.getLongitude());
                 stop.setLatitude(vehicleStop.getLatitude());

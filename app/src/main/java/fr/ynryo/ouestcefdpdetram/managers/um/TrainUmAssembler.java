@@ -12,6 +12,14 @@ import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerType;
 public class TrainUmAssembler {
     private final static String TAG = "TrainUmAssembler";
 
+    /**
+     * Builds a unified marker by combining data from two MarkerDataStandardized instances.
+     * The unified marker includes a composite ID, average location, and combined metadata.
+     *
+     * @param trainA the first MarkerDataStandardized instance to be merged
+     * @param trainB the second MarkerDataStandardized instance to be merged
+     * @return a MarkerDataStandardized instance representing the unified marker created from the input instances
+     */
     public static MarkerDataStandardized buildUmMarker(MarkerDataStandardized trainA, MarkerDataStandardized trainB) {
         MarkerDataStandardized um = new MarkerDataStandardized();
         String idA = trainA.getId();

@@ -6,16 +6,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.time.LocalTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 public class MarkerDataStop {
     private String stopRef; // Identifiant unique de l'arrêt
     private String stopName; // Nom de l'arrêt
     private String platformName; // Quai/Platform (ex: "A3", "Voie 2")
-    private String arrivalTimeRaw; // Heure d'arrivée (format brut - stockée pour flexibilité)
-    private String departureTimeRaw; // Heure de départ (format brut)
+    private LocalTime arrivalTime; // Heure d'arrivée
+    private LocalTime departureTime; // Heure de départ
     private Long delay; // Retard/décalage par rapport à l'horaire prévu
     private StopType stopType; // Type d'arrêt (PICKUP, DROPOFF)
     private double distanceTraveled; // Distance parcouru par le véhicule à cet arrêt
@@ -38,8 +36,8 @@ public class MarkerDataStop {
         this.stopRef = markerDataStop.stopRef;
         this.stopName = markerDataStop.stopName;
         this.platformName = markerDataStop.platformName;
-        this.arrivalTimeRaw = markerDataStop.arrivalTimeRaw;
-        this.departureTimeRaw = markerDataStop.departureTimeRaw;
+        this.arrivalTime = markerDataStop.arrivalTime;
+        this.departureTime = markerDataStop.departureTime;
         this.delay = markerDataStop.delay;
         this.stopType = markerDataStop.stopType;
         this.distanceTraveled = markerDataStop.distanceTraveled;
@@ -55,8 +53,8 @@ public class MarkerDataStop {
     public MarkerDataStop(String stopRef, String stopName, LocalTime arrivingTime, LocalTime departureTime) {
         this.stopRef = stopRef;
         this.stopName = stopName;
-        this.arrivalTimeRaw = String.valueOf(arrivingTime);
-        this.departureTimeRaw = String.valueOf(departureTime);
+        this.arrivalTime = arrivingTime;
+        this.departureTime = departureTime;
         this.stopType = StopType.BOTH;
     }
 
@@ -75,12 +73,11 @@ public class MarkerDataStop {
 
     @Nullable
     public LocalTime getArrivalTime() {
-        return parseToLocalTime(arrivalTimeRaw);
+        return arrivalTime;
     }
 
-    @Nullable
-    public LocalTime getDepartureTime() {
-        return parseToLocalTime(departureTimeRaw);
+    public void setArrivalTime(LocalTime arrivalTime) {
+        this.arrivalTime = arrivalTime;
     }
 
     @Nullable
@@ -147,12 +144,13 @@ public class MarkerDataStop {
         this.platformName = platformName;
     }
 
-    public void setArrivalTime(LocalTime timeString) {
-        this.arrivalTimeRaw = String.valueOf(timeString);
+    @Nullable
+    public LocalTime getDepartureTime() {
+        return departureTime;
     }
 
-    public void setDepartureTime(LocalTime timeString) {
-        this.departureTimeRaw = String.valueOf(timeString);
+    public void setDepartureTime(LocalTime departureTime) {
+        this.departureTime = departureTime;
     }
 
     public void setDelay(Long delay) {
@@ -193,55 +191,6 @@ public class MarkerDataStop {
 
     public void setVehicle(MarkerDataStandardized markerDataStandardized) {
         this.vehicle = markerDataStandardized;
-    }
-
-    // ==================== MÉTHODES UTILITAIRES ====================
-    @Nullable
-    private static LocalTime parseToLocalTime(@Nullable String timeString) {
-        if (timeString == null || timeString.isEmpty()) {
-            return null;
-        }
-
-        try {
-            // Format simple HH:mm:ss
-            if (timeString.matches("\\d{2}:\\d{2}:\\d{2}")) {
-                return LocalTime.parse(timeString, DateTimeFormatter.ofPattern("HH:mm:ss"));
-            }
-
-            // Format ISO 8601 avec timezone (Z, +, ou -)
-            if (timeString.contains("T")) {
-                // Parse comme ZonedDateTime puis extrait juste le LocalTime
-                ZonedDateTime zdt = ZonedDateTime.parse(timeString);
-                return zdt.toLocalTime();
-            }
-
-        } catch (Exception e) {
-            // Silencieusement, retourne null si parsing échoue
-            return null;
-        }
-
-        return null;
-    }
-
-    @NonNull
-    private static String formatLocalTime(@Nullable LocalTime time) {
-        if (time == null) {
-            return "—";
-        }
-        return time.format(DateTimeFormatter.ofPattern("HH:mm"));
-    }
-
-    @NonNull
-    private static String formatDuration(@Nullable Long minutes) {
-        if (minutes == null || minutes < 0) {
-            return "—";
-        }
-
-        if (minutes == 0) {
-            return "0m";
-        }
-
-        return minutes + "m";
     }
 
     public String getDelayText() {
@@ -307,8 +256,8 @@ public class MarkerDataStop {
                 "stopRef='" + stopRef + '\'' +
                 ", stopName='" + stopName + '\'' +
                 ", platformName='" + platformName + '\'' +
-                ", arrivalTimeRaw='" + arrivalTimeRaw + '\'' +
-                ", departureTimeRaw='" + departureTimeRaw + '\'' +
+                ", arrivalTime='" + arrivalTime + '\'' +
+                ", departureTime='" + departureTime + '\'' +
                 ", delay=" + delay +
                 ", stopType=" + stopType +
                 ", distanceTraveled=" + distanceTraveled +

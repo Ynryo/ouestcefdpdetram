@@ -5,6 +5,8 @@ import androidx.annotation.NonNull;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
+import fr.ynryo.ouestcefdpdetram.utils.Time;
+
 public class TrainProperties {
     private String uic;
     private String debut;
@@ -26,11 +28,11 @@ public class TrainProperties {
     }
 
     public LocalTime getDebut() {
-        return LocalTime.parse(debut);
+        return Time.parseToLocalTime(debut);
     }
 
     public LocalTime getFin() {
-        return LocalTime.parse(fin);
+        return Time.parseToLocalTime(fin);
     }
 
     public int getEtape() {
@@ -73,9 +75,9 @@ public class TrainProperties {
         LocalTime debut = getDebut();
         LocalTime fin = getFin();
 
-        if (debut != null || fin != null) return null;
+        if (debut == null || fin == null) return null;
 
-        return ChronoUnit.MINUTES.between(getFin(), getDebut());
+        return ChronoUnit.MINUTES.between(debut, fin);
     }
 
     public int getDelay() {
