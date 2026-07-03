@@ -37,7 +37,7 @@ public class MarkerDataStandardized {
     private double latitude; // Latitude actuelle
     private double longitude; // Longitude actuelle
     private float bearing; // Azimut/direction du véhicule (0-360°)
-    private String pathRef;
+    private String pathRef; // Référence du tracé
     private Object markerDataRoute; // Liste des points du tracé
 
     // ==================== DONNÉES DE VOYAGE ====================
@@ -51,8 +51,8 @@ public class MarkerDataStandardized {
     private boolean detailsLoaded; // Les infos détaillées (stops) ont-ils été fetched?
 
     // ==================== SI TRAIN EN UM ====================
-    private MarkerDataStandardized umA;
-    private MarkerDataStandardized umB;
+    private MarkerDataStandardized umA; // Train en UM A
+    private MarkerDataStandardized umB; // Train en UM B
 
     private final static String TAG = "MarkerDataStandardized";
     private final static int NETWORK_ID_SNCF = 17;

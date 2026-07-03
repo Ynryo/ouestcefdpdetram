@@ -1,9 +1,7 @@
 package fr.ynryo.ouestcefdpdetram.managers.um;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStop;
@@ -35,6 +33,7 @@ public class TrainUmAssembler {
         um.setFillColor(trainA.getFillColor());
         um.setTextColor(trainA.getTextColor());
         um.setLineNumber(trainA.getLineNumber() + " et " + trainB.getLineNumber());
+        um.setNetworkId(trainA.getNetworkId());
         um.setNetworkRef(trainA.getNetworkRef());
 
         return um;
@@ -42,84 +41,109 @@ public class TrainUmAssembler {
 
 
     /**
-     * Assemble les arrêts des 2 trains. Les arrêts communs sont fusionnés pour s'afficher qu'une seule fois
-     * et les arrêts non-communs ne sont pas fusionnés (mais triés) pour s'afficher pour chacun des trains
-     * (une colonne pour chaque train).
+     * Assembles a list of timeline rows representing stops for a unified marker (UM),
+     * combining and aligning stops from two associated MarkerDataStandardized instances.
+     *
+     * @param um the unified marker containing two associated MarkerDataStandardized instances, which
+     *           represent two trains combined as a UM. The method uses these instances to retrieve and
+     *           align their respective stop data.
+     * @return a list of TrainUmTimelineRow objects, where each row represents either a common stop,
+     *         a split stop (distinct stops from the two trains), or an aligned stop based on calculated
+     *         chronological order.
      */
-    public static void assembleUmStops(MarkerDataStandardized um) {
-        if (!um.isUm()) {
-            return;
-        }
+    public static List<TrainUmTimelineRow> assembleUmStops(MarkerDataStandardized um) {
+        if (!um.isUm()) return new ArrayList<>(); //si c'est pas um
+
+        um.setDestination(getDestination(um));
+        //TODO: afficher logo
+
+        //get les US dans l'UM
         MarkerDataStandardized trainA = um.getUmA();
         MarkerDataStandardized trainB = um.getUmB();
 
-        if (trainA.getStops() == null || trainA.getStops().isEmpty() ||
-                trainB.getStops() == null || trainB.getStops().isEmpty()) {
-            return;
-        }
-
+        //get les stops des US
         List<MarkerDataStop> stopsA = trainA.getStops();
         List<MarkerDataStop> stopsB = trainB.getStops();
 
-        // 1. Identifier les références des arrêts communs (ils serviront de points de repère pour le tri)
-        List<String> commonRefs = new ArrayList<>();
-        Set<String> bRefs = new HashSet<>();
-        for (MarkerDataStop stopB : stopsB) {
-            bRefs.add(stopB.getStopRef());
-        }
-        for (MarkerDataStop stopA : stopsA) {
-            if (bRefs.contains(stopA.getStopRef())) {
-                commonRefs.add(stopA.getStopRef()); // Garde l'ordre chronologique naturel du trajet
-            }
-        }
+        List<TrainUmTimelineRow> timelineRows = new ArrayList<>();
 
-        List<MarkerDataStop> mergedStops = new ArrayList<>();
-        int i = 0;
-        int j = 0;
+        int i = 0, j = 0;
 
-        // 2. Construire la nouvelle timeline en s'arrêtant à chaque point de rencontre
-        for (String commonRef : commonRefs) {
-
-            // Ajouter les arrêts de la branche exclusive du train A
-            while (i < stopsA.size() && !stopsA.get(i).getStopRef().equals(commonRef)) {
-                MarkerDataStop exclusiveA = new MarkerDataStop(stopsA.get(i));
-                exclusiveA.setVehicle(trainA); // Appartient uniquement au train A
-                mergedStops.add(exclusiveA);
+        while (i < stopsA.size() || j < stopsB.size()) {
+            // Si le train B est terminé, on vide le train A
+            if (i < stopsA.size() && j >= stopsB.size()) {
+                stopsA.get(i).setVehicle(um);
+                timelineRows.add(new TrainUmTimelineRow(stopsA.get(i), null));
                 i++;
+                continue;
             }
-
-            // Ajouter les arrêts de la branche exclusive du train B
-            while (j < stopsB.size() && !stopsB.get(j).getStopRef().equals(commonRef)) {
-                MarkerDataStop exclusiveB = new MarkerDataStop(stopsB.get(j));
-                exclusiveB.setVehicle(trainB); // Appartient uniquement au train B
-                mergedStops.add(exclusiveB);
+            // Si le train A est terminé, on vide le train B
+            if (j < stopsB.size() && i >= stopsA.size()) {
+                stopsB.get(j).setVehicle(um);
+                timelineRows.add(new TrainUmTimelineRow(null, stopsB.get(j)));
                 j++;
+                continue;
             }
 
-            // Ajouter l'arrêt commun (fusionné)
-            if (i < stopsA.size() && j < stopsB.size()) {
-                MarkerDataStop mergedStop = new MarkerDataStop(stopsA.get(i));
-                mergedStop.setVehicle(um); // Appartient à l'UM entier (les deux colonnes)
-                mergedStops.add(mergedStop);
+            MarkerDataStop stopA = stopsA.get(i);
+            MarkerDataStop stopB = stopsB.get(j);
+
+            // CAS 1 : C'est le même arrêt physique (UM parfait)
+            if (stopA.getStopRef().equals(stopB.getStopRef())) {
+                stopA.setVehicle(um); // Liaison globale à l'UM
+                timelineRows.add(new TrainUmTimelineRow(stopA));
                 i++;
                 j++;
             }
+            // CAS 2 : Arrêts différents (Divergence / Séparation)
+            else {
+                // On compare les horaires pour les aligner au mieux de haut en bas
+                java.time.LocalTime timeA = stopA.getArrivalTime() != null ? stopA.getArrivalTime() : stopA.getDepartureTime();
+                java.time.LocalTime timeB = stopB.getArrivalTime() != null ? stopB.getArrivalTime() : stopB.getDepartureTime();
+
+                if (timeA != null && timeB != null) {
+                    if (timeA.isBefore(timeB)) {
+                        // L'arrêt A arrive en premier chronologiquement
+                        stopA.setVehicle(um);
+                        timelineRows.add(new TrainUmTimelineRow(stopA, null));
+                        i++;
+                    } else if (timeB.isBefore(timeA)) {
+                        // L'arrêt B arrive en premier
+                        stopB.setVehicle(um);
+                        timelineRows.add(new TrainUmTimelineRow(null, stopB));
+                        j++;
+                    } else {
+                        // Même heure mais arrêts différents (Branches parallèles au même moment)
+                        stopA.setVehicle(um);
+                        stopB.setVehicle(um);
+                        timelineRows.add(new TrainUmTimelineRow(stopA, stopB));
+                        i++;
+                        j++;
+                    }
+                } else {
+                    // Fallback si pas d'horaire : on les met côte à côte par défaut
+                    stopA.setVehicle(um);
+                    stopB.setVehicle(um);
+                    timelineRows.add(new TrainUmTimelineRow(stopA, stopB));
+                    i++;
+                    j++;
+                }
+            }
         }
 
-        // 3. Ajouter les éventuels terminus divergents (après le tout dernier arrêt commun)
-        while (i < stopsA.size()) {
-            MarkerDataStop exclusiveA = new MarkerDataStop(stopsA.get(i));
-            exclusiveA.setVehicle(trainA);
-            mergedStops.add(exclusiveA);
-            i++;
-        }
-        while (j < stopsB.size()) {
-            MarkerDataStop exclusiveB = new MarkerDataStop(stopsB.get(j));
-            exclusiveB.setVehicle(trainB);
-            mergedStops.add(exclusiveB);
-            j++;
-        }
+        return timelineRows;
+    }
 
-        um.setStops(mergedStops);
+    public static String getDestination(MarkerDataStandardized um) {
+        if (!um.isUm()) return um.getDestination();
+
+        String destA = um.getUmA().getDestination();
+        String destB = um.getUmB().getDestination();
+
+        if (destA != null && destA.equals(destB)) {
+            return destA;
+        } else {
+            return destA + " / " + destB;
+        }
     }
 }

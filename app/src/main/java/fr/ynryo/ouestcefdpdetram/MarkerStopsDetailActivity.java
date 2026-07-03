@@ -165,10 +165,7 @@ public class MarkerStopsDetailActivity {
         context.getFetcher().fetchNetworkData(markerDataStandardized.getNetworkId(), new FetchingManager.OnNetworkDataListener() {
             @Override
             public void onResponseNetworkDataListener(NetworkData nData) {
-                URI imgURI = nData.getLogoHref();
-                if (imgURI != null) {
-                    loadNetworkLogo(view, imgURI);
-                }
+                loadNetworkLogo(view, nData.getLogoHref());
             }
 
             @Override
@@ -185,6 +182,12 @@ public class MarkerStopsDetailActivity {
      */
     private void loadNetworkLogo(View view, URI imgURI) {
         ImageView ivLogo = view.findViewById(R.id.ivNetworkLogo);
+        if (imgURI == null) {
+            ivLogo.setVisibility(View.GONE);
+            return;
+        }
+
+        ivLogo.setVisibility(View.VISIBLE);
         ivLogo.setBackgroundResource(R.color.surface_light);
         ivLogo.setAdjustViewBounds(true);
         ivLogo.setScaleType(ImageView.ScaleType.FIT_CENTER);
