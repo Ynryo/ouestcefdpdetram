@@ -6,6 +6,8 @@ public class MarkerPosition {
     private double latitude;
     private double longitude;
     private float bearing;
+    private boolean atStop;
+    private float distanceTraveled;
 
     public double getLatitude() {
         return latitude;
@@ -17,6 +19,14 @@ public class MarkerPosition {
 
     public float getBearing() {
         return bearing;
+    }
+
+    public boolean isAtStop() {
+        return atStop;
+    }
+
+    public float getDistanceTraveled() {
+        return distanceTraveled;
     }
 
     @NonNull

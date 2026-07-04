@@ -410,18 +410,12 @@ public class MarkerStopsDetailActivity {
         public void bindTimeline(StopViewHolder vh, MarkerDataStop stop, int position, int itemCount) {
             MarkerDataStandardized vehicle = stop.getVehicle();
 
-            // Affiche la timeline uniquement pour les trains
-            if (!vehicle.isTrain()) {
-                vh.flTimeline.setVisibility(View.GONE);
-                return;
-            }
-
             vh.flTimeline.setVisibility(View.VISIBLE);
             vh.flTimeline.removeAllViews();
 
             // Choisis le layout selon la position
             int layoutRes;
-            if (position == 0) {
+            if ((stop.getVehicle().isTrain() && position == 0) || (stop.getVehicle().isVehicle() && stop.getVehicle().getDistanceTraveled() == 0)) {
                 layoutRes = R.layout.timeline_first_stop;
             } else if (position == itemCount - 1) {
                 layoutRes = R.layout.timeline_last_stop;

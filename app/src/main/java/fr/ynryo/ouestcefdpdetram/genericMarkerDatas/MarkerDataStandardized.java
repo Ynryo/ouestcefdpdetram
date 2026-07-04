@@ -43,6 +43,8 @@ public class MarkerDataStandardized {
     // ==================== DONNÉES DE VOYAGE ====================
     private String destination; // Destination finale
     private List<MarkerDataStop> stops; // Liste des arrêts à venir
+    private boolean atStop;
+    private float distanceTraveled;
 
     // ==================== MÉTADONNÉES ====================
     private boolean isFollowed; // Est-ce que l'utilisateur suit ce véhicule?
@@ -127,6 +129,8 @@ public class MarkerDataStandardized {
         this.destination = vehicleData.getDestination();
         this.networkId = vehicleData.getNetworkId();
         this.pathRef = vehicleData.getPathRef();
+        this.atStop = vehicleData.getPosition().isAtStop();
+        this.distanceTraveled = vehicleData.getPosition().getDistanceTraveled();
 
         if (vehicleData.getCalls() != null && !vehicleData.getCalls().isEmpty()) {
             this.stops = new ArrayList<>();
@@ -266,6 +270,14 @@ public class MarkerDataStandardized {
 
     public List<MarkerDataStop> getStops() {
         return stops != null ? stops : new ArrayList<>();
+    }
+
+    public boolean isAtStop() {
+        return atStop;
+    }
+
+    public float getDistanceTraveled() {
+        return distanceTraveled;
     }
 
     public boolean isFollowed() {
