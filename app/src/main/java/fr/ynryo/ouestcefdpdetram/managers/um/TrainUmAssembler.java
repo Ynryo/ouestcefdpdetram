@@ -1,7 +1,9 @@
 package fr.ynryo.ouestcefdpdetram.managers.um;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStop;
@@ -52,88 +54,99 @@ public class TrainUmAssembler {
      *         chronological order.
      */
     public static List<TrainUmTimelineRow> assembleUmStops(MarkerDataStandardized um) {
-        if (!um.isUm()) return new ArrayList<>(); //si c'est pas um
+        if (!um.isUm()) return new ArrayList<>();
 
-        um.setDestination(getDestination(um));
-        //TODO: afficher logo
-
-        //get les US dans l'UM
         MarkerDataStandardized trainA = um.getUmA();
         MarkerDataStandardized trainB = um.getUmB();
+        List<MarkerDataStop> stopsA = trainA.getStops() != null ? trainA.getStops() : new ArrayList<>();
+        List<MarkerDataStop> stopsB = trainB.getStops() != null ? trainB.getStops() : new ArrayList<>();
 
-        //get les stops des US
-        List<MarkerDataStop> stopsA = trainA.getStops();
-        List<MarkerDataStop> stopsB = trainB.getStops();
-
-        List<TrainUmTimelineRow> timelineRows = new ArrayList<>();
-
-        int i = 0, j = 0;
-
-        while (i < stopsA.size() || j < stopsB.size()) {
-            // Si le train B est terminé, on vide le train A
-            if (i < stopsA.size() && j >= stopsB.size()) {
-                stopsA.get(i).setVehicle(um);
-                timelineRows.add(new TrainUmTimelineRow(stopsA.get(i), null));
-                i++;
-                continue;
-            }
-            // Si le train A est terminé, on vide le train B
-            if (j < stopsB.size() && i >= stopsA.size()) {
-                stopsB.get(j).setVehicle(um);
-                timelineRows.add(new TrainUmTimelineRow(null, stopsB.get(j)));
-                j++;
-                continue;
-            }
-
-            MarkerDataStop stopA = stopsA.get(i);
-            MarkerDataStop stopB = stopsB.get(j);
-
-            // CAS 1 : C'est le même arrêt physique (UM parfait)
-            if (stopA.getStopRef().equals(stopB.getStopRef())) {
-                stopA.setVehicle(um); // Liaison globale à l'UM
-                timelineRows.add(new TrainUmTimelineRow(stopA));
-                i++;
-                j++;
-            }
-            // CAS 2 : Arrêts différents (Divergence / Séparation)
-            else {
-                // On compare les horaires pour les aligner au mieux de haut en bas
-                java.time.LocalTime timeA = stopA.getArrivalTime() != null ? stopA.getArrivalTime() : stopA.getDepartureTime();
-                java.time.LocalTime timeB = stopB.getArrivalTime() != null ? stopB.getArrivalTime() : stopB.getDepartureTime();
-
-                if (timeA != null && timeB != null) {
-                    if (timeA.isBefore(timeB)) {
-                        // L'arrêt A arrive en premier chronologiquement
-                        stopA.setVehicle(um);
-                        timelineRows.add(new TrainUmTimelineRow(stopA, null));
-                        i++;
-                    } else if (timeB.isBefore(timeA)) {
-                        // L'arrêt B arrive en premier
-                        stopB.setVehicle(um);
-                        timelineRows.add(new TrainUmTimelineRow(null, stopB));
-                        j++;
-                    } else {
-                        // Même heure mais arrêts différents (Branches parallèles au même moment)
-                        stopA.setVehicle(um);
-                        stopB.setVehicle(um);
-                        timelineRows.add(new TrainUmTimelineRow(stopA, stopB));
-                        i++;
-                        j++;
-                    }
-                } else {
-                    // Fallback si pas d'horaire : on les met côte à côte par défaut
-                    stopA.setVehicle(um);
-                    stopB.setVehicle(um);
-                    timelineRows.add(new TrainUmTimelineRow(stopA, stopB));
-                    i++;
-                    j++;
-                }
-            }
+        // 1. Trouver les arrêts communs pour délimiter les phases
+        List<String> commonRefs = new ArrayList<>();
+        Set<String> bRefs = new HashSet<>();
+        for (MarkerDataStop b : stopsB) bRefs.add(b.getStopRef());
+        for (MarkerDataStop a : stopsA) {
+            if (bRefs.contains(a.getStopRef())) commonRefs.add(a.getStopRef());
         }
 
-        return timelineRows;
+        List<TrainUmTimelineRow> displayRows = new ArrayList<>();
+
+        if (commonRefs.isEmpty()) {
+            // Cas extrême : ils ne se croisent jamais, on met tout côte à côte
+            zipStopsSideBySide(stopsA, stopsB, 0, stopsA.size(), 0, stopsB.size(), displayRows);
+            return displayRows;
+        }
+
+        String firstCommon = commonRefs.get(0);
+        String lastCommon = commonRefs.get(commonRefs.size() - 1);
+
+        // Index de parcours
+        int indexA = 0, indexB = 0;
+
+        // ==========================================
+        // PHASE 1 : AVANT LE MERGE (Côte à côte)
+        // ==========================================
+        int endPhase1A = findStopIndex(stopsA, firstCommon);
+        int endPhase1B = findStopIndex(stopsB, firstCommon);
+
+        if (endPhase1A > 0 || endPhase1B > 0) {
+            zipStopsSideBySide(stopsA, stopsB, indexA, endPhase1A, indexB, endPhase1B, displayRows);
+            // Insertion de l'icône de MERGE
+            displayRows.add(TrainUmTimelineRow.createMergeGraphic());
+        }
+
+        indexA = endPhase1A;
+        indexB = endPhase1B;
+
+        // ==========================================
+        // PHASE 2 : TRAJET COMMUN (Fusionné)
+        // ==========================================
+        int endPhase2A = findStopIndex(stopsA, lastCommon) + 1;
+        int endPhase2B = findStopIndex(stopsB, lastCommon) + 1;
+
+        while (indexA < endPhase2A && indexB < endPhase2B) {
+            // On prend l'arrêt de A, et on l'assigne à l'UM
+            MarkerDataStop commonStop = new MarkerDataStop(stopsA.get(indexA));
+            commonStop.setVehicle(um);
+            displayRows.add(TrainUmTimelineRow.createCommonStop(commonStop));
+            indexA++;
+            indexB++;
+        }
+
+        // ==========================================
+        // PHASE 3 : APRÈS LE SPLIT (Côte à côte)
+        // ==========================================
+        if (indexA < stopsA.size() || indexB < stopsB.size()) {
+            // Insertion de l'icône de SPLIT
+            displayRows.add(TrainUmTimelineRow.createSplitGraphic());
+            zipStopsSideBySide(stopsA, stopsB, indexA, stopsA.size(), indexB, stopsB.size(), displayRows);
+        }
+
+        return displayRows;
     }
 
+    // Fonction utilitaire pour trouver l'index d'un arrêt
+    private static int findStopIndex(List<MarkerDataStop> stops, String stopRef) {
+        for (int i = 0; i < stops.size(); i++) {
+            if (stops.get(i).getStopRef().equals(stopRef)) return i;
+        }
+        return stops.size();
+    }
+
+    // Fonction utilitaire pour aligner côte à côte les arrêts exclusifs
+    private static void zipStopsSideBySide(List<MarkerDataStop> stopsA, List<MarkerDataStop> stopsB,
+                                           int startA, int endA, int startB, int endB,
+                                           List<TrainUmTimelineRow> displayRows) {
+        int i = startA;
+        int j = startB;
+        while (i < endA || j < endB) {
+            MarkerDataStop stopA = (i < endA) ? stopsA.get(i) : null;
+            MarkerDataStop stopB = (j < endB) ? stopsB.get(j) : null;
+            displayRows.add(TrainUmTimelineRow.createSideBySideStop(stopA, stopB));
+            if (i < endA) i++;
+            if (j < endB) j++;
+        }
+    }
     public static String getDestination(MarkerDataStandardized um) {
         if (!um.isUm()) return um.getDestination();
 

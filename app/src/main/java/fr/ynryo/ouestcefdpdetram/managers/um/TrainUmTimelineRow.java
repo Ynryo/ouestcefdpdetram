@@ -3,37 +3,29 @@ package fr.ynryo.ouestcefdpdetram.managers.um;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStop;
 
 public class TrainUmTimelineRow {
-    private MarkerDataStop stopA;
-    private MarkerDataStop stopB;
-    private MarkerDataStop commonStop;
-    private boolean isSplit = false;
+    public TimelineRowType type;
+    public MarkerDataStop stopA; // Utilisé comme arrêt commun si type == COMMON
+    public MarkerDataStop stopB;
 
-    // Constructeur pour un arrêt commun (UM)
-    public TrainUmTimelineRow(MarkerDataStop commonStop) {
-        this.commonStop = commonStop;
-        this.isSplit = false;
-    }
-
-    // Constructeur pour deux arrêts distincts côte à côte
-    public TrainUmTimelineRow(MarkerDataStop stopA, MarkerDataStop stopB) {
+    private TrainUmTimelineRow(TimelineRowType type, MarkerDataStop stopA, MarkerDataStop stopB) {
+        this.type = type;
         this.stopA = stopA;
         this.stopB = stopB;
-        this.isSplit = true;
     }
 
-    public MarkerDataStop getStopA() {
-        return stopA;
+    public static TrainUmTimelineRow createCommonStop(MarkerDataStop stop) {
+        return new TrainUmTimelineRow(TimelineRowType.COMMON, stop, null);
     }
 
-    public MarkerDataStop getStopB() {
-        return stopB;
+    public static TrainUmTimelineRow createSideBySideStop(MarkerDataStop stopA, MarkerDataStop stopB) {
+        return new TrainUmTimelineRow(TimelineRowType.SIDE_BY_SIDE, stopA, stopB);
     }
 
-    public MarkerDataStop getCommonStop() {
-        return commonStop;
+    public static TrainUmTimelineRow createMergeGraphic() {
+        return new TrainUmTimelineRow(TimelineRowType.MERGE_GRAPHIC, null, null);
     }
 
-    public boolean isSplit() {
-        return isSplit;
+    public static TrainUmTimelineRow createSplitGraphic() {
+        return new TrainUmTimelineRow(TimelineRowType.SPLIT_GRAPHIC, null, null);
     }
 }
