@@ -8,6 +8,7 @@ import java.util.List;
 
 import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.markers.MarkerPosition;
 
+//bus tracker api response
 public class VehicleData {
     private String id;
     private int lineId;

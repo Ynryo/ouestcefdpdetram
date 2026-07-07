@@ -147,13 +147,16 @@ public class MarkerDataStandardized {
                     ZonedDateTime aimed = ZonedDateTime.parse(vehicleStop.getAimedTime());
                     Long delay = ChronoUnit.MINUTES.between(aimed, expected);
                     stop.setDelay(delay);
+
+                    stop.setDepartureTime(Time.parseToLocalTime(vehicleStop.getExpectedTime()));
+                } else {
+                    stop.setDepartureTime(Time.parseToLocalTime(vehicleStop.getAimedTime()));
                 }
-                String rawDepTime = vehicleStop.getExpectedTime() != null ? vehicleStop.getExpectedTime() : vehicleStop.getAimedTime();
-                stop.setDepartureTime(Time.parseToLocalTime(rawDepTime));
                 stop.setStopOrder(vehicleStop.getStopOrder());
                 stop.setLongitude(vehicleStop.getLongitude());
                 stop.setLatitude(vehicleStop.getLatitude());
                 stop.setDistanceTraveled(vehicleStop.getDistanceTraveled());
+                stop.setIsDepartureStop(vehicleStop.getDistanceTraveled() == 0);
                 stop.setVehicle(this);
 
                 if (vehicleStop.getFlags().contains("NO_PICKUP")) {
@@ -204,8 +207,8 @@ public class MarkerDataStandardized {
                     stop.setDelay((long) trainFeature.getProperties().getDelay());
                     stop.setArrivalTime(trainFeature.getProperties().getDebut());
                     stop.setDepartureTime(trainFeature.getProperties().getFin());
-                    stop.setDestinationStop(trainData.isDestinationStop(trainFeature.getProperties().getLocalite()));
-                    stop.setDepartureStop(trainData.isDepartureStop(trainFeature.getProperties().getLocalite()));
+                    stop.setIsDestinationStop(trainData.isDestinationStop(trainFeature.getProperties().getLocalite()));
+                    stop.setIsDepartureStop(trainData.isDepartureStop(trainFeature.getProperties().getLocalite()));
                     stop.setVehicle(this);
                 } catch (Exception e) {
                     throw new RuntimeException(e);

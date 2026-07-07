@@ -181,11 +181,11 @@ public class MarkerDataStop {
         this.isOnLive = onLive;
     }
 
-    public void setDestinationStop(boolean isDestinationStop) {
+    public void setIsDestinationStop(boolean isDestinationStop) {
         this.isDestinationStop = isDestinationStop;
     }
 
-    public void setDepartureStop(boolean isDepartureStop) {
+    public void setIsDepartureStop(boolean isDepartureStop) {
         this.isDepartureStop = isDepartureStop;
     }
 

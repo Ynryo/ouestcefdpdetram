@@ -289,6 +289,20 @@ public class MarkerStopsDetailActivity {
         }
     }
 
+    private static int getTimelineLayout(MarkerDataStop stop, int position, int itemCount) {
+        Log.d(TAG, "isBusAtDeparture" + stop.getVehicle().isVehicle() + " " + stop.getVehicle().getDistanceTraveled() + " " + stop.isDepartureStop());
+        boolean isTrainAtDeparture = stop.getVehicle().isTrain() && position == 0;
+        boolean isBusAtDeparture = stop.getVehicle().isVehicle() && (stop.getVehicle().getDistanceTraveled() == 0) && stop.isDepartureStop();
+        boolean isVehicleAtArrival = stop.isDestinationStop() || position == itemCount - 1;
+        if (isTrainAtDeparture || isBusAtDeparture) {
+            return R.layout.timeline_first_stop;
+        } else if (isVehicleAtArrival) {
+            return R.layout.timeline_last_stop;
+        } else {
+            return R.layout.timeline_intermediate_stop;
+        }
+    }
+
     /**
      * Stops adapter for recycler view
      */
@@ -413,18 +427,8 @@ public class MarkerStopsDetailActivity {
             vh.flTimeline.setVisibility(View.VISIBLE);
             vh.flTimeline.removeAllViews();
 
-            // Choisis le layout selon la position
-            int layoutRes;
-            if ((stop.getVehicle().isTrain() && position == 0) || (stop.getVehicle().isVehicle() && stop.getVehicle().getDistanceTraveled() == 0)) {
-                layoutRes = R.layout.timeline_first_stop;
-            } else if (position == itemCount - 1) {
-                layoutRes = R.layout.timeline_last_stop;
-            } else {
-                layoutRes = R.layout.timeline_intermediate_stop;
-            }
-
             // Inflate le layout dedans
-            View timelineView = LayoutInflater.from(context).inflate(layoutRes, vh.flTimeline, true);
+            View timelineView = LayoutInflater.from(context).inflate(getTimelineLayout(stop, position, itemCount), vh.flTimeline, true);
 
             // Tinte la barre avec la couleur du train
             int fillColor = Color.parseColor(vehicle.getFillColor() != null ? vehicle.getFillColor() : "#424242");

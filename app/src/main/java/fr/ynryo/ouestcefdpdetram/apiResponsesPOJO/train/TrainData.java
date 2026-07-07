@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import java.util.List;
 
+//carto tchoo api response
 public class TrainData {
     private String type;
     private List<TrainFeature> features;
