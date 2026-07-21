@@ -35,12 +35,10 @@ public class TrainUmAssembler {
         um.setFillColor(trainA.getFillColor());
         um.setTextColor(trainA.getTextColor());
         um.setLineNumber(trainA.getLineNumber() + " et " + trainB.getLineNumber());
-        um.setNetworkId(trainA.getNetworkId());
         um.setNetworkRef(trainA.getNetworkRef());
 
         return um;
     }
-
 
     /**
      * Assembles a list of timeline rows representing stops for a unified marker (UM),
@@ -54,14 +52,21 @@ public class TrainUmAssembler {
      *         chronological order.
      */
     public static List<TrainUmTimelineRow> assembleUmStops(MarkerDataStandardized um) {
-        if (!um.isUm()) return new ArrayList<>();
+        List<TrainUmTimelineRow> displayRows = new ArrayList<>();
+
+        if (!um.isUm()) {
+            return displayRows;
+        }
 
         MarkerDataStandardized trainA = um.getUmA();
         MarkerDataStandardized trainB = um.getUmB();
+
         List<MarkerDataStop> stopsA = trainA.getStops() != null ? trainA.getStops() : new ArrayList<>();
         List<MarkerDataStop> stopsB = trainB.getStops() != null ? trainB.getStops() : new ArrayList<>();
 
-        // 1. Trouver les arrêts communs pour délimiter les phases
+        if (stopsA.isEmpty() && stopsB.isEmpty()) return displayRows;
+
+        // 1. Trouver les références des arrêts communs
         List<String> commonRefs = new ArrayList<>();
         Set<String> bRefs = new HashSet<>();
         for (MarkerDataStop b : stopsB) bRefs.add(b.getStopRef());
@@ -69,10 +74,8 @@ public class TrainUmAssembler {
             if (bRefs.contains(a.getStopRef())) commonRefs.add(a.getStopRef());
         }
 
-        List<TrainUmTimelineRow> displayRows = new ArrayList<>();
-
         if (commonRefs.isEmpty()) {
-            // Cas extrême : ils ne se croisent jamais, on met tout côte à côte
+            // Aucun arrêt commun : on affiche tout en parallèle
             zipStopsSideBySide(stopsA, stopsB, 0, stopsA.size(), 0, stopsB.size(), displayRows);
             return displayRows;
         }
@@ -80,8 +83,8 @@ public class TrainUmAssembler {
         String firstCommon = commonRefs.get(0);
         String lastCommon = commonRefs.get(commonRefs.size() - 1);
 
-        // Index de parcours
-        int indexA = 0, indexB = 0;
+        int indexA = 0;
+        int indexB = 0;
 
         // ==========================================
         // PHASE 1 : AVANT LE MERGE (Côte à côte)
@@ -91,7 +94,7 @@ public class TrainUmAssembler {
 
         if (endPhase1A > 0 || endPhase1B > 0) {
             zipStopsSideBySide(stopsA, stopsB, indexA, endPhase1A, indexB, endPhase1B, displayRows);
-            // Insertion de l'icône de MERGE
+            // Insertion du graphique de jonction
             displayRows.add(TrainUmTimelineRow.createMergeGraphic());
         }
 
@@ -101,14 +104,32 @@ public class TrainUmAssembler {
         // ==========================================
         // PHASE 2 : TRAJET COMMUN (Fusionné)
         // ==========================================
-        int endPhase2A = findStopIndex(stopsA, lastCommon) + 1;
+        int endPhase2A = findStopIndex(stopsA, lastCommon) + 1; // +1 pour inclure le dernier arrêt commun
         int endPhase2B = findStopIndex(stopsB, lastCommon) + 1;
 
         while (indexA < endPhase2A && indexB < endPhase2B) {
-            // On prend l'arrêt de A, et on l'assigne à l'UM
-            MarkerDataStop commonStop = new MarkerDataStop(stopsA.get(indexA));
-            commonStop.setVehicle(um);
-            displayRows.add(TrainUmTimelineRow.createCommonStop(commonStop));
+            // On vérifie que c'est bien le même arrêt physiquement
+            MarkerDataStop stopA = stopsA.get(indexA);
+            MarkerDataStop stopB = stopsB.get(indexB);
+
+            if (stopA.getStopRef().equals(stopB.getStopRef())) {
+                MarkerDataStop commonStop = new MarkerDataStop(stopA);
+                commonStop.setVehicle(um); // Appartient à l'UM global
+
+                // Vérifier si les horaires divergent même s'ils sont dans la phase commune (séparation au départ du quai)
+                java.time.LocalTime depA = stopA.getDepartureTime() != null ? stopA.getDepartureTime() : stopA.getArrivalTime();
+                java.time.LocalTime depB = stopB.getDepartureTime() != null ? stopB.getDepartureTime() : stopB.getArrivalTime();
+
+                if (depA != null && depB != null && !depA.equals(depB)) {
+                    // Les trains se séparent ici !
+                    displayRows.add(TrainUmTimelineRow.createSideBySideStop(stopA, stopB));
+                } else {
+                    displayRows.add(TrainUmTimelineRow.createCommonStop(commonStop));
+                }
+            } else {
+                // Securité si désynchronisation inattendue
+                displayRows.add(TrainUmTimelineRow.createSideBySideStop(stopA, stopB));
+            }
             indexA++;
             indexB++;
         }
@@ -117,15 +138,36 @@ public class TrainUmAssembler {
         // PHASE 3 : APRÈS LE SPLIT (Côte à côte)
         // ==========================================
         if (indexA < stopsA.size() || indexB < stopsB.size()) {
-            // Insertion de l'icône de SPLIT
+            // Insertion du graphique de séparation
             displayRows.add(TrainUmTimelineRow.createSplitGraphic());
             zipStopsSideBySide(stopsA, stopsB, indexA, stopsA.size(), indexB, stopsB.size(), displayRows);
+        }
+
+        // Mettre à jour les flags IsFirst et IsLast pour l'affichage de la timeline (vLineTop/Bottom)
+        if (!displayRows.isEmpty()) {
+            // Cherche le premier vrai arrêt (ignore les graphismes)
+            for (TrainUmTimelineRow row : displayRows) {
+                if (row.getType() == TimelineRowType.COMMON || row.getType() == TimelineRowType.SIDE_BY_SIDE) {
+                    row.setFirstPosition(true);
+                    break;
+                }
+            }
+            // Cherche le dernier vrai arrêt
+            for (int r = displayRows.size() - 1; r >= 0; r--) {
+                TrainUmTimelineRow row = displayRows.get(r);
+                if (row.getType() == TimelineRowType.COMMON || row.getType() == TimelineRowType.SIDE_BY_SIDE) {
+                    row.setLastPosition(true);
+                    break;
+                }
+            }
         }
 
         return displayRows;
     }
 
-    // Fonction utilitaire pour trouver l'index d'un arrêt
+    /**
+     * Fonction utilitaire pour trouver l'index d'un arrêt dans une liste.
+     */
     private static int findStopIndex(List<MarkerDataStop> stops, String stopRef) {
         for (int i = 0; i < stops.size(); i++) {
             if (stops.get(i).getStopRef().equals(stopRef)) return i;
@@ -133,7 +175,9 @@ public class TrainUmAssembler {
         return stops.size();
     }
 
-    // Fonction utilitaire pour aligner côte à côte les arrêts exclusifs
+    /**
+     * Aligne côte à côte les arrêts exclusifs de deux listes.
+     */
     private static void zipStopsSideBySide(List<MarkerDataStop> stopsA, List<MarkerDataStop> stopsB,
                                            int startA, int endA, int startB, int endB,
                                            List<TrainUmTimelineRow> displayRows) {
@@ -147,6 +191,7 @@ public class TrainUmAssembler {
             if (j < endB) j++;
         }
     }
+
     public static String getDestination(MarkerDataStandardized um) {
         if (!um.isUm()) return um.getDestination();
 

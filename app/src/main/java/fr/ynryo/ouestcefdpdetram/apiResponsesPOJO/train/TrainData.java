@@ -30,7 +30,8 @@ public class TrainData {
     }
 
     public boolean isDestinationStop(String destination) {
-        return destination.equals(getDestination());
+        String dest = getDestination();
+        return destination != null && destination.equals(dest);
     }
 
     public String getDepartureStop() {
@@ -46,7 +47,8 @@ public class TrainData {
     }
 
     public boolean isDepartureStop(String departure) {
-        return departure.equals(getDepartureStop());
+        String dep = getDepartureStop();
+        return departure != null && departure.equals(dep);
     }
 
     @NonNull

@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -42,6 +43,9 @@ import fr.ynryo.ouestcefdpdetram.apiResponsesPOJO.network.NetworkData;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStandardized;
 import fr.ynryo.ouestcefdpdetram.genericMarkerDatas.MarkerDataStop;
 import fr.ynryo.ouestcefdpdetram.managers.FetchingManager;
+import fr.ynryo.ouestcefdpdetram.managers.um.TimelineRowType;
+import fr.ynryo.ouestcefdpdetram.managers.um.TrainUmAssembler;
+import fr.ynryo.ouestcefdpdetram.managers.um.TrainUmTimelineRow;
 
 public class MarkerStopsDetailActivity {
     private static final String TAG = "MarkerStopsDetailActivity";
@@ -247,17 +251,17 @@ public class MarkerStopsDetailActivity {
         tvDestination.setSelected(true);
     }
 
-    /**
-     * Setup stops list from marker data
-     * @param view the view
-     * @param markerDataStandardized the marker data
-     */
     private void setupStopsList(View view, MarkerDataStandardized markerDataStandardized) {
         RecyclerView rvStops = view.findViewById(R.id.rvStops);
         rvStops.setLayoutManager(new LinearLayoutManager(context));
 
-        List<MarkerDataStop> stops = markerDataStandardized.getStops() != null ? markerDataStandardized.getStops() : new ArrayList<>();
-        rvStops.setAdapter(new StopsAdapter(stops));
+        if (markerDataStandardized.isUm()) {
+            List<TrainUmTimelineRow> rows = TrainUmAssembler.assembleUmStops(markerDataStandardized);
+            rvStops.setAdapter(new UmStopsAdapter(markerDataStandardized, rows));
+        } else {
+            List<MarkerDataStop> stops = markerDataStandardized.getStops() != null ? markerDataStandardized.getStops() : new ArrayList<>();
+            rvStops.setAdapter(new StopsAdapter(stops));
+        }
 
         view.findViewById(R.id.llStopsContent).setVisibility(View.VISIBLE);
     }
@@ -577,6 +581,424 @@ public class MarkerStopsDetailActivity {
 
         private int getDefaultTextColor(StopViewHolder vh) {
             return MaterialColors.getColor(vh.tvDepartureTime, com.google.android.material.R.attr.colorOnSurface);
+        }
+    }
+
+    // ==================== UM ADAPTER ====================
+
+    private static class UmStopViewHolder extends RecyclerView.ViewHolder {
+        final TextView tvPlatform, tvStopName;
+        final View spacerPlatform;
+        final FrameLayout flTimeline;
+
+        // Train A columns
+        final View llTrainAData;
+        final TextView tvArrivingTime, tvAtStopTime, tvDepartureTime, tvDelay;
+        final ImageView ivArrivingTimeIcon, ivDepartureTimeIcon;
+
+        // Separator
+        final View vSplitSeparator;
+
+        // Train B columns
+        final View llTrainBData;
+        final TextView tvArrivingTimeB, tvAtStopTimeB, tvDepartureTimeB, tvDelayB;
+        final ImageView ivArrivingTimeIconB, ivDepartureTimeIconB;
+
+        UmStopViewHolder(View itemView) {
+            super(itemView);
+            tvPlatform = itemView.findViewById(R.id.tvPlatform);
+            tvStopName = itemView.findViewById(R.id.tvStopName);
+            spacerPlatform = itemView.findViewById(R.id.spacerPlatform);
+            flTimeline = itemView.findViewById(R.id.flTimeline);
+
+            llTrainAData = itemView.findViewById(R.id.llTrainAData);
+            tvArrivingTime = itemView.findViewById(R.id.tvArrivingTime);
+            tvAtStopTime = itemView.findViewById(R.id.tvAtStopTime);
+            tvDepartureTime = itemView.findViewById(R.id.tvDepartureTime);
+            tvDelay = itemView.findViewById(R.id.tvDelay);
+            ivArrivingTimeIcon = itemView.findViewById(R.id.ivArrivingTimeIcon);
+            ivDepartureTimeIcon = itemView.findViewById(R.id.ivDepartureTimeIcon);
+
+            vSplitSeparator = itemView.findViewById(R.id.vSplitSeparator);
+
+            llTrainBData = itemView.findViewById(R.id.llTrainBData);
+            tvArrivingTimeB = itemView.findViewById(R.id.tvArrivingTimeB);
+            tvAtStopTimeB = itemView.findViewById(R.id.tvAtStopTimeB);
+            tvDepartureTimeB = itemView.findViewById(R.id.tvDepartureTimeB);
+            tvDelayB = itemView.findViewById(R.id.tvDelayB);
+            ivArrivingTimeIconB = itemView.findViewById(R.id.ivArrivingTimeIconB);
+            ivDepartureTimeIconB = itemView.findViewById(R.id.ivDepartureTimeIconB);
+        }
+    }
+
+    private static class GraphicViewHolder extends RecyclerView.ViewHolder {
+        GraphicViewHolder(View itemView) {
+            super(itemView);
+        }
+    }
+
+    private class UmStopsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+        private static final int TYPE_STOP = 0;
+        private static final int TYPE_MERGE = 1;
+        private static final int TYPE_SPLIT = 2;
+
+        private final MarkerDataStandardized umMarker;
+        private final List<TrainUmTimelineRow> rows;
+
+        UmStopsAdapter(MarkerDataStandardized umMarker, List<TrainUmTimelineRow> rows) {
+            this.umMarker = umMarker;
+            this.rows = rows;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            TrainUmTimelineRow row = rows.get(position);
+            if (row.getType() == TimelineRowType.MERGE_GRAPHIC) {
+                return TYPE_MERGE;
+            } else if (row.getType() == TimelineRowType.SPLIT_GRAPHIC) {
+                return TYPE_SPLIT;
+            } else {
+                return TYPE_STOP;
+            }
+        }
+
+        @NonNull
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            if (viewType == TYPE_MERGE) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.timeline_um_merge, parent, false);
+                return new GraphicViewHolder(view);
+            } else if (viewType == TYPE_SPLIT) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.timeline_um_split, parent, false);
+                return new GraphicViewHolder(view);
+            } else {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.vehicle_stop_details, parent, false);
+                return new UmStopViewHolder(view);
+            }
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+            TrainUmTimelineRow row = rows.get(position);
+            int viewType = getItemViewType(position);
+
+            MarkerDataStandardized trainA = umMarker.getUmA();
+            MarkerDataStandardized trainB = umMarker.getUmB();
+            int colorA = Color.parseColor(trainA.getFillColor() != null ? trainA.getFillColor() : "#424242");
+            int colorB = Color.parseColor(trainB.getFillColor() != null ? trainB.getFillColor() : "#424242");
+
+            if (viewType == TYPE_MERGE || viewType == TYPE_SPLIT) {
+                tintGraphicView(holder.itemView, colorA, colorB);
+            } else {
+                UmStopViewHolder vh = (UmStopViewHolder) holder;
+                bindStopRow(vh, row, colorA, colorB);
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return rows.size();
+        }
+
+        private void tintGraphicView(View itemView, int colorA, int colorB) {
+            ImageView lineMain = itemView.findViewById(R.id.line_main);
+            ImageView curveTop = itemView.findViewById(R.id.curve_top);
+            View lineHorizontal = itemView.findViewById(R.id.line_horizontal);
+            ImageView dirArrowUp = itemView.findViewById(R.id.direction_arrow_up);
+            ImageView dirArrow = itemView.findViewById(R.id.direction_arrow);
+            ImageView curveBottom = itemView.findViewById(R.id.curve_bottom);
+            ImageView lineSecondaryDown = itemView.findViewById(R.id.line_secondary_down);
+
+            if (lineMain != null) lineMain.setColorFilter(colorA, PorterDuff.Mode.SRC_IN);
+            if (dirArrow != null) dirArrow.setColorFilter(colorA, PorterDuff.Mode.SRC_IN);
+
+            if (curveTop != null) curveTop.setColorFilter(colorB, PorterDuff.Mode.SRC_IN);
+            if (lineHorizontal != null) {
+                if (lineHorizontal instanceof ImageView) {
+                    ((ImageView) lineHorizontal).setColorFilter(colorB, PorterDuff.Mode.SRC_IN);
+                } else if (lineHorizontal.getBackground() != null) {
+                    ((GradientDrawable) lineHorizontal.getBackground().mutate()).setColor(colorB);
+                }
+            }
+            if (dirArrowUp != null) dirArrowUp.setColorFilter(colorB, PorterDuff.Mode.SRC_IN);
+            if (curveBottom != null) curveBottom.setColorFilter(colorB, PorterDuff.Mode.SRC_IN);
+            if (lineSecondaryDown != null)
+                lineSecondaryDown.setColorFilter(colorB, PorterDuff.Mode.SRC_IN);
+        }
+
+        private void bindStopRow(UmStopViewHolder vh, TrainUmTimelineRow row, int colorA, int colorB) {
+            MarkerDataStop stopA = row.getStopA();
+            MarkerDataStop stopB = row.getStopB();
+
+            // 1. Bind Timeline
+            bindTimeline(vh, row);
+
+            // 2. Determine Stop Name & Icon
+            String stopName = "";
+            int iconRes = 0;
+            String nameA = stopA != null ? stopA.getStopName() : null;
+            String nameB = stopB != null ? stopB.getStopName() : null;
+
+            if (nameA != null && nameB != null) {
+                if (nameA.equals(nameB)) {
+                    stopName = nameA;
+                } else {
+                    stopName = nameA + " / " + nameB;
+                }
+            } else if (nameA != null) {
+                stopName = nameA;
+            } else if (nameB != null) {
+                stopName = nameB;
+            }
+
+            if (stopA != null) {
+                iconRes = getStopIconResource(stopA);
+            }
+            if (iconRes == 0 && stopB != null) {
+                iconRes = getStopIconResource(stopB);
+            }
+            bindStopName(vh.tvStopName, stopName, iconRes);
+
+            // 3. Determine Platform
+            String platform = "";
+            if (stopA != null && stopB != null) {
+                String platA = stopA.getPlatformName();
+                String platB = stopB.getPlatformName();
+                if (platA != null && platB != null) {
+                    if (platA.equals(platB)) {
+                        platform = platA;
+                    } else {
+                        platform = platA + "/" + platB;
+                    }
+                } else if (platA != null) {
+                    platform = platA;
+                } else if (platB != null) {
+                    platform = platB;
+                }
+            } else if (stopA != null) {
+                platform = stopA.getPlatformName();
+            } else if (stopB != null) {
+                platform = stopB.getPlatformName();
+            }
+            bindPlatform(vh.tvPlatform, vh.spacerPlatform, platform);
+
+            // 4. Bind Columns
+            if (row.getType() == TimelineRowType.COMMON) {
+                bindTrainColumn(stopA, (LinearLayout) vh.llTrainAData,
+                        vh.tvArrivingTime, vh.ivArrivingTimeIcon,
+                        vh.tvAtStopTime,
+                        vh.tvDepartureTime, vh.ivDepartureTimeIcon,
+                        vh.tvDelay);
+                vh.llTrainBData.setVisibility(View.GONE);
+                vh.vSplitSeparator.setVisibility(View.GONE);
+            } else {
+                // SIDE_BY_SIDE stop
+                bindTrainColumn(stopA, (LinearLayout) vh.llTrainAData,
+                        vh.tvArrivingTime, vh.ivArrivingTimeIcon,
+                        vh.tvAtStopTime,
+                        vh.tvDepartureTime, vh.ivDepartureTimeIcon,
+                        vh.tvDelay);
+                bindTrainColumn(stopB, (LinearLayout) vh.llTrainBData,
+                        vh.tvArrivingTimeB, vh.ivArrivingTimeIconB,
+                        vh.tvAtStopTimeB,
+                        vh.tvDepartureTimeB, vh.ivDepartureTimeIconB,
+                        vh.tvDelayB);
+
+                boolean showSep = (stopA != null && stopB != null);
+                vh.vSplitSeparator.setVisibility(showSep ? View.VISIBLE : View.GONE);
+            }
+        }
+
+        private void bindTimeline(UmStopViewHolder vh, TrainUmTimelineRow row) {
+            vh.flTimeline.setVisibility(View.VISIBLE);
+            vh.flTimeline.removeAllViews();
+
+            View timelineView = LayoutInflater.from(context).inflate(R.layout.timeline_um_stop, vh.flTimeline, true);
+
+            View vLineLeft = timelineView.findViewById(R.id.vLineLeft);
+            View vStopDotLeft = timelineView.findViewById(R.id.vStopDotLeft);
+            View vLineRight = timelineView.findViewById(R.id.vLineRight);
+            View vStopDotRight = timelineView.findViewById(R.id.vStopDotRight);
+
+            MarkerDataStandardized trainA = umMarker.getUmA();
+            MarkerDataStandardized trainB = umMarker.getUmB();
+
+            int colorA = Color.parseColor(trainA.getFillColor() != null ? trainA.getFillColor() : "#424242");
+            int colorB = Color.parseColor(trainB.getFillColor() != null ? trainB.getFillColor() : "#424242");
+
+            boolean isFirst = row.isFirstPosition();
+            boolean isLast = row.isLastPosition();
+            int margin = (int) (8 * context.getResources().getDisplayMetrics().density);
+
+            configureLine(vLineLeft, isFirst, isLast, margin, colorA);
+            configureLine(vLineRight, isFirst, isLast, margin, colorB);
+
+            if (row.getType() == TimelineRowType.COMMON) {
+                vLineRight.setVisibility(View.INVISIBLE);
+                vStopDotRight.setVisibility(View.INVISIBLE);
+                vStopDotLeft.setVisibility(View.VISIBLE);
+            } else {
+                vLineRight.setVisibility(View.VISIBLE);
+                vStopDotLeft.setVisibility(row.getStopA() != null ? View.VISIBLE : View.GONE);
+                vStopDotRight.setVisibility(row.getStopB() != null ? View.VISIBLE : View.GONE);
+            }
+        }
+
+        private void configureLine(View vLine, boolean isFirst, boolean isLast, int margin, int color) {
+            if (isFirst) {
+                vLine.setBackgroundResource(R.drawable.timeline_bar_top_round);
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) vLine.getLayoutParams();
+                lp.topMargin = margin;
+                lp.bottomMargin = 0;
+                vLine.setLayoutParams(lp);
+            } else if (isLast) {
+                vLine.setBackgroundResource(R.drawable.timeline_bar_bottom_round);
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) vLine.getLayoutParams();
+                lp.topMargin = 0;
+                lp.bottomMargin = margin;
+                vLine.setLayoutParams(lp);
+            } else {
+                vLine.setBackgroundResource(R.drawable.timeline_bar_straight);
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) vLine.getLayoutParams();
+                lp.topMargin = 0;
+                lp.bottomMargin = 0;
+                vLine.setLayoutParams(lp);
+            }
+
+            if (vLine.getBackground() != null) {
+                ((GradientDrawable) vLine.getBackground().mutate()).setColor(color);
+            }
+        }
+
+        private void bindTrainColumn(
+                MarkerDataStop stop,
+                LinearLayout container,
+                TextView tvArrival, ImageView ivArrivalIcon,
+                TextView tvAtStop,
+                TextView tvDeparture, ImageView ivDepartureIcon,
+                TextView tvDelay
+        ) {
+            if (stop == null) {
+                container.setVisibility(View.GONE);
+                return;
+            }
+            container.setVisibility(View.VISIBLE);
+
+            boolean isDepStop = stop.isDepartureStop();
+            LocalTime arrivalTime = stop.getArrivalTime();
+            if (arrivalTime != null && !isDepStop) {
+                tvArrival.setVisibility(View.VISIBLE);
+                tvArrival.setText(arrivalTime.format(TIME_FORMATTER));
+                tvArrival.setTextColor(stop.isOnLive() ? COLOR_GREEN : MaterialColors.getColor(tvDeparture, com.google.android.material.R.attr.colorOnSurface));
+                if (stop.isOnLive()) {
+                    ivArrivalIcon.setImageResource(R.drawable.icon_sensors);
+                    ivArrivalIcon.setColorFilter(COLOR_GREEN);
+                    ivArrivalIcon.setVisibility(View.VISIBLE);
+                } else {
+                    ivArrivalIcon.setVisibility(View.GONE);
+                }
+            } else {
+                tvArrival.setVisibility(View.GONE);
+                ivArrivalIcon.setVisibility(View.GONE);
+            }
+
+            if (isDepStop || stop.isDestinationStop()) {
+                tvAtStop.setVisibility(View.GONE);
+            } else {
+                Long atStopMinutes = stop.getAtStopTime();
+                if (atStopMinutes != null && atStopMinutes >= 0) {
+                    tvAtStop.setVisibility(View.VISIBLE);
+                    tvAtStop.setText(atStopMinutes + "min d'arrêt");
+                    tvAtStop.setTextColor(Color.GRAY);
+                } else {
+                    tvAtStop.setText("—");
+                    tvAtStop.setVisibility(View.VISIBLE);
+                }
+            }
+
+            if (stop.isDestinationStop()) {
+                tvDeparture.setVisibility(View.GONE);
+                ivDepartureIcon.setVisibility(View.GONE);
+            } else {
+                LocalTime departureTime = stop.getDepartureTime();
+                if (departureTime != null) {
+                    tvDeparture.setVisibility(View.VISIBLE);
+                    tvDeparture.setText(departureTime.format(TIME_FORMATTER));
+                    tvDeparture.setTextColor(stop.isOnLive() ? COLOR_GREEN : MaterialColors.getColor(tvDeparture, com.google.android.material.R.attr.colorOnSurface));
+                    if (stop.isOnLive()) {
+                        ivDepartureIcon.setImageResource(R.drawable.icon_sensors);
+                        ivDepartureIcon.setColorFilter(COLOR_GREEN);
+                        ivDepartureIcon.setVisibility(View.VISIBLE);
+                    } else {
+                        ivDepartureIcon.setVisibility(View.GONE);
+                    }
+                } else {
+                    tvDeparture.setVisibility(View.VISIBLE);
+                    tvDeparture.setText("??:??");
+                    ivDepartureIcon.setVisibility(View.GONE);
+                }
+            }
+
+            if (stop.getDelay() == null || stop.getDelay() == 0) {
+                tvDelay.setVisibility(View.GONE);
+            } else {
+                tvDelay.setVisibility(View.VISIBLE);
+                tvDelay.setText(stop.getDelayText());
+                tvDelay.setTextColor(stop.getDelayColor());
+            }
+        }
+
+        private void bindPlatform(TextView tvPlatform, View spacerPlatform, String platformName) {
+            if (platformName != null && !platformName.isEmpty()) {
+                tvPlatform.setText(platformName);
+                tvPlatform.setVisibility(View.VISIBLE);
+                tvPlatform.setTextColor(Color.WHITE);
+                spacerPlatform.setVisibility(View.VISIBLE);
+
+                GradientDrawable gd = new GradientDrawable();
+                gd.setShape(GradientDrawable.RECTANGLE);
+                gd.setStroke(2, Color.WHITE);
+                gd.setCornerRadius(10);
+                tvPlatform.setBackground(gd);
+            } else {
+                tvPlatform.setVisibility(View.GONE);
+                spacerPlatform.setVisibility(View.GONE);
+            }
+        }
+
+        private void bindStopName(TextView tvStopName, String stopName, int iconRes) {
+            SpannableStringBuilder builder = new SpannableStringBuilder(stopName != null ? stopName : "");
+            if (iconRes != 0) {
+                appendStopIcon(tvStopName, builder, iconRes);
+            }
+            tvStopName.setText(builder);
+            tvStopName.setSelected(true);
+        }
+
+        private void appendStopIcon(TextView tvStopName, SpannableStringBuilder builder, int iconRes) {
+            builder.append("  ");
+            Drawable d = ContextCompat.getDrawable(context, iconRes);
+            if (d != null) {
+                d.mutate();
+                d.setColorFilter(new PorterDuffColorFilter(
+                        MaterialColors.getColor(tvStopName, com.google.android.material.R.attr.colorOnSurface),
+                        PorterDuff.Mode.SRC_IN
+                ));
+                int size = (int) (tvStopName.getTextSize() * 1.2f);
+                d.setBounds(0, 0, size, size);
+                builder.setSpan(
+                        new ImageSpan(d, ImageSpan.ALIGN_BOTTOM),
+                        builder.length() - 1,
+                        builder.length(),
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                );
+            }
+        }
+
+        private int getStopIconResource(MarkerDataStop stop) {
+            if (stop.cantPickup()) return R.drawable.icon_logout;
+            if (stop.cantDropoff()) return R.drawable.icon_login;
+            return 0;
         }
     }
 }
